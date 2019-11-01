@@ -1,25 +1,3 @@
-git grep 'KVM setup'
-vim arch/x86/kernel/kvm.c
-vim -t kvm_guest_cpu_init
-vim -t cr4_init
-vim -t kvm_guest_cpu_init
-vim -t cr4_init
-vim -t kvm_guest_cpu_init
-git diff
-time make -j $(($(nproc)*4))
-time make -j $(($(nproc)*4)) bzImage
-cd linux
-git diff
-vim -t kvm_emulate_hypercall
-vim -t MSR_IA32_VMX_CR4_FIXED0
-git grep IA32_VMX_BASIC
-vim -t kvm_emulate_hypercall
-cd arch/x86/kvm/vmx/
-make
-ll
-cd -
-make arch/x86/kvm/vmx/
-make arch/x86/kvm/
 vim -t rdmsr
 vim -t kvm_emulate_hypercall
 git grep wrmsrl_safe
@@ -998,3 +976,25 @@ cat ~/.ssh/id_rsa.pub
 time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install && sudo systemctl stop secure-tunnel@johnsa1-desk.service && sudo kexec -l /boot/vmlinuz-5.3.0+ --append="$(cat /proc/cmdline)" --initrd=/boot/initramfs-5.3.0+.img && sudo kexec -e
 vim arch/x86/kvm/x86.c
 time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install && sudo systemctl stop secure-tunnel@johnsa1-desk.service && sudo kexec -l /boot/vmlinuz-5.3.0+ --append="$(cat /proc/cmdline)" --initrd=/boot/initramfs-5.3.0+.img && sudo kexec -e
+tmux
+~/run.sh 
+~/run.sh 
+vim arch/x86/kvm/x86.c
+cd linux-combined/
+vim arch/x86/kvm/x86.c
+git grep vm_exit
+git grep soft_reset
+git grep soft_reset | grep -v drivers/ \ less
+git grep soft_reset | grep -v drivers/ | less
+vim kernel/kexec_core.c
+git grep soft_reset | grep -v drivers/ | less
+vim kernel/k
+vim kernel/kexec_core.c
+git grep machine_kexec
+vim arch/x86/kernel/machine_kexec_64.c
+git grep relocate_kernel,
+git grep relocate_kernel
+vim arch/x86/kernel/relocate_kernel_64.S
+time make -j $(($(nproc)*4)) bzImage
+cat arch/x86/kernel/relocate_kernel_64.S
+tmux
