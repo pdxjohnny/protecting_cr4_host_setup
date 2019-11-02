@@ -35,13 +35,13 @@ IMAGE=${IMAGE:-"${HOME}/chroot.img"}
 
 sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${HOME}/chroot/boot/bzImage"
 sudo chmod 644 "${HOME}/chroot/boot/bzImage"
-exec "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" \
+exec "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -no-reboot \
   -enable-kvm \
   -kernel \
     "${HOME}/chroot/boot/bzImage" \
   -append \
-    'console=ttyS0 init=/usr/bin/init.sh rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.u rw' \
+    'console=ttyS0 init=/usr/bin/init.sh rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.u rw nokaslr' \
   -nographic \
   -cpu \
     host \

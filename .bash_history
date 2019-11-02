@@ -1,20 +1,3 @@
-vim -t rdmsr
-vim -t kvm_emulate_hypercall
-git grep wrmsrl_safe
-vim arch/x86/kvm/x86.c
-git grep kvm_set_shared_msr
-vim arch/x86/kvm/vmx/vmx.c
-git grep kvm_set_shared_msr
-vim -t kvm_emulate_hypercall
-make arch/x86/kvm/
-vim -t rdmsrl
-vim -t kvm_emulate_hypercall
-make arch/x86/kvm/
-ll arch/x86/kvm/
-sudo rmmod kvm kvm-intel
-sudo rmmod kvm-intel
-sudo rmmod -f kvm-intel
-sudo make modules_install
 sudo reboot
 qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic
 sudo journalctl --demg
@@ -998,3 +981,20 @@ vim arch/x86/kernel/relocate_kernel_64.S
 time make -j $(($(nproc)*4)) bzImage
 cat arch/x86/kernel/relocate_kernel_64.S
 tmux
+git status
+cd ..
+vim README.md
+cat README.md
+head README.md
+vim ~/run.sh 
+~/run.sh
+vim ~/run.sh 
+~/run.sh -gdb
+~/run.sh -s
+~/run.sh -s -S
+vim ~/run.sh
+~/run.sh -s -S
+gdb
+sudo dnf install -y gdb
+gdb
+gdb vmlinux 
