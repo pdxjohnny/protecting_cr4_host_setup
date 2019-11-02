@@ -1,11 +1,3 @@
-sudo reboot
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic
-sudo journalctl --demg
-sudo journalctl --dmesg
-tmux
-cd linux
-vim -t kvm_emulate_hypercall
-vim -t MSR_IA32_VMX_CR4_FIXED0
 git grep MSR_IA32_VMX_BASIC
 vim tools/testing/selftests/kvm/include/x86_64/vmx.h
 git grep vmcs_revision
@@ -998,3 +990,11 @@ gdb
 sudo dnf install -y gdb
 gdb
 gdb vmlinux 
+cd 
+vim README.md 
+git add README.md
+git status
+git add -f README.md 
+git diff
+git c 'nokaslr for gdb debugging'
+git push
