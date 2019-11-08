@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -xe
 
 CHROOT=${CHROOT:-"${HOME}/chroot"}
 IMAGE=${IMAGE:-"${HOME}/chroot.img"}
@@ -32,6 +33,14 @@ IMAGE=${IMAGE:-"${HOME}/chroot.img"}
 #   rm -rf "${MDIR}"
 #   sudo losetup -d "${LOOP}"
 # fi
+
+sudo modprobe kvm
+sudo modprobe kvm-intel
+sudo modprobe -rf kvm-intel
+sudo modprobe -rf kvm
+sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "/lib/modules/5.3.0+/kernel/arch/x86/kvm/"
+sudo modprobe kvm
+sudo modprobe kvm-intel
 
 sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${HOME}/chroot/boot/bzImage"
 sudo chmod 644 "${HOME}/chroot/boot/bzImage"

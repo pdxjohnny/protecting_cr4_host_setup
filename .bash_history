@@ -1,112 +1,3 @@
-git grep MSR_IA32_VMX_BASIC
-vim tools/testing/selftests/kvm/include/x86_64/vmx.h
-git grep vmcs_revision
-ll jdump -D /usr/lib/modules/5.3.0+/kernel/arch/x86/kvm/kvm.ko
-ll /usr/lib/modules/5.3.0+/kernel/arch/x86/kvm/kvm.ko
-ll /usr/lib/modules/5.3.0+/kernel/arch/x86/kvm/kvm-intel.ko 
-sudo make modules_install
-ll /usr/lib/modules/5.3.0+/kernel/arch/x86/kvm/kvm-intel.ko 
-ll /usr/lib/modules/5.3.0+/kernel/arch/x86/kvm/kvm.ko
-sudo reboot
-vim -t kvm_arch_vcpu_ioctl_run
-cd linux
-vim -t kvm_arch_vcpu_ioctl_run
-vim -t kvm_emulate_hypercall
-vim -t kvm_arch_vcpu_ioctl_ru
-vim -t kvm_emulate_hypercall
-vim -t kvm_x86_ops
-vim -t msr_data
-vim -t kvm_emulate_hypercall
-git grep get_msr_feature
-vim -t kvm_emulate_hypercall
-vim -t msr_data
-vim -t kvm_emulate_hypercall
-git grep MSR_IA32_VMX_BASIC
-vim arch/x86/kvm/x86.c
-git grep get_msr
-vim -t kvm_get_msr_common
-git grep kvm_get_msr_common
-vim arch/x86/kvm/vmx/vmx.c
-vim -t kvm_get_msr_common
-vim -t kvm_emulate_hypercall
-git diff
-vim -t kvm_get_msr_common
-make arch/x86/kvm/ && sudo make modules_install
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic
-sudo journalctl --dmesg
-uname -a
-sudo modprobe kvm
-sudo modprobe kvm-intel
-tmux
-sudo reboot
-sudo vim /etc/modprobe.d/blacklist
-cd linux
-vim -t kvm_emulate_hypercall
-make arch/x86/kvm/ && sudo make modules_install
-sudo make install
-tmux attach
-tmux
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic
-sudo journalctl --dmesg
-sudo reboot
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic
-sudo journalctl --dmesg
-cd linux
-vim -t kvm_emulate_hypercall
-time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install
-sudo reboot
-tmux
-uname -a
-sudo modprobe kvm-intel
-sudo modprobe kvm
-dmesg 
-dmesg | grep -i kvm
-dmesg | grep -i kvm | grep -v 'Modules linked in'
-dmesg | grep -v 'Modules linked in' | grep -C 10 -i kvm
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic
-dmesg | grep -v 'Modules linked in' | grep -C 10 -i kvm
-dmesg | less
-man blacklist.conf
-man blacklist
-man modprobe.d
-sudo mv /etc/modprobe.d/blacklist /etc/modprobe.d/blacklist.conf
-sudo reboot
-tmux
-uname -a
-ll
-dmesg | less
-sudo journalctl --dmesg
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic
-sudo journalctl --dmesg
-cd linux
-vim -t kvm_emulate_hypercall
-time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install
-sudo reboot
-cd ../linux-kvm/
-git remote add pdxjohnny git@github.com:pdxjohnny/linux
-tmux attach
-cd ../linux-kvm/
-git status
-git diff
-git checkout -- arch/x86/kvm/x86.c
-git status
-git diff
-git checkout -b protect_cr4_guest
-git add -A
-git status
-git c 'Making hypercall'
-git push -u pdxjohnny
-git push -d protect_cr4
-git push -d pdxjohnny protect_cr4
-sudo journalctl --dmesg
-cd ../
-vim -t kvm_emulate_hypercall
-cd linux
-vim -t kvm_emulate_hypercall
-git grep \.set_msr
-git grep \\.set_msr
-vim arch/x86/kvm/vmx/vmx.c
-git diff
 vim arch/x86/kvm/vmx/vmx.c
 vim arch/x86/kvm/vmx/pmu_intel.c
 vim arch/x86/kvm/x86.c
@@ -998,3 +889,112 @@ git add -f README.md
 git diff
 git c 'nokaslr for gdb debugging'
 git push
+git status
+git add -A
+git status
+git c 'history'
+git push
+cd linux
+cd ~/linux-combined/
+vim arch/x86/kernel/relocate_kernel_64.S
+git grep SMAP
+git grep SMEP
+git grep X86_CR4_SMEP
+git status
+git diff
+git c 'in relocate_kernel do not turn off CR4 SMEP SMAP or CR0 WP'
+git push
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh 
+git grep X86_CR4_SMEP
+tmux
+git status
+~/run.sh -s -S
+objdump -D vmlinux
+objdump -D vmlinux > /tmp/objdump
+vim /tmp/objdump
+rm /tmp/objdump
+objdump -D vmlinux | grep -C 700 0xffffffff8106378d | tee /tmp/objdump
+objdump -D vmlinux | grep -C 700 fff8106378d: | tee /tmp/objdump
+vim /tmp/objdump
+cat /tmp/objdump >> ~/README.md 
+vim ~/README.md
+git status
+cd ..
+git status
+git add -A
+git c 'README: lidt'
+git push
+tmux attach
+tmux attach
+tmux
+tmux attach
+vim
+cat vim
+cat /tmp/f 
+ps aux | grep qemu
+sudo dnf debuginfo-install zlib-1.2.11-18.fc30.x86_64
+cd linux-combined/
+gdb vmlinux 
+cd ../qemu/
+git grep lidt
+vim tests/tcg/i386/system/boot.S
+ll tests/tc
+ll tests/tcg/
+vim tests/tcg/README
+gdb vmlinux 
+git grep lidt
+vim disas/i386.c
+vim target/i386/hvf/x86_decode.c
+vim target/i386/translate.c
+git grep cr4
+vim target/i386/kvm.c
+cd ..
+cd linux-combined/
+objdump -D vmlinux | less
+find . -name kvm.ko
+objdump -D ./arch/x86/kvm/kvm.ko | less
+gdb vmlinux 
+man tmux
+sudo journalctl --dmesg | tail -n 50
+cat /etc/dnf/dnf.conf 
+objdump -D linux-combined/vmlinux | grep -v cr4
+objdump -D linux-combined/vmlinux | grep \%cr4
+objdump -D linux-combined/vmlinux | grep -C 40 \%cr4
+objdump -D linux-combined/vmlinux | grep -C 40 \%cr4 | less
+objdump -D linux-combined/vmlinux | grep --color -C 40 \%cr4 | less -r
+~/run.sh -s -S
+~/run.sh
+dmesg -T
+vim -t kvm_vcpu_ioctl
+cd linux-combined/
+vim -t kvm_vcpu_ioctl
+vim -t vfs_writev
+vim -t handle_cr
+vim ~/run.sh 
+~/run.sh
+im ~/run.sh 
+vim ~/run.sh
+dmesg -T
+~/run.sh -s -S
+dmesg -T | tail -n 50
+git status
+git diff
+~/run.sh -s -S
+vim -t kvm_vcpu_ioctl
+vim -t kvm_arch_vcpu_ioctl_run
+python3
+vim -t handle_mm_fault
+git grep handle_mm_fault
+vim mm/memory.c
+vim -t ksys_ioctl
+ll
+~/run.sh -s -S
+~/run.sh
+modprobe -rf
+modprobe -rf kvm
+modprobe -rf kvm-intel
+sudo modprobe -rf kvm-intel
+&& sudo modprobe -rf kvm-intel
+sudo modprobe -rf kvm-intel && sudo modprobe -rf kvm
+vim
