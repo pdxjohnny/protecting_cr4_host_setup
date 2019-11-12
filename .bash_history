@@ -1,259 +1,3 @@
-vim arch/x86/kvm/vmx/vmx.c
-vim arch/x86/kvm/vmx/pmu_intel.c
-vim arch/x86/kvm/x86.c
-vim arch/x86/kvm/svm.c
-time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install
-sudo vim /etc/default/grub 
-vim Makefile 
-cat /boot/
-cat /boot/loader/entries/
-sudo ls -lAD /boot/loader/entries/
-sudo ls -lAF /boot/loader/entries/
-sudo ls -lAF /boot/grub2/
-sudo ls -lAF /boot/
-sudo ls -lAF /boot/efi
-sudo ls -lAF /boot/efi/EFI
-sudo ls -lAF /boot/efi/EFI/fedora/
-sudo ls -lAF /boot/efi/EFI/fedora/grubenv
-cat /boot/efi/EFI/fedora/grubenv
-sudo cat /boot/efi/EFI/fedora/grubenv
-sudo cat /boot/efi/EFI/fedora/grub.cfg
-ll /etc/grub.d/
-sudo ls -lAF /etc/grub.d/
-sudo ls -lAF /etc/grub.d/README
-cat /etc/grub.d/README
-sudo cat /etc/grub.d/README
-sudo cat /etc/grub.d/00*
-sudo cat /etc/grub.d/
-sudo ls -lAF /etc/grub.d/README
-sudo ls -lAF /etc/grub.d/
-sudo vim /etc/grub.d/10_linux
-sudo reboot
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic
-sudo journalctl --dmesg
-cd linux
-vim -t kvm_emulate_hypercall
-vim -t srcu_read_lock
-git grep srcu_read_lock
-vim Documentation/RCU/whatisRCU.txt
-vim -t kvm_emulate_hypercall
-git status
-git diff
-git status
-git checkout -b protect_cr4_host
-git add -A
-git status
-git c 'workong on hypercall, failing to set FIXED0 msr'
-git push
-git remote -b
-git remote -v
-git remote add pdxjohnny git@github.com:pdxjohnny/linux
-git push -u pdxjohnny
-git-proxy 
-vim ~/.local/bin/git-proxy 
-git-proxy 
-git remote add pdxjohnny git@github.com:pdxjohnny/linux
-git push -u pdxjohnny
-vim ~/.ssh/config
-ll ~/.ssh
-ll ~/.ssh/.ssh/
-mv ~/.ssh/.ssh/config ~/.ssh/
-vim ~/.ssh/config
-mv ~/.ssh/.ssh/ /tmp/ssh
-rm -rf ~/.ssh/
-mv /tmp/ssh/ ~/.ssh
-git push -u pdxjohnny
-vim ~/.ssh/config
-ll ~/.ssh/
-git push -u pdxjohnny
-vim ~/.local/bin/git-proxy 
-vim ~/.ssh/config 
-git push -u pdxjohnny
-tmux
-tmux attach
-tmux
-sudo reboot
-sudo systemctl status secure-tunnel@johnsa1-desk.service
-sudo journalctl -xe -u secure-tunnel@johnsa1-desk | tail -n 50
-ssh desk
-cat ~/.ssh/config 
-vim ~/.ssh/config
-ssh desk
-sudo journalctl -xe -u secure-tunnel@johnsa1-desk | tail -n 50
-cd linux
-vim -t kvm_emulate_hypercall
-git add arch/x86/kvm/x86.c
-git c 'correct get_msr calls'
-git log
-git status
-git checkout HEAD~1 -- arch/x86/kvm/vmx/vmx.c arch/x86/kvm/vmx/pmu_intel.c arch/x86/kvm/pmu.c
-git log
-git status
-git diff --staged
-git commit --amend
-git status
-git push
-vim -t kvm_emulate_hypercall
-vim -t vmx_get_msr
-time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install
-sudo reboot
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic
-sudo journalctl --dmesg
-cd linux
-vim -t vmx_get_msr
-git diff
-git log -p
-tmux
-ll
-cd linux-kvm/
-ll
-cd ../linux
-ll
-vim -t vmx_get_msr
-vim -t kvm_emulate_hypercall
-vim -t vmx_get_msr
-vim -t vmcs_write
-git grep vmcs
-git status
-git diff
-git c 'nested check'
-git push
-vim -t set_cr4_guest_host_mask
-vim arch/x86/kvm/vmx/nested.c
-cd linux
-vim arch/x86/kvm/vmx/nested.c
-cd linux
-git grep MSR_IA32_VMX_CR4_FIXED0
-vim arch/x86/kvm/vmx/nested.c
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic
-sudo journalctl --dmesg
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic -cpu host
-sudo journalctl --dmesg
-cd linux
-git grep CR4_GUEST_HOST_MASK,
-git grep CR4_GUEST_HOST_MASK
-vim -t set_cr4_guest_host_mask
-cd linux
-vim -t set_cr4_guest_host_mask
-git grep cr4_read_shadow
-vim arch/x86/kvm/vmx/vmcs_shadow_fields.h
-vim -t set_cr4_guest_host_mask
-vim -t intr_te
-git grep intr_te
-vim -t pt_buffer
-git grep pt_buffer
-vim arch/x86/events/intel/pt.c
-vim -t set_cr4_guest_host_mask
-git status
-git log -p
-git checkout -b fixed0
-git push -u pdxjohnny
-git checkout protect_cr4_host
-vim -t set_cr4_guest_host_mask
-git reset --hard v5.3
-git logc
-vim -t set_cr4_guest_host_mask
-time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install
-vim -t set_cr4_guest_host_mask
-time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install
-sudo reboot
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic -cpu host
-sudo journalctl --dmesg
-cd linux
-vim -t set_cr4_guest_host_mask
-vim -t handle_set_cr4
-cd linux-kvm/
-ll
-git diff
-git log -p
-vim arch/x86/kernel/kvm.c
-vim -t kvm_guest_cpu_init
-time make -j $(($(nproc)*4)) bzImage
-sudo journalctl --demg
-sudo journalctl --dmesg
-cd linux
-time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install
-cd linux
-vim -t handle_set_cr4
-git grep SMEP
-vim -t handle_set_cr4
-vim -t kvm_get_cr4
-vim -t kvm_set_cr4
-tmux
-sudo reboot
-cd linux
-git status
-git add -A
-git diff --staged
-git status
-git c 'kvm: Log on guest SMEP/SMAP disable'
-git log
-git push -f
-find . -name kvm_para.h
-vim ./include/uapi/linux/kvm_para.h
-vim ./arch/x86/include/uapi/asm/kvm_para.h
-git grep MSR_KVM_POLL_CONTROL
-vim arch/x86/kvm/x86.c
-git status
-git diff
-vim ./arch/x86/include/uapi/asm/kvm_para.h
-vim ../linux-kvm/./arch/x86/include/uapi/asm/kvm_para.h
-find . -name kvm_para.h
-vim ./include/uapi/linux/kvm_para.h
-git status
-git diff
-git grep msr_kvm_poll_control
-vim arch/x86/include/asm/kvm_host.h
-git status
-git log -p
-vim arch/x86/kvm/x86.c
-git blame arch/x86/kvm/x86.c
-vim arch/x86/kvm/x86.c
-git blame arch/x86/kvm/x86.c
-git log a2edf57f510cc
-vim arch/x86/kvm/x86.c
-git diff
-git c 'kvm: Add MSR_KVM_CR4_NO_DISABLE'
-git push
-time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install
-cd linux-kvm/
-vim -t kvm_guest_cpu_init
-time make -j $(($(nproc)*4)) bzImage
-vim -t kvm_guest_cpu_init
-time make -j $(($(nproc)*4)) bzImage
-git status
-git diff
-git c 'test disable logging'
-git push
-vim -t kvm_guest_cpu_init
-git diff
-git diff v5.3
-time make -j $(($(nproc)*4)) bzImage
-git status
-git diff
-git checkout -- arch/x86/kernel/kvm.c
-git status
-vim arch/x86/kernel/kvm.c
-git diff
-vim arch/x86/kernel/kvm.c
-git status
-git diff
-time make -j $(($(nproc)*4)) bzImage
-git status
-git diff
-git c 'kvm: Use MSR_KVM_CR4_NO_DISABLE'
-git push
-git commit --amend
-git push -f
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic -cpu host
-sudo journalctl --dmesg
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic -cpu host
-sudo journalctl --dmesg
-sudo journalctl --dmesg | tail
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic -cpu host
-sudo journalctl --dmesg | tail
-qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic -cpu host
-sudo journalctl --dmesg | tail
 qemu-system-x86_64 -enable-kvm -kernel linux-kvm/arch/x86/boot/bzImage -append 'console=ttyS0' -nographic -cpu host
 tmux
 sudo reboot
@@ -998,3 +742,259 @@ sudo modprobe -rf kvm-intel
 && sudo modprobe -rf kvm-intel
 sudo modprobe -rf kvm-intel && sudo modprobe -rf kvm
 vim
+tmux attach
+cat ~/.ssh/authorized_keys 
+ssh johnsa1-desk.jf.intel.com
+vim ~/.ssh/authorized_keys 
+vim ~/.ssh/known_hosts 
+ssh johnsa1-desk.jf.intel.com
+sudo vim /etc/resolv.conf 
+sudo vim /etc/hosts 
+ssh johnsa1-desk.jf.intel.com
+sudo systemctl restart secure-tunnel@johnsa1-desk.service
+sudo systemctl status secure-tunnel@johnsa1-desk.service
+tmux attach
+tmux attach
+time make -j $(($(nproc)*4)) arch/x86/kvm/
+time make -j $(($(nproc)*4)) arch/x86/kvm/kvm.ko
+time make -j $(($(nproc)*4)) arch/x86/kvm/
+time make -j $(($(nproc)*4)) -C arch/x86/kvm/
+time make -j $(($(nproc)*4)) SUBDIRS=arch/x86/kvm/
+time make -j $(($(nproc)*4)) SUBDIRS=arch/x86/kvm/ modules
+time make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+time make -j $(($(nproc)*4)) M=arch/x86/kvm/
+time make -j $(($(nproc)*4)) -C arch/x86/kvm/
+cd linux-combined/
+time make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+time make -j $(($(nproc)*4)) 
+time make -j $(($(nproc)*4)) arch/x86/kvm/kvm.ko
+time make -j $(($(nproc)*4)) arch/x86/kvm/kvm-intel.ko
+time make -j $(($(nproc)*4)) arch/x86/kvm/
+sudo insmod arch/x86/kvm/kvm.ko arch/x86/kvm/kvm-intel.ko
+sudo insmod -vv arch/x86/kvm/kvm.ko 
+sudo insmod -h arch/x86/kvm/kvm.ko 
+sudo insmod arch/x86/kvm/kvm.ko 
+(cd arch/x86/kvm && git clean -xfd)
+time make -j $(($(nproc)*4)) arch/x86/kvm/
+sudo insmod arch/x86/kvm/
+time make -j $(($(nproc)*4)) arch/x86/kvm/kvm.ko
+git status
+git diff
+git grep -C 40 | \%cr4
+git grep -C 40 \%cr4
+~/run.sh
+modprobe kvm
+sudo modprobe kvm
+sudo modprobe kvm-intel
+~/run.sh
+dmesg -T | tail -n 50
+git grep kvm_mips_callbacks
+dmesg -T | tail -n 50
+time make -j $(($(nproc)*4)) arch/x86/kvm/kvm.ko
+time make -j $(($(nproc)*4)) bzImage
+time make -j $(($(nproc)*4)) arch/x86/kvm/kvm.ko
+time make -j $(($(nproc)*4))
+ll /lib/modules/
+find /lib/modules/ -name kvm.ko
+find /lib/modules/ -name kvm-intel.ko
+ll arch/x86/kvm/*.ko
+cp arch/x86/kvm/*.ko /lib/modules/5.3.0+/kernel/arch/x86/kvm/
+sudo cp arch/x86/kvm/*.ko /lib/modules/5.3.0+/kernel/arch/x86/kvm/
+sudo modprobe -rf kvm-intel && sudo modprobe -rf kvm
+sudo modprobe kvm && sudo modprobe kvm-intel
+~/run.sh
+sudo modprobe kvm && sudo modprobe kvm-intel
+dmesg 
+echo 'sudo modprobe kvm && sudo modprobe kvm-intel' >> ~/run.sh 
+echo 'sudo modprobe -rf kvm-intel && sudo modprobe -rf kvm' >> ~/run.sh
+echo 'sudo cp arch/x86/kvm/*.ko /lib/modules/5.3.0+/kernel/arch/x86/kvm/' >> ~/run.sh
+vim ~/run.sh
+~/run.sh
+vim ~/run.sh
+~/run.sh
+vim ~/run.sh
+~/run.sh
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh
+vim ~/run.sh
+~/run.sh
+time make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+~/run.sh
+git status
+git diff
+git c 'debuging set_cr4 on kexec'
+git push
+git status
+git diff
+time make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh
+git status
+git diff
+git c 'add modprobe to run'
+git push
+ll
+cd linux-combined/
+git status
+git log
+git log -p
+git checkout -b kexec
+git checkout protect_cr4
+git reset --hard HEAD
+git reset --hard 445caf60d401e431f7a39e4368a5acb5837a06f7
+git log
+git push -u origin kexec
+git push -u origin -f 
+git log -p
+git grep HC_
+vim Documentation/virt/kvm/hypercalls.txt
+git status
+git diff
+git grep HC_
+git grep KVM_HC_
+vim include/uapi/linux/kvm_para.h
+git grep KVM_HC_
+vim include/uapi/linux/kvm_para.h
+vim Documentation/virt/kvm/hypercalls.txt
+vim include/uapi/linux/kvm_para.h
+vim Documentation/virt/kvm/hypercalls.txt
+git status
+git add -A
+git diff
+git grep KVM_HC_
+vim Documentation/virt/kvm/hypercalls.txt
+vim include/uapi/
+find . -name kvm_para.h
+vim ./arch/x86/include/uapi/asm/kvm_para.h
+git grep KVM_HC_
+vim ./arch/x86/include/uapi/asm/kvm_para.h
+git grep KVM_HC_FEATURES
+vim Documentation/virt/kvm/hypercalls.txt
+git grep KVM_HC_SCHED_YIELD
+vim arch/x86/kvm/x86.c
+git grep KVM_HC_SCHED_YIELD
+vim arch/x86/kvm/x86.c
+vim Documentation/virt/kvm/hypercalls.txt
+vim arch/x86/kvm/x86.c
+git grep -i pinning
+vim arch/x86/kvm/x86.c
+git diff v5.3
+vim arch/x86/include/asm/kvm_host.h
+git diff v5.3
+vim arch/x86/kvm/cpuid.c
+git diff v5.3
+vim arch/x86/include/uapi/asm/kvm_para.h
+git diff v5.3
+git grep KVM_HC_SCHED_YIELD
+git grep kvm_hypercall2
+vim arch/x86/kernel/kvm.c
+git diff v5.3
+git grep KVM_EOPNOTSUPP
+vim arch/x86/kernel/kvm.c
+git status
+git diff
+git add -A
+git status
+git c 'hardening hypercall'
+time make -j $(($(nproc)*4)) bzImage
+vim arch/x86/kernel/kvm.c
+vim arch/x86/kvm/x86c.
+vim arch/x86/kvm/x86.c
+cd qemu/
+ll
+gdb build/x86_64-softmmu/qemu-system-x86_64
+vim .gdbinit 
+vim scripts/qemu-gdb.py 
+gdb build/x86_64-softmmu/qemu-system-x86_64
+echo 'set auto-load safe-path /' >> ~/.gdbinit
+vim ~/.gdbinit
+gdb build/x86_64-softmmu/qemu-system-x86_64
+sudo dnf debuginfo-install glib2-2.60.7-1.fc30.x86_64 glibc-2.29-22.fc30.x86_64 ncurses-libs-6.1-10.20180923.fc30.x86_64 pcre-8.43-2.fc30.x86_64 pixman-0.38.0-1.fc30.x86_64 zlib-1.2.11-18.fc30.x86_64
+gdb build/x86_64-softmmu/qemu-system-x86_64
+cd ../linux-combined/
+gi status
+git status
+git diff
+vim -t secondary_startup_64
+grep -rn secondary_startup_64
+git grep -rn secondary_startup_64
+vim arch/x86/kernel/head_64.S
+time make -j $(($(nproc)*4)) bzImage
+ssh johnsa1-desk.jf.intel.com
+vim ~/.ssh/known_hosts 
+ssh johnsa1-desk.jf.intel.com
+sudo systemctl restart secure-tunnel@johnsa1-desk.service
+sudo systemctl status secure-tunnel@johnsa1-desk.service
+git grep CR_PINNING
+vim arch/x86/kvm/x86.c
+vim arch/x86/boot/compressed/efi_thunk_64.S
+vim arch/x86/boot/compressed/head_64.S 
+vim arch/x86/kernel/relocate_kernel_64.S
+vim arch/x86/mm/mem_encrypt_boot.S
+vim arch/x86/platform/olpc/xo1-wakeup.S 
+vim arch/x86/realmode/rm/trampoline_64.S-
+vim arch/x86/realmode/rm/trampoline_64.S
+vim arch/x86/realmode/rm/wakeup_asm.S
+time make -j $(($(nproc)*4)) bzImage
+vim arch/x86/boot/compressed/head_64.S 
+time make -j $(($(nproc)*4)) bzImage
+vim -t kvm_arch_vcpu_ioctl_run
+git grep kvm_arch_vcpu_ioctl_run
+vim arch/x86/kvm/x86.c
+sudo journalctl --dmesg -f
+vim arch/x86/kvm/x86.c
+git grep handle_cr
+vim arch/x86/kvm/vmx/vmx.c
+sudo journalctl --dmesg -f
+vim ~/run.sh 
+sudo journalctl --dmesg -f
+sudo reboot
+tmux attach
+tmux
+vim ~/run.sh 
+~/run.sh
+~/run.sh -no-reboot 2>&1 | grep -i kvm
+vim ~/run.sh 
+find chroot -name poweroff
+vim ~/run.sh 
+~/run.sh -no-reboot 2>&1 | grep -i kvm
+~/run.sh
+vim ~/run.sh 
+~/run.sh -no-reboot 2>&1 | grep -i kvm
+~/run.sh -no-reboot 2>&1 | grep -i kvm | grep -i harden
+~/run.sh 2>&1 | grep -i kvm | grep -i harden
+~/run.sh 2>&1 | grep -i kvm
+sudo journalctl --dmesg -f
+git status
+cd linux-combined/
+git status
+git diff
+git add -A && git commit --amend
+git status
+git push -f
+git log -p
+git diff v5.3
+vim arch/x86/kernel/kvm.c
+time make -j $(($(nproc)*4)) bzImage
+git add -A && git commit --amend
+git push -f
+vim ~/run.sh 
+~/run.sh
+git diff v5.3
+git log -p
+git diff v5.3
+vim arch/x86/kernel/kvm.c
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh
+vim arch/x86/kernel/kvm.c
+time make -j $(($(nproc)*4)) bzImage
+git status
+git diff
+sudo reboot
+time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install && sudo systemctl stop secure-tunnel@johnsa1-desk.service && sudo kexec -l /boot/vmlinuz-5.3.0+ --append="$(cat /proc/cmdline)" --initrd=/boot/initramfs-5.3.0+.img && sudo kexec -e
+cd linux-combined/
+time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install && sudo systemctl stop secure-tunnel@johnsa1-desk.service && sudo kexec -l /boot/vmlinuz-5.3.0+ --append="$(cat /proc/cmdline)" --initrd=/boot/initramfs-5.3.0+.img && sudo kexec -e
+git grep HAVE_KVM_NO_POLL
+git grep HAVE_KVM
+git grep -i cr_pin
+git grep -i cr0_pi
