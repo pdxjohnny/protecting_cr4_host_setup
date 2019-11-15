@@ -14,9 +14,12 @@ ulimit -u unlimited
 
 # /usr/sbin/kexec --append="${CMDLINE}" -l /boot/bzImage
 # /usr/sbin/kexec -e
-/usr/sbin/kexec --append="${CMDLINE}" -f /boot/bzImage
+# /usr/sbin/kexec --append="${CMDLINE}" -f /boot/bzImage
+echo "Rebooting..."
+sleep 2
+/usr/sbin/reboot
 
 while test 1; do
-        echo "Waiting for kexec..."
+        echo "Waiting for reboot..."
         sleep 1
 done
