@@ -1,0 +1,320 @@
+From b074bcb916fa3ff27d491ebcd61dacbd205febb3 Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Tue, 12 Nov 2019 17:28:04 -0500
+Subject: [PATCH 2/2] KVM: X86: Add kernel hardening hypercall
+
+Add a kernel hardening hypercall to KVM. Allow guests to request
+enabling of protections. Implement CR0 and CR4 bit pinning protections.
+A guest may request bits be added (but never removed) from a bit mask
+for each register. Pinning is per CPU and cleared on vCPU reset. Should
+the guest at a later time attempt to disable any of the bits set in the
+mask, send that guest a general protection fault, and leave the register
+unchanged. Future use of the hardening hypercall may include protecting
+the NXE bit of the EFER MSR.
+
+Pinning of sensitive CR bits has already been implemented to protect
+against exploits directly calling native_write_crX. The current
+protection cannot stop ROP attacks which jump directly to a MOV CR
+instruction. Guests running with hypervisor based CR pinning are now
+protected against the use of ROP to disable CR bits.
+
+The practice of protecting CRs and MSRs of guests is a known method
+implemented by other hypervisors such as HyperV:
+
+https://docs.microsoft.com/en-us/windows-hardware/design/device-experiences/vbs-resource-protections
+
+Guests using the kexec system call currently do not support hypervisor
+based control register pinning. This is due to early boot zeroing
+protected registers.
+
+TODO: Add new function pointer to kvm_x86_ops which is a nop on AMD
+since that causes VMEXIT on all CR writes, and calls
+set_cr4_guest_host_mask on Intel.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ Documentation/virt/kvm/hypercalls.txt | 29 ++++++++++++++++
+ arch/x86/Kconfig                      |  9 +++++
+ arch/x86/include/asm/kvm_host.h       |  5 +++
+ arch/x86/include/uapi/asm/kvm_para.h  |  5 +++
+ arch/x86/kernel/cpu/common.c          | 20 +++++++++++
+ arch/x86/kvm/cpuid.c                  |  3 +-
+ arch/x86/kvm/x86.c                    | 49 +++++++++++++++++++++++++++
+ include/uapi/linux/kvm_para.h         |  1 +
+ 8 files changed, 120 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/virt/kvm/hypercalls.txt b/Documentation/virt/kvm/hypercalls.txt
+index 5f6d291bd004..a82e23057c95 100644
+--- a/Documentation/virt/kvm/hypercalls.txt
++++ b/Documentation/virt/kvm/hypercalls.txt
+@@ -152,3 +152,32 @@ a0: destination APIC ID
+ 
+ Usage example: When sending a call-function IPI-many to vCPUs, yield if
+ any of the IPI target vCPUs was preempted.
++
++12. KVM_HC_HARDEN
++------------------------
++Architecture: x86
++Status: active
++Purpose: Hypercall used to configure kernel hardening features.
++Usage:
++
++a0: One of the KVM_HC_HARDEN_XXXXXX integer values used to inform
++the host how it should interpret a1.
++
++a1: Value depends on a0
++
++	KVM_HC_HARDEN_CR0_PINNING:
++	KVM_HC_HARDEN_CR4_PINNING:
++		__u32 bits_to_pin
++
++		Bits which if the guest ever attempts to set to 0 in their
++		respective registers, trigger a general protection fault.
++
++The hypercall lets a guest enable kernel hardening features. Instructing the
++host to enforce guest specified restrictions upon the guest. These
++restrictions cannot be revoked for the lifetime of the guest. This is to
++prevent attackers from disabling them before executing an attack they may
++prevent.
++
++Returns KVM_EOPNOTSUPP if the host does not support a0.
++
++Returns KVM_EINVAL if a1 is incorrect for a0.
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index d6e1faa28c58..56ad85bd942a 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -758,6 +758,7 @@ if HYPERVISOR_GUEST
+ 
+ config PARAVIRT
+ 	bool "Enable paravirtualization code"
++	select PARAVIRT_HARDEN_CR_PINNING
+ 	---help---
+ 	  This changes the kernel so it can modify itself when it is run
+ 	  under a hypervisor, potentially improving performance significantly
+@@ -839,6 +840,14 @@ config PARAVIRT_TIME_ACCOUNTING
+ config PARAVIRT_CLOCK
+ 	bool
+ 
++config PARAVIRT_HARDEN_CR_PINNING
++	bool "Paravirtual bit pinning for CR0 and CR4"
++	depends on PARAVIRT && !KEXEC
++	help
++	  Select this option to have the virtualised guest request the
++	  hypervisor disallow it from disabling protections set in control
++	  registers.
++
+ config JAILHOUSE_GUEST
+ 	bool "Jailhouse non-root cell support"
+ 	depends on X86_64 && PCI
+diff --git a/arch/x86/include/asm/kvm_host.h b/arch/x86/include/asm/kvm_host.h
+index 4dd5f1ef4398..c785c1eccaab 100644
+--- a/arch/x86/include/asm/kvm_host.h
++++ b/arch/x86/include/asm/kvm_host.h
+@@ -752,6 +752,11 @@ struct kvm_vcpu_arch {
+ 
+ 	u64 msr_kvm_poll_control;
+ 
++	struct {
++		u32 cr0_pinning;
++		u32 cr4_pinning;
++	} harden;
++
+ 	/*
+ 	 * Indicate whether the access faults on its page table in guest
+ 	 * which is set when fix page fault and used to detect unhandeable
+diff --git a/arch/x86/include/uapi/asm/kvm_para.h b/arch/x86/include/uapi/asm/kvm_para.h
+index 2a8e0b6b9805..c3f3939bac72 100644
+--- a/arch/x86/include/uapi/asm/kvm_para.h
++++ b/arch/x86/include/uapi/asm/kvm_para.h
+@@ -31,6 +31,7 @@
+ #define KVM_FEATURE_PV_SEND_IPI	11
+ #define KVM_FEATURE_POLL_CONTROL	12
+ #define KVM_FEATURE_PV_SCHED_YIELD	13
++#define KVM_FEATURE_HARDEN		14
+ 
+ #define KVM_HINTS_REALTIME      0
+ 
+@@ -51,6 +52,10 @@
+ #define MSR_KVM_PV_EOI_EN      0x4b564d04
+ #define MSR_KVM_POLL_CONTROL	0x4b564d05
+ 
++/* Hardening related config selectors and config structures */
++#define KVM_HC_HARDEN_CR0_PINNING 0
++#define KVM_HC_HARDEN_CR4_PINNING 1
++
+ struct kvm_steal_time {
+ 	__u64 steal;
+ 	__u32 version;
+diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
+index 9ae7d1bcd4f4..6e47132d3372 100644
+--- a/arch/x86/kernel/cpu/common.c
++++ b/arch/x86/kernel/cpu/common.c
+@@ -20,6 +20,7 @@
+ #include <linux/smp.h>
+ #include <linux/io.h>
+ #include <linux/syscore_ops.h>
++#include <linux/kvm_para.h>
+ 
+ #include <asm/stackprotector.h>
+ #include <asm/perf_event.h>
+@@ -423,6 +424,23 @@ void cr4_init(void)
+ 	this_cpu_write(cpu_tlbstate.cr4, cr4);
+ }
+ 
++static void setup_paravirt_cr_pinning(void)
++{
++#ifdef CONFIG_PARAVIRT_HARDEN_CR_PINNING
++	if (kvm_para_has_feature(KVM_FEATURE_HARDEN)) {
++		if (!kvm_hypercall2(KVM_HC_HARDEN, KVM_HC_HARDEN_CR0_PINNING,
++				    X86_CR0_WP))
++			pr_info("Setup paravirtualized cr0 pinning for cpu %d\n",
++				smp_processor_id());
++
++		if (!kvm_hypercall2(KVM_HC_HARDEN, KVM_HC_HARDEN_CR4_PINNING,
++				    cr4_pinned_bits))
++			pr_info("Setup paravirtualized cr4 pinning for cpu %d\n",
++				smp_processor_id());
++	}
++#endif
++}
++
+ /*
+  * Once CPU feature detection is finished (and boot params have been
+  * parsed), record any of the sensitive CR bits that are set, and
+@@ -435,6 +453,8 @@ static void __init setup_cr_pinning(void)
+ 	mask = (X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP);
+ 	cr4_pinned_bits = this_cpu_read(cpu_tlbstate.cr4) & mask;
+ 	static_key_enable(&cr_pinning.key);
++
++	setup_paravirt_cr_pinning();
+ }
+ 
+ /*
+diff --git a/arch/x86/kvm/cpuid.c b/arch/x86/kvm/cpuid.c
+index f68c0c753c38..3c12ef91181d 100644
+--- a/arch/x86/kvm/cpuid.c
++++ b/arch/x86/kvm/cpuid.c
+@@ -712,7 +712,8 @@ static inline int __do_cpuid_func(struct kvm_cpuid_entry2 *entry, u32 function,
+ 			     (1 << KVM_FEATURE_ASYNC_PF_VMEXIT) |
+ 			     (1 << KVM_FEATURE_PV_SEND_IPI) |
+ 			     (1 << KVM_FEATURE_POLL_CONTROL) |
+-			     (1 << KVM_FEATURE_PV_SCHED_YIELD);
++			     (1 << KVM_FEATURE_PV_SCHED_YIELD) |
++			     (1 << KVM_FEATURE_HARDEN);
+ 
+ 		if (sched_info_on())
+ 			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
+diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
+index ff395f812719..8b826037f2d4 100644
+--- a/arch/x86/kvm/x86.c
++++ b/arch/x86/kvm/x86.c
+@@ -750,6 +750,7 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+ {
+ 	unsigned long old_cr0 = kvm_read_cr0(vcpu);
+ 	unsigned long update_bits = X86_CR0_PG | X86_CR0_WP;
++	unsigned long bits_missing = 0;
+ 
+ 	cr0 |= X86_CR0_ET;
+ 
+@@ -766,6 +767,13 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+ 	if ((cr0 & X86_CR0_PG) && !(cr0 & X86_CR0_PE))
+ 		return 1;
+ 
++	bits_missing = ~cr0 & vcpu->arch.harden.cr0_pinning;
++	if (bits_missing) {
++		pr_warn("Guest attempted to disable cr0 bits: %lx!?\n",
++			bits_missing);
++		return 1;
++	}
++
+ 	if (!is_paging(vcpu) && (cr0 & X86_CR0_PG)) {
+ #ifdef CONFIG_X86_64
+ 		if ((vcpu->arch.efer & EFER_LME)) {
+@@ -886,9 +894,18 @@ EXPORT_SYMBOL_GPL(kvm_set_xcr);
+ 
+ static int kvm_valid_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
+ {
++	unsigned long bits_missing = 0;
++
+ 	if (cr4 & CR4_RESERVED_BITS)
+ 		return -EINVAL;
+ 
++	bits_missing = ~cr4 & vcpu->arch.harden.cr4_pinning;
++	if (bits_missing) {
++		pr_warn("Guest attempted to disable cr4 bits: %lx!?\n",
++			bits_missing);
++		return -EINVAL;
++	}
++
+ 	if (!guest_cpuid_has(vcpu, X86_FEATURE_XSAVE) && (cr4 & X86_CR4_OSXSAVE))
+ 		return -EINVAL;
+ 
+@@ -7346,6 +7363,33 @@ static void kvm_sched_yield(struct kvm *kvm, unsigned long dest_id)
+ 		kvm_vcpu_yield_to(target);
+ }
+ 
++static unsigned long kvm_harden(struct kvm_vcpu *vcpu,
++				unsigned long config_select,
++				unsigned long config)
++{
++	unsigned long ret;
++
++	switch (config_select) {
++	case KVM_HC_HARDEN_CR0_PINNING:
++		vcpu->arch.harden.cr0_pinning |= (u32)config;
++		kvm_x86_ops->set_cr0_guest_owned_bits(vcpu,
++				vcpu->arch.cr0_guest_owned_bits & ~config);
++		ret = 0;
++		break;
++	case KVM_HC_HARDEN_CR4_PINNING:
++		vcpu->arch.harden.cr4_pinning |= (u32)config;
++		kvm_x86_ops->set_cr4_guest_owned_bits(vcpu,
++				vcpu->arch.cr4_guest_owned_bits & ~config);
++		ret = 0;
++		break;
++	default:
++		ret = -KVM_EOPNOTSUPP;
++		break;
++	}
++
++	return ret;
++}
++
+ int kvm_emulate_hypercall(struct kvm_vcpu *vcpu)
+ {
+ 	unsigned long nr, a0, a1, a2, a3, ret;
+@@ -7397,6 +7441,9 @@ int kvm_emulate_hypercall(struct kvm_vcpu *vcpu)
+ 		kvm_sched_yield(vcpu->kvm, a0);
+ 		ret = 0;
+ 		break;
++	case KVM_HC_HARDEN:
++		ret = kvm_harden(vcpu, a0, a1);
++		break;
+ 	default:
+ 		ret = -KVM_ENOSYS;
+ 		break;
+@@ -9161,6 +9208,8 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
+ 
+ 	vcpu->arch.ia32_xss = 0;
+ 
++	memset(&(vcpu->arch.harden), 0, sizeof(vcpu->arch.harden));
++
+ 	kvm_x86_ops->vcpu_reset(vcpu, init_event);
+ }
+ 
+diff --git a/include/uapi/linux/kvm_para.h b/include/uapi/linux/kvm_para.h
+index 8b86609849b9..2cff739b54a8 100644
+--- a/include/uapi/linux/kvm_para.h
++++ b/include/uapi/linux/kvm_para.h
+@@ -29,6 +29,7 @@
+ #define KVM_HC_CLOCK_PAIRING		9
+ #define KVM_HC_SEND_IPI		10
+ #define KVM_HC_SCHED_YIELD		11
++#define KVM_HC_HARDEN			12
+ 
+ /*
+  * hypercalls use architecture specific
+-- 
+2.21.0
+

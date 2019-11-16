@@ -1,49 +1,3 @@
-cat README.md
-head README.md
-vim ~/run.sh 
-~/run.sh
-vim ~/run.sh 
-~/run.sh -gdb
-~/run.sh -s
-~/run.sh -s -S
-vim ~/run.sh
-~/run.sh -s -S
-gdb
-sudo dnf install -y gdb
-gdb
-gdb vmlinux 
-cd 
-vim README.md 
-git add README.md
-git status
-git add -f README.md 
-git diff
-git c 'nokaslr for gdb debugging'
-git push
-git status
-git add -A
-git status
-git c 'history'
-git push
-cd linux
-cd ~/linux-combined/
-vim arch/x86/kernel/relocate_kernel_64.S
-git grep SMAP
-git grep SMEP
-git grep X86_CR4_SMEP
-git status
-git diff
-git c 'in relocate_kernel do not turn off CR4 SMEP SMAP or CR0 WP'
-git push
-time make -j $(($(nproc)*4)) bzImage
-~/run.sh 
-git grep X86_CR4_SMEP
-tmux
-git status
-~/run.sh -s -S
-objdump -D vmlinux
-objdump -D vmlinux > /tmp/objdump
-vim /tmp/objdump
 rm /tmp/objdump
 objdump -D vmlinux | grep -C 700 0xffffffff8106378d | tee /tmp/objdump
 objdump -D vmlinux | grep -C 700 fff8106378d: | tee /tmp/objdump
@@ -998,3 +952,49 @@ cd linux-combined/
 git status
 time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install
 sudo reboot
+dmesg 
+vim ~/run.sh 
+~/run.sh
+git status
+dmesg 
+dmesg | grep -i kvm
+git status
+git add -A
+git c 'updates'
+git push
+cd linux-combined/
+ll
+git status
+git format-patch --cover-letter -M upstream/master -o ../outgoing/
+git status
+git log
+git checkout -b test v5.4-rc7
+git am ../outgoing/
+git status
+git log
+git am ../outgoing/*.patch
+git am --abort 
+git am ../outgoing/0001-KVM-X86-Add-setters-for-guest-owned-CR-bits.patch
+git am ../outgoing/0002-KVM-X86-Add-kernel-hardening-hypercall.patch
+time make -j $(($(nproc)*4)) && sudo make modules_install && sudo make install
+sudo vim /etc/default/grub 
+sudo grep gnulinux /boot/grub2/grub.cfg
+sudo grep gnulinux /boot/grub2/grub2.cfg
+sudo ls -lAF /boot/grub2/grub2.cfg
+sudo ls -lAF /boot/grub2/
+sudo ls -lAF /boot/
+sudo ls -lAF /boot/efi/
+sudo ls -lAF /boot/efi/EFI
+sudo ls -lAF /boot/efi/EFI/fedora/
+sudo ls -lAF /boot/efi/EFI/fedora/grub.cfg
+sudo cat /boot/efi/EFI/fedora/grub.cfg
+sudo cat /boot/efi/EFI/fedora/
+sudo ls -lAF /boot/efi/EFI/fedora/
+sudo cat /boot/efi/EFI/fedora/grubenv
+sudo grubby --default-kernel
+sudo grubby --default-kernel /boot/vmlinuz-5.4.0-rc7+
+sudo grubby --set-default /boot/vmlinuz-5.4.0-rc7+
+sudo grubby --default-kernel
+sudo reboot
+tmux attach
+tmux
