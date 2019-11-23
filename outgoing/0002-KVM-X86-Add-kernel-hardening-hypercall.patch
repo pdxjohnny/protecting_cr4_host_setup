@@ -1,4 +1,4 @@
-From b074bcb916fa3ff27d491ebcd61dacbd205febb3 Mon Sep 17 00:00:00 2001
+From 8b56716edcc2d69be09575b81b76f99af2d7f7e7 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/2] KVM: X86: Add kernel hardening hypercall
@@ -9,8 +9,12 @@ A guest may request bits be added (but never removed) from a bit mask
 for each register. Pinning is per CPU and cleared on vCPU reset. Should
 the guest at a later time attempt to disable any of the bits set in the
 mask, send that guest a general protection fault, and leave the register
-unchanged. Future use of the hardening hypercall may include protecting
-the NXE bit of the EFER MSR.
+unchanged. When syncing control registers with userspace, clear pinning
+for bits userspace clears. Userspace will unset bits on reboot, also
+clearing pinning for those bits.
+
+Future use of the hardening hypercall may include protecting the NXE bit
+of the EFER MSR.
 
 Pinning of sensitive CR bits has already been implemented to protect
 against exploits directly calling native_write_crX. The current
@@ -27,21 +31,21 @@ Guests using the kexec system call currently do not support hypervisor
 based control register pinning. This is due to early boot zeroing
 protected registers.
 
-TODO: Add new function pointer to kvm_x86_ops which is a nop on AMD
-since that causes VMEXIT on all CR writes, and calls
-set_cr4_guest_host_mask on Intel.
+A patch for QEMU is required to expose the hardening cpuid feature bit.
+
+https://github.com/qemu/qemu/compare/master...pdxjohnny:cr_pinning.patch
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/hypercalls.txt | 29 ++++++++++++++++
+ Documentation/virt/kvm/hypercalls.txt | 29 ++++++++++++++
  arch/x86/Kconfig                      |  9 +++++
  arch/x86/include/asm/kvm_host.h       |  5 +++
  arch/x86/include/uapi/asm/kvm_para.h  |  5 +++
- arch/x86/kernel/cpu/common.c          | 20 +++++++++++
+ arch/x86/kernel/cpu/common.c          | 20 ++++++++++
  arch/x86/kvm/cpuid.c                  |  3 +-
- arch/x86/kvm/x86.c                    | 49 +++++++++++++++++++++++++++
+ arch/x86/kvm/x86.c                    | 56 +++++++++++++++++++++++++++
  include/uapi/linux/kvm_para.h         |  1 +
- 8 files changed, 120 insertions(+), 1 deletion(-)
+ 8 files changed, 127 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/virt/kvm/hypercalls.txt b/Documentation/virt/kvm/hypercalls.txt
 index 5f6d291bd004..a82e23057c95 100644
@@ -206,7 +210,7 @@ index f68c0c753c38..3c12ef91181d 100644
  		if (sched_info_on())
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index ff395f812719..8b826037f2d4 100644
+index ff395f812719..c59a754c89f6 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
 @@ -750,6 +750,7 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
@@ -223,7 +227,7 @@ index ff395f812719..8b826037f2d4 100644
  
 +	bits_missing = ~cr0 & vcpu->arch.harden.cr0_pinning;
 +	if (bits_missing) {
-+		pr_warn("Guest attempted to disable cr0 bits: %lx!?\n",
++		pr_warn("kvm: Guest attempted to disable cr0 bits: %lx!?\n",
 +			bits_missing);
 +		return 1;
 +	}
@@ -231,26 +235,26 @@ index ff395f812719..8b826037f2d4 100644
  	if (!is_paging(vcpu) && (cr0 & X86_CR0_PG)) {
  #ifdef CONFIG_X86_64
  		if ((vcpu->arch.efer & EFER_LME)) {
-@@ -886,9 +894,18 @@ EXPORT_SYMBOL_GPL(kvm_set_xcr);
- 
- static int kvm_valid_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
- {
+@@ -918,10 +926,18 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
+ 	unsigned long old_cr4 = kvm_read_cr4(vcpu);
+ 	unsigned long pdptr_bits = X86_CR4_PGE | X86_CR4_PSE | X86_CR4_PAE |
+ 				   X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_PKE;
 +	unsigned long bits_missing = 0;
-+
- 	if (cr4 & CR4_RESERVED_BITS)
- 		return -EINVAL;
+ 
+ 	if (kvm_valid_cr4(vcpu, cr4))
+ 		return 1;
  
 +	bits_missing = ~cr4 & vcpu->arch.harden.cr4_pinning;
 +	if (bits_missing) {
-+		pr_warn("Guest attempted to disable cr4 bits: %lx!?\n",
++		pr_warn("kvm: Guest attempted to disable cr4 bits: %lx!?\n",
 +			bits_missing);
-+		return -EINVAL;
++		return 1;
 +	}
 +
- 	if (!guest_cpuid_has(vcpu, X86_FEATURE_XSAVE) && (cr4 & X86_CR4_OSXSAVE))
- 		return -EINVAL;
- 
-@@ -7346,6 +7363,33 @@ static void kvm_sched_yield(struct kvm *kvm, unsigned long dest_id)
+ 	if (is_long_mode(vcpu)) {
+ 		if (!(cr4 & X86_CR4_PAE))
+ 			return 1;
+@@ -7346,6 +7362,33 @@ static void kvm_sched_yield(struct kvm *kvm, unsigned long dest_id)
  		kvm_vcpu_yield_to(target);
  }
  
@@ -284,7 +288,7 @@ index ff395f812719..8b826037f2d4 100644
  int kvm_emulate_hypercall(struct kvm_vcpu *vcpu)
  {
  	unsigned long nr, a0, a1, a2, a3, ret;
-@@ -7397,6 +7441,9 @@ int kvm_emulate_hypercall(struct kvm_vcpu *vcpu)
+@@ -7397,6 +7440,9 @@ int kvm_emulate_hypercall(struct kvm_vcpu *vcpu)
  		kvm_sched_yield(vcpu->kvm, a0);
  		ret = 0;
  		break;
@@ -294,7 +298,26 @@ index ff395f812719..8b826037f2d4 100644
  	default:
  		ret = -KVM_ENOSYS;
  		break;
-@@ -9161,6 +9208,8 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
+@@ -8774,10 +8820,18 @@ static int __set_sregs(struct kvm_vcpu *vcpu, struct kvm_sregs *sregs)
+ 	mmu_reset_needed |= vcpu->arch.efer != sregs->efer;
+ 	kvm_x86_ops->set_efer(vcpu, sregs->efer);
+ 
++	vcpu->arch.harden.cr0_pinning &= sregs->cr0;
++	kvm_x86_ops->set_cr0_guest_owned_bits(vcpu,
++			vcpu->arch.cr0_guest_owned_bits & ~vcpu->arch.harden.cr0_pinning);
++
+ 	mmu_reset_needed |= kvm_read_cr0(vcpu) != sregs->cr0;
+ 	kvm_x86_ops->set_cr0(vcpu, sregs->cr0);
+ 	vcpu->arch.cr0 = sregs->cr0;
+ 
++	vcpu->arch.harden.cr4_pinning &= sregs->cr4;
++	kvm_x86_ops->set_cr4_guest_owned_bits(vcpu,
++			vcpu->arch.cr4_guest_owned_bits & ~vcpu->arch.harden.cr4_pinning);
++
+ 	mmu_reset_needed |= kvm_read_cr4(vcpu) != sregs->cr4;
+ 	cpuid_update_needed |= ((kvm_read_cr4(vcpu) ^ sregs->cr4) &
+ 				(X86_CR4_OSXSAVE | X86_CR4_PKE));
+@@ -9161,6 +9215,8 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
  
  	vcpu->arch.ia32_xss = 0;
  

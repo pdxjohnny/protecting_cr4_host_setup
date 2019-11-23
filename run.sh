@@ -34,18 +34,24 @@ IMAGE=${IMAGE:-"${HOME}/chroot.img"}
 #   sudo losetup -d "${LOOP}"
 # fi
 
-# sudo modprobe kvm
-# sudo modprobe kvm-intel
-# sudo modprobe -rf kvm-intel
-# sudo modprobe -rf kvm
-# sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "/lib/modules/5.3.0+/kernel/arch/x86/kvm/"
-# sudo modprobe kvm
-# sudo modprobe kvm-intel
+sudo modprobe kvm
+sudo modprobe kvm-intel
+sudo modprobe -rf kvm-intel
+sudo modprobe -rf kvm
+sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
+sudo modprobe kvm
+sudo modprobe kvm-intel
 
 sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${HOME}/chroot/boot/bzImage"
 sudo chmod 644 "${HOME}/chroot/boot/bzImage"
-exec "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
+"${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
+  -chardev \
+    "file,path=${HOME}/seabios.log,id=seabios" \
+  -device \
+    isa-debugcon,iobase=0x402,chardev=seabios \
   -enable-kvm \
+  -bios \
+    "${HOME}/seabios/out/bios.bin" \
   -kernel \
     "${HOME}/chroot/boot/bzImage" \
   -append \

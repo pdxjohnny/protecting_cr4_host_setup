@@ -1,4 +1,4 @@
-From 6df8853eddd847cc4ab1291027f58f0f79f51470 Mon Sep 17 00:00:00 2001
+From 27c5643023c373aa25fd23dc7d1ff65ea630ea79 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Fri, 15 Nov 2019 13:25:37 -0500
 Subject: [PATCH 1/2] KVM: X86: Add setters for guest owned CR bits

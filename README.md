@@ -1,3 +1,9 @@
+# Paravirtualization Based CR Pinning
+
+```console
+git send-email --annotate --cover-letter --cc kristen.c.accardi@intel.com --cc rick.p.edgecombe@intel.com HEAD~2
+```
+
 See https://gist.github.com/pdxjohnny/aed9d495e606a816f4dfa51db6c2ebd4 for kernel hacking notes
 
 Currently shit is hitting the fan at the `lidt` instruction (triggering SMAP and SMEP to be turned off).
