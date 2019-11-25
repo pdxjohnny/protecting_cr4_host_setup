@@ -1,7 +1,7 @@
 # Paravirtualization Based CR Pinning
 
 ```console
-git send-email --annotate --cover-letter --cc kristen.c.accardi@intel.com --cc rick.p.edgecombe@intel.com HEAD~2
+git send-email --annotate --cover-letter --to kristen.c.accardi@intel.com --to rick.p.edgecombe@intel.com --to linux-security@eclists.intel.com --to linux-drivers-review@eclists.intel.com --to sean.j.christopherson@intel.com --to jun.nakajima@intel.com HEAD~2
 ```
 
 See https://gist.github.com/pdxjohnny/aed9d495e606a816f4dfa51db6c2ebd4 for kernel hacking notes

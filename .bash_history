@@ -1,140 +1,3 @@
-ll /tmp/
-rm -rf seabios_debug_E49ix6/
-vim ~/run.sh 
-ll /tmp/
-~/run.sh
-vim arch/x86/kvm/x86.c
-git grep is_smm arch/x86/kvm/x86.c
-git grep is_smm arch/x86/kvm/
-vim arch/x86/kvm/kvm_cache_regs.h
-vim arch/x86/kvm/x86.c
-vim -t KVM_EOPNOTSUPP
-vim arch/x86/kvm/x86.c
-vim arch/x86/include/uapi/asm/kvm_para.h
-vim ~/run.sh 
-ll
-git status
-git diff
-vim arch/x86/kvm/vmx/vmx.c
-time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
-vim arch/x86/kvm/x86.c
-git grep kvm_vcpu
-git grep struct\ kvm_vcpu
-vim include/linux/kvm_types.h
-git grep struct\ kvm_vcpu\ {
-git grep struct\ kvm_vcpu\ \{
-vim include/linux/kvm_host.h
-vim arch/x86/kvm/x86.c
-git grep harden
-git grep struct\ harden\ 
-git log -p
-vim arch/x86/include/asm/kvm_host.h
-vim arch/x86/kvm/x86.c
-time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
-git grep REBOOT_SUPPORT
-vim arch/x86/include/uapi/asm/kvm_para.h
-time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
-vim arch/x86/kvm/x86.c
-vim ~/run.sh 
-~/run.sh
-git status
-git diff
-cd linux-combined/
-git diff
-vim ~/run.sh 
-uname -r
-vim arch/x86/kvm/x86.c
-git diff
-time make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-vim ~/run.sh 
-~/run.sh
-dme
-dmesg 
-vim ~/run.sh 
-git status
-git diff
-vim arch/x86/kvm/x86.c
-time make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-vim arch/x86/kvm/x86.c
-time make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-tmux
-gdb vmlinux 
-~/run.sh -s -S
-vim src/fw/kvm.c
-cd ~/seabios/
-vim src/fw/kvm.c
-grep -rn SMMISADeviceBDF
-grep -rn CONFIG_USE_SMM
-vim -t SMMISADeviceBDF
-git grep smm_
-vim src/fw/paravirt.c
-git grep -i smm
-make menuconfig
-vim Makefile 
-make menuconfig
-sed -i 's/CONFIG_DEBUG_LEVEL=1/CONFIG_DEBUG_LEVEL=3/' .config
-sed -i 's/DEBUG_HDL_smi 9/DEBUG_HDL_smi 1/' src/config.h
-make -j $(($(nproc)*4))
-vim -t handle_smi
-git grep KVM_SMI
-cd ~/linux-combined/
-git grep KVM_SMI
-vim Documentation/virt/kvm/api.txt
-~/run.sh 
-vim ~/seabios.log 
-~/run.sh 
-vim ~/seabios.log 
-cd ~/seabios/
-dmesg 
-git grep Changing
-vim src/hw/serialio.
-vim src/hw/serialio.c 
-git diff
-vim src/fw/smm.c
-vim .config
-make -j $(($(nproc)*4))
-vim src/fw/smm.c
-vim .config
-make -j $(($(nproc)*4))
-tail -f ~/seabios.log 
-vim src/fw/smm.c
-git grep cr4
-git grep -i cr4
-git grep reboot
-vim src/resume.c
-git rep 30000
-git grep 30000
-git grep BUILD_SMM_INIT_ADDR
-vim src/fw/smm.c
-git grep _hypercall_2
-git grep _hypercall2
-vim src/fw/smm.c
-vim src/fw/kvm.c
-git status
-vim ~/.gitconfig 
-cat >> .gitignore 
-git status
-git diff
-git status
-git add -A
-git stauts
-git status
-git c 'kvm support'
-git remote add pdxjohnny git@github.com:pdxjohnny/seabios.git
-git push -u pdxjohnny kvm_kc_harden
-git push -u pdxjohnny kvm_hc_harden
-git diffgit status
-it diff
-git diff
-vim src/fw/kvm.c
-vim src/fw/smm.c
-git grep CONFIG_XEN
-vim src/config.h
-find . -name config.h
-vim src/config.h
-find . -name autoconf.h
-vim out/autoconf.h 
-grep -rn config.h
 rep -rn CONFIG_XEN
 grep -rn CONFIG_XEN
 vim .config
@@ -998,3 +861,140 @@ watch -n 0.2 sh -c dmesg --color=always | tail -n 52'
 watch -n 0.2 sh -c 'dmesg --color=always | tail -n 52'
 watch -n 0.2 sh -c 'dmesg --color=always | tail -n 48'
 sudo journalctl --dmesg -f
+git status
+cd linux-combined/
+git status
+git diff
+git diff --staged
+vim ~/README.md 
+cd ..
+git status
+git diff
+git add -A
+git c 'udpates'
+git push
+tmux attach
+tmux attach
+tmux
+cd ~/qemu/
+git grep LAPIC
+vim hw/i386/kvm/apic.c
+vim include/sysemu/kvm.h
+git grep irqchip
+dme
+dmesg 
+dmesg --
+dmesg
+sudo journalctl --dmesg -f
+cd ~/seabios/
+vim src/fw/shadow.c 
+git grep qemu_reboot
+vim src/resume.c
+make -jr $(($(nproc)*4))
+make -j $(($(nproc)*4))
+vim src/resume.c
+git grep qemu_reboot
+vim src/fw/shadow.c 
+make -jr $(($(nproc)*4))
+make -j $(($(nproc)*4))
+vim src/fw/shadow.c 
+make -j $(($(nproc)*4))
+vim src/fw/shadow.c 
+git grep PORT_PIC
+git grep PORT_PCI
+git grep PORT_PCI_REBOOT
+~/run.sh
+~/run.sh -smp cpus=2
+git status
+git diff
+cd ~/linux-combined/
+git status
+git log -p
+vim arch/x86/kvm/x86.c
+git diff
+time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
+~/run.sh
+~/run.sh -smp cpus=2
+git status
+gti status
+git status
+git diff
+git status
+git grep Boot\ 
+git grep Booting\ SMP
+vim arch/x86/kernel/smpboot.c
+vim arch/x86/kvm/x86.c
+time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
+~/run.sh
+~/run.sh -smp cpus=2
+git status
+git diff
+git add -A
+git commit --amend
+git push -f
+git status
+git log -p
+git format-patch -M upstream/master -o ../outgoing/
+git log -p
+vim arch/x86/Kconfig
+git status
+git diff
+git add -A
+git commit --amend
+git push -f
+git format-patch -M upstream/master -o ../outgoing/
+git log -p
+git status
+git push -f
+git fetch --all
+git format-patch -M upstream/master -o ../outgoing/
+git checkout -b hc_harden upstream/master 
+git am ../outgoing/*
+git log
+time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
+time make -j $(($(nproc)*4)) && sudo make modules_install $(($(nproc)*4)) && sudo make install
+sudo reboot
+tmux
+uname- a
+uname -a
+~/run.sh 
+cd linux-combined/
+time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
+~/run.sh 
+vim ~/run.sh
+~/run.sh 
+time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
+~/run.sh 
+time make -j $(($(nproc)*4)) && sudo make modules_install -j $(($(nproc)*4)) && sudo make install
+sudo reboot
+tmux attach
+tmux
+vim ~/run.sh
+~/run.sh 
+uname -a
+vim ~/run.sh
+ll /lib/modules/$(uname -r)/kernel/arch/x86/kvm/
+ll /lib/modules/$(uname -r)/kerne
+ll /lib/modules/$(uname -r)/kernel
+ll /lib/modules/$(uname -r)/kernel/
+cd linux-combined/
+git log -p
+git log
+uname -a
+ll /boot/
+sudo grubby --set-default /boot/vmlinuz-5.4.0+
+sudo reboot
+dmesg 
+cd linux-combined/
+vim -t native_write_cr4
+git format-patch -M upstream/master -o ../outgoing/
+rm -rf ../outgoing/
+git format-patch -M upstream/master -o ../outgoing/
+cd ..
+git clone git://git.kernel.org/pub/scm/virt/kvm/kvm-unit-tests.git
+cd kvm-unit-tests/
+./configure 
+make -j
+./run_tests.sh 
+ll
+vim logs/vmware_backdoors.log
