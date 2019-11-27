@@ -12,14 +12,22 @@ mkdir -p /proc
 mount -t proc proc /proc -n
 ulimit -u unlimited
 
-# /usr/sbin/kexec --append="${CMDLINE}" -l /boot/bzImage
-# /usr/sbin/kexec -e
-# /usr/sbin/kexec --append="${CMDLINE}" -f /boot/bzImage
-echo "Rebooting..."
-sleep 2
-/usr/sbin/reboot
+do_kexec() {
+  echo "Kexecing..."
+  # /usr/sbin/kexec --append="${CMDLINE}" -l /boot/bzImage
+  # /usr/sbin/kexec -e
+  /usr/sbin/kexec --append="${CMDLINE}" -f /boot/vmlinux
+}
 
-while test 1; do
-        echo "Waiting for reboot..."
-        sleep 1
-done
+do_reboot() {
+  echo "Rebooting..."
+  sleep 2
+  /usr/sbin/reboot
+  
+  while test 1; do
+    echo "Waiting for reboot..."
+    sleep 1
+  done
+}
+
+do_kexec
