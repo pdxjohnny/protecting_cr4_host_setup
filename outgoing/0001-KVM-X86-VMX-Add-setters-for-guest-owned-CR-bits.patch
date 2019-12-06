@@ -1,0 +1,62 @@
+From 88b1cadbfc77f4b9212e0a92f1f8db5228e45726 Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Fri, 15 Nov 2019 13:25:37 -0500
+Subject: [PATCH 1/6] KVM: X86: VMX: Add setters for guest owned CR bits
+
+Add guest owned bits setters for CR0 and CR4 in vmx. Set VMCS host guest
+mask to the opposite of the guest owned bits.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ arch/x86/kvm/vmx/vmx.c | 19 +++++++++++++++++++
+ arch/x86/kvm/vmx/vmx.h |  4 ++++
+ 2 files changed, 23 insertions(+)
+
+diff --git a/arch/x86/kvm/vmx/vmx.c b/arch/x86/kvm/vmx/vmx.c
+index 04a8212704c1..9e910243de61 100644
+--- a/arch/x86/kvm/vmx/vmx.c
++++ b/arch/x86/kvm/vmx/vmx.c
+@@ -3097,6 +3097,25 @@ int vmx_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
+ 	return 0;
+ }
+ 
++void vmx_set_cr0_guest_owned_bits(struct kvm_vcpu *vcpu,
++				  unsigned long cr0_guest_owned_bits)
++{
++	vcpu->arch.cr0_guest_owned_bits = cr0_guest_owned_bits;
++	vmcs_writel(CR0_GUEST_HOST_MASK, ~cr0_guest_owned_bits);
++}
++
++void vmx_set_cr4_guest_owned_bits(struct kvm_vcpu *vcpu,
++				  unsigned long cr4_guest_owned_bits)
++{
++	vcpu->arch.cr4_guest_owned_bits = cr4_guest_owned_bits;
++	if (enable_ept)
++		vcpu->arch.cr4_guest_owned_bits |= X86_CR4_PGE;
++	if (is_guest_mode(vcpu))
++		vcpu->arch.cr4_guest_owned_bits &=
++			~get_vmcs12(vcpu)->cr4_guest_host_mask;
++	vmcs_writel(CR4_GUEST_HOST_MASK, ~vcpu->arch.cr4_guest_owned_bits);
++}
++
+ void vmx_get_segment(struct kvm_vcpu *vcpu, struct kvm_segment *var, int seg)
+ {
+ 	struct vcpu_vmx *vmx = to_vmx(vcpu);
+diff --git a/arch/x86/kvm/vmx/vmx.h b/arch/x86/kvm/vmx/vmx.h
+index 5a0f34b1e226..d3bfab8ced32 100644
+--- a/arch/x86/kvm/vmx/vmx.h
++++ b/arch/x86/kvm/vmx/vmx.h
+@@ -321,6 +321,10 @@ void vmx_set_efer(struct kvm_vcpu *vcpu, u64 efer);
+ void vmx_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0);
+ void vmx_set_cr3(struct kvm_vcpu *vcpu, unsigned long cr3);
+ int vmx_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4);
++void vmx_set_cr0_guest_owned_bits(struct kvm_vcpu *vcpu,
++				  unsigned long cr0_guest_owned_bits);
++void vmx_set_cr4_guest_owned_bits(struct kvm_vcpu *vcpu,
++				  unsigned long cr4_guest_owned_bits);
+ void set_cr4_guest_host_mask(struct vcpu_vmx *vmx);
+ void ept_save_pdptrs(struct kvm_vcpu *vcpu);
+ void vmx_get_segment(struct kvm_vcpu *vcpu, struct kvm_segment *var, int seg);
+-- 
+2.21.0
+

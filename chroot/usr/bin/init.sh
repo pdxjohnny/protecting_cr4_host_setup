@@ -4,7 +4,7 @@ set -xe
 source /etc/environment
 export PATH
 
-CMDLINE="console=ttyS0 init=/usr/bin/init-two.sh rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.u rw"
+CMDLINE="console=ttyS0 init=/usr/bin/init.sh rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.u rw"
 
 mkdir -p /sys
 mount -t sysfs sysfs /sys -n
@@ -16,7 +16,7 @@ do_kexec() {
   echo "Kexecing..."
   # /usr/sbin/kexec --append="${CMDLINE}" -l /boot/bzImage
   # /usr/sbin/kexec -e
-  /usr/sbin/kexec --append="${CMDLINE}" -f /boot/vmlinux
+  /usr/sbin/kexec --append="${CMDLINE}" -f /boot/bzImage
 }
 
 do_reboot() {

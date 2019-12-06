@@ -1,0 +1,39 @@
+From 2ae3cbf4e2d0fea74c4399386c661f9ddca45b75 Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Fri, 15 Nov 2019 13:25:37 -0500
+Subject: [PATCH 3/6] KVM: X86: SVM: Add setters for guest owned CR bits
+
+Add guest owned bits setters for CR0 and CR4 in svm. Do not change
+existing VMCB intercept logic for CR0 or CR4.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ arch/x86/kvm/svm.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/x86/kvm/svm.c b/arch/x86/kvm/svm.c
+index c5673bda4b66..d965884be021 100644
+--- a/arch/x86/kvm/svm.c
++++ b/arch/x86/kvm/svm.c
+@@ -2604,6 +2604,18 @@ static int svm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
+ 	return 0;
+ }
+ 
++static void svm_set_cr0_guest_owned_bits(struct kvm_vcpu *vcpu,
++					 unsigned long cr0_guest_owned_bits)
++{
++	vcpu->arch.cr0_guest_owned_bits = cr0_guest_owned_bits;
++}
++
++static void svm_set_cr4_guest_owned_bits(struct kvm_vcpu *vcpu,
++					 unsigned long cr4_guest_owned_bits)
++{
++	vcpu->arch.cr4_guest_owned_bits = cr4_guest_owned_bits;
++}
++
+ static void svm_set_segment(struct kvm_vcpu *vcpu,
+ 			    struct kvm_segment *var, int seg)
+ {
+-- 
+2.21.0
+

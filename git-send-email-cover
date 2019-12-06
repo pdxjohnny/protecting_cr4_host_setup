@@ -1,0 +1,111 @@
+From c37345dadfd50d5c6bb8f8e07238e4ed4bfd088f Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Thu, 5 Dec 2019 20:42:21 -0500
+Subject: [RFC v2 0/6] Paravirtualized Control Register Pinning
+
+Big thank you to Sean
+
+Paravirtualized Control Register pinning is a strengthened version of
+existing protections on the Write Protect, Supervisor Mode Execution /
+Access Protection, and User-Mode Instruction Prevention bits. The
+existing protections prevent native_write_cr*() functions from writing
+values which disable those bits. A CR pin hypercall has been added to
+KVM which enables the guest kernel to request that KVM prevent the
+guest from disabling specified bits. This stops attackers within guest
+operating systems from using ROP to disable protection bits.
+
+https://web.archive.org/web/20171029060939/http://www.blackbunny.io/linux-kernel-x86-64-bypass-smep-kaslr-kptr_restric/
+
+Other hypervisors such as HyperV have implemented similar protections
+for Control Registers and MSRs; which security researchers have found
+effective.
+
+https://www.abatchy.com/2018/01/kernel-exploitation-4
+
+Add a CR pin feature bit to the KVM cpuid. Add a read only MSR to KVM
+which guests use to identify which bits they may request be pinned. Add
+CR pin hypercall to KVM. Allow guests to request that KVM pin certain
+bits within control register 0 or 4. If bits have already been pinned,
+or the guest attempts to pin unsupported bits, return -KVM_EINVAL.
+In the event that the guest vcpu attempts to disable any of the pinned
+bits, send that vcpu a general protection fault, and leave the register
+unchanged. Disregard pinning when running in SMM. Entering SMM disables
+pinned bits, writes to control registers within SMM would therefore
+trigger general protection faults if pinning was enforced. When syncing
+control registers with userspace if userspace clears bits that are
+pinned, unpin those bits.
+
+When running with VMX update the guest/host mask VMCS to ensure changes
+to pinned bits cause VMEXITs so that pinning logic can trigger general
+protection faults if needed. Do not change the functionality of SVM, as
+it already VMEXITs on writes to control registers 0 and 4 for the bits
+which are allowed to be pinned.
+
+KVM has no concept of reboot, QEMU zeros control registers on reboot.
+If pining bits are not cleared when userspace clears their control
+register counterparts, initial writes to control registers by the
+rebooted guest cause general protection faults.
+
+Pinning of sensitive CR bits has already been implemented to protect
+against exploits directly calling native_write_cr*(). The current
+protection cannot stop ROP attacks which jump directly to a MOV CR
+instruction. Guests running with hypervisor based CR pinning are now
+protected against the use of ROP to disable CR bits. The same bits that
+are being pinned in the current implementation are pinned via the
+hypervisor. These bits are WP in CR0, and SMEP, SMAP, and UMIP in CR4.
+
+Guests using the kexec system call currently do not support hypervisor
+based control register pinning. This is due to early boot code writing
+known good values to control registers, these values do not contain the
+protected bits. This is due to CPU feature identification being done at
+a later time, when the kernel properly checks if it can enable
+protections. Paravirtualized and existing pinning are setup at the same
+point on the boot CPU. Non-boot CPUs setup pinning upon identification.
+Security conscious kernel configurations disable kexec already, per
+KSPP guidelines. Projects such as Kata Containers, AWS Lambda, ChromeOS
+Termina, and others using Linux with KVM to virtualize Linux will
+benefit from this protection.
+
+Most distributions enable kexec. However, kexec could be made boot time
+disableable. In this case if a user has disabled kexec at boot time
+the guest will request that paravirtualized control register pinning
+be enabled. This would expand the userbase to users of major
+distributions.
+
+Paravirtualized CR pinning will likely be incompatible with kexec for
+the foreseeable future. Early boot code could possibly be changed to
+not clear protected bits. However, a kernel that requests CR bits be
+pinned can't know if the kernel it's kexecing has been updated to not
+clear protected bits. This would result in the kernel being kexec'd
+almost immediately receiving a general protection fault.
+
+Future patches could implement similar MSR and hypercall combinations
+to protect bits in MSRs. The NXE bit of the EFER MSR is a prime
+candidate.
+
+John Andersen (6):
+  KVM: X86: VMX: Add setters for guest owned CR bits
+  KVM: X86: VMX: Use setters for guest owned CR bits
+  KVM: X86: SVM: Add setters for guest owned CR bits
+  KVM: X86: ops: Add setters for guest owned CR bits
+  KVM: X86: Add CR pin hypercall
+  X86: Use KVM CR pin hypercall
+
+ Documentation/virt/kvm/hypercalls.txt | 21 +++++++++
+ Documentation/virt/kvm/msr.txt        | 11 +++++
+ arch/x86/Kconfig                      | 10 ++++
+ arch/x86/include/asm/kvm_host.h       |  6 +++
+ arch/x86/include/uapi/asm/kvm_para.h  |  3 ++
+ arch/x86/kernel/cpu/common.c          | 26 ++++++++++
+ arch/x86/kvm/cpuid.c                  |  3 +-
+ arch/x86/kvm/svm.c                    | 14 ++++++
+ arch/x86/kvm/vmx/nested.c             |  8 ++--
+ arch/x86/kvm/vmx/vmx.c                | 40 +++++++++-------
+ arch/x86/kvm/vmx/vmx.h                |  8 ++++
+ arch/x86/kvm/x86.c                    | 68 +++++++++++++++++++++++++++
+ include/uapi/linux/kvm_para.h         |  1 +
+ 13 files changed, 197 insertions(+), 22 deletions(-)
+
+-- 
+2.21.0
+

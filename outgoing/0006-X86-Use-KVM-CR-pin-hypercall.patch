@@ -1,0 +1,113 @@
+From 21409d2d04b6026a60d1b939d2150d86383630c6 Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Tue, 12 Nov 2019 17:28:04 -0500
+Subject: [PATCH 6/6] X86: Use KVM CR pin hypercall
+
+Make KVM hypercall to pin CR0 and CR4 bits. Check which bits KVM
+supports pinning for each control register and only pin supported bits
+which are already pinned via the existing native protection. Initiate
+KVM assisted pinning directly following the setup of native pinning on
+boot CPU. For non-boot CPUs initiate paravirtualized pinning on CPU
+identification.
+
+Identification of non-boot CPUs takes place after the boot CPU has setup
+native CR pinning. Therefore, non-boot CPUs access pinned bits setup by
+the boot CPU and request that those be pinned. All CPUs request
+paravirtualized pinning of the same bits which are already pinned
+natively.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ arch/x86/Kconfig             | 10 ++++++++++
+ arch/x86/kernel/cpu/common.c | 26 ++++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+)
+
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 8ef85139553f..365b801902a3 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -796,6 +796,7 @@ config KVM_GUEST
+ 	bool "KVM Guest support (including kvmclock)"
+ 	depends on PARAVIRT
+ 	select PARAVIRT_CLOCK
++	select PARAVIRT_CR_PIN
+ 	select ARCH_CPUIDLE_HALTPOLL
+ 	default y
+ 	---help---
+@@ -839,6 +840,15 @@ config PARAVIRT_TIME_ACCOUNTING
+ config PARAVIRT_CLOCK
+ 	bool
+ 
++config PARAVIRT_CR_PIN
++       bool "Paravirtual bit pinning for CR0 and CR4"
++       depends on PARAVIRT && !KEXEC
++       help
++         Select this option to have the virtualised guest request that the
++         hypervisor disallow it from disabling protections set in control
++         registers. The hypervisor will prevent exploits from disabling
++         features such as SMEP, SMAP, UMIP, and WP.
++
+ config JAILHOUSE_GUEST
+ 	bool "Jailhouse non-root cell support"
+ 	depends on X86_64 && PCI
+diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
+index fffe21945374..df04e3b617ee 100644
+--- a/arch/x86/kernel/cpu/common.c
++++ b/arch/x86/kernel/cpu/common.c
+@@ -20,6 +20,7 @@
+ #include <linux/smp.h>
+ #include <linux/io.h>
+ #include <linux/syscore_ops.h>
++#include <linux/kvm_para.h>
+ 
+ #include <asm/stackprotector.h>
+ #include <asm/perf_event.h>
+@@ -423,6 +424,27 @@ void cr4_init(void)
+ 	this_cpu_write(cpu_tlbstate.cr4, cr4);
+ }
+ 
++static void setup_paravirt_cr_pinning(void)
++{
++#ifdef CONFIG_PARAVIRT_CR_PIN
++	unsigned long long mask;
++
++	if (kvm_para_has_feature(KVM_FEATURE_CR_PIN)) {
++		if (!rdmsrl_safe(MSR_KVM_CR0_PIN_ALLOWED, &mask) &&
++				!kvm_hypercall2(KVM_HC_CR_PIN, 0,
++						X86_CR0_WP & mask))
++			pr_info("Setup paravirtualized cr0 pinning for cpu %d\n",
++					smp_processor_id());
++
++		if (!rdmsrl_safe(MSR_KVM_CR4_PIN_ALLOWED, &mask) &&
++				!kvm_hypercall2(KVM_HC_CR_PIN, 4,
++						cr4_pinned_bits & mask))
++			pr_info("Setup paravirtualized cr4 pinning for cpu %d\n",
++					smp_processor_id());
++	}
++#endif
++}
++
+ /*
+  * Once CPU feature detection is finished (and boot params have been
+  * parsed), record any of the sensitive CR bits that are set, and
+@@ -435,6 +457,8 @@ static void __init setup_cr_pinning(void)
+ 	mask = (X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP);
+ 	cr4_pinned_bits = this_cpu_read(cpu_tlbstate.cr4) & mask;
+ 	static_key_enable(&cr_pinning.key);
++
++	setup_paravirt_cr_pinning();
+ }
+ 
+ /*
+@@ -1597,6 +1621,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
+ 	mtrr_ap_init();
+ 	validate_apic_and_package_id(c);
+ 	x86_spec_ctrl_setup_ap();
++
++	setup_paravirt_cr_pinning();
+ }
+ 
+ static __init int setup_noclflush(char *arg)
+-- 
+2.21.0
+

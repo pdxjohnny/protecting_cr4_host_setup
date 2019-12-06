@@ -42,11 +42,10 @@ sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "/lib/modules/$(uname -r)/ker
 sudo modprobe kvm
 sudo modprobe kvm-intel
 
-# "${HOME}/chroot/boot/bzImage" \
 INIT=${INIT:-'/usr/lib/systemd/systemd'}
 
-sudo cp "${HOME}/linux-combined/vmlinux" "${HOME}/chroot/boot/vmlinux"
-sudo chmod 644 "${HOME}/chroot/boot/vmlinux"
+# sudo cp "${HOME}/linux-combined/vmlinux" "${HOME}/chroot/boot/vmlinux"
+# sudo chmod 644 "${HOME}/chroot/boot/vmlinux"
 sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${HOME}/chroot/boot/bzImage"
 sudo chmod 644 "${HOME}/chroot/boot/bzImage"
 "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
@@ -59,7 +58,7 @@ sudo chmod 644 "${HOME}/chroot/boot/bzImage"
   -bios \
     "${HOME}/seabios/out/bios.bin" \
   -kernel \
-    "${HOME}/chroot/boot/vmlinux" \
+    "${HOME}/chroot/boot/bzImage" \
   -append \
     "console=ttyS0 init=${INIT} rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.u rw nokaslr" \
   -nographic \
