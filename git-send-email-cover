@@ -1,9 +1,7 @@
-From c37345dadfd50d5c6bb8f8e07238e4ed4bfd088f Mon Sep 17 00:00:00 2001
-From: John Andersen <john.s.andersen@intel.com>
-Date: Thu, 5 Dec 2019 20:42:21 -0500
-Subject: [RFC v2 0/6] Paravirtualized Control Register Pinning
+Thank you to Rick, Sean, and Arjan for your comments. QEMU does indeed
+hide unknown CPUID bits by default, so I've left out the capability.
 
-Big thank you to Sean
+
 
 Paravirtualized Control Register pinning is a strengthened version of
 existing protections on the Write Protect, Supervisor Mode Execution /
@@ -79,33 +77,13 @@ pinned can't know if the kernel it's kexecing has been updated to not
 clear protected bits. This would result in the kernel being kexec'd
 almost immediately receiving a general protection fault.
 
+The usage of SMM in SeaBIOS was explored as a way to communicate to KVM
+that a reboot has occurred and it should zero the pinned bits. When
+using QEMU and SeaBIOS, SMM initialization occurs on reboot. However,
+prior to SMM initialization, BIOS writes zero values to CR0, causing a
+general protection fault to be sent to the guest before SMM can signal
+that the machine has booted.
+
 Future patches could implement similar MSR and hypercall combinations
 to protect bits in MSRs. The NXE bit of the EFER MSR is a prime
 candidate.
-
-John Andersen (6):
-  KVM: X86: VMX: Add setters for guest owned CR bits
-  KVM: X86: VMX: Use setters for guest owned CR bits
-  KVM: X86: SVM: Add setters for guest owned CR bits
-  KVM: X86: ops: Add setters for guest owned CR bits
-  KVM: X86: Add CR pin hypercall
-  X86: Use KVM CR pin hypercall
-
- Documentation/virt/kvm/hypercalls.txt | 21 +++++++++
- Documentation/virt/kvm/msr.txt        | 11 +++++
- arch/x86/Kconfig                      | 10 ++++
- arch/x86/include/asm/kvm_host.h       |  6 +++
- arch/x86/include/uapi/asm/kvm_para.h  |  3 ++
- arch/x86/kernel/cpu/common.c          | 26 ++++++++++
- arch/x86/kvm/cpuid.c                  |  3 +-
- arch/x86/kvm/svm.c                    | 14 ++++++
- arch/x86/kvm/vmx/nested.c             |  8 ++--
- arch/x86/kvm/vmx/vmx.c                | 40 +++++++++-------
- arch/x86/kvm/vmx/vmx.h                |  8 ++++
- arch/x86/kvm/x86.c                    | 68 +++++++++++++++++++++++++++
- include/uapi/linux/kvm_para.h         |  1 +
- 13 files changed, 197 insertions(+), 22 deletions(-)
-
--- 
-2.21.0
-
