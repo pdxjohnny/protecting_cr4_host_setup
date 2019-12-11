@@ -1,14 +1,17 @@
-From 21409d2d04b6026a60d1b939d2150d86383630c6 Mon Sep 17 00:00:00 2001
+From 5a349970c1fac6a5504d553879508d7d647af02e Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
-Subject: [PATCH 6/6] X86: Use KVM CR pin hypercall
+Subject: [PATCH 2/2] X86: Use KVM CR pin MSRs
 
-Make KVM hypercall to pin CR0 and CR4 bits. Check which bits KVM
-supports pinning for each control register and only pin supported bits
-which are already pinned via the existing native protection. Initiate
-KVM assisted pinning directly following the setup of native pinning on
-boot CPU. For non-boot CPUs initiate paravirtualized pinning on CPU
-identification.
+Strengthen existing control register pinning when running
+paravirtualized under KVM. Check which bits KVM supports pinning for
+each control register and only pin supported bits which are already
+pinned via the existing native protection. Write to KVM CR0 and CR4
+pinned MSRs to enable pinning.
+
+Initiate KVM assisted pinning directly following the setup of native
+pinning on boot CPU. For non-boot CPUs initiate paravirtualized pinning
+on CPU identification.
 
 Identification of non-boot CPUs takes place after the boot CPU has setup
 native CR pinning. Therefore, non-boot CPUs access pinned bits setup by
@@ -18,23 +21,15 @@ natively.
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- arch/x86/Kconfig             | 10 ++++++++++
+ arch/x86/Kconfig             |  9 +++++++++
  arch/x86/kernel/cpu/common.c | 26 ++++++++++++++++++++++++++
- 2 files changed, 36 insertions(+)
+ 2 files changed, 35 insertions(+)
 
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 8ef85139553f..365b801902a3 100644
+index 8ef85139553f..2b3996bd14a1 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -796,6 +796,7 @@ config KVM_GUEST
- 	bool "KVM Guest support (including kvmclock)"
- 	depends on PARAVIRT
- 	select PARAVIRT_CLOCK
-+	select PARAVIRT_CR_PIN
- 	select ARCH_CPUIDLE_HALTPOLL
- 	default y
- 	---help---
-@@ -839,6 +840,15 @@ config PARAVIRT_TIME_ACCOUNTING
+@@ -839,6 +839,15 @@ config PARAVIRT_TIME_ACCOUNTING
  config PARAVIRT_CLOCK
  	bool
  
@@ -51,7 +46,7 @@ index 8ef85139553f..365b801902a3 100644
  	bool "Jailhouse non-root cell support"
  	depends on X86_64 && PCI
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index fffe21945374..df04e3b617ee 100644
+index fffe21945374..b1f8248e3176 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
 @@ -20,6 +20,7 @@
@@ -73,14 +68,14 @@ index fffe21945374..df04e3b617ee 100644
 +
 +	if (kvm_para_has_feature(KVM_FEATURE_CR_PIN)) {
 +		if (!rdmsrl_safe(MSR_KVM_CR0_PIN_ALLOWED, &mask) &&
-+				!kvm_hypercall2(KVM_HC_CR_PIN, 0,
-+						X86_CR0_WP & mask))
++				!wrmsrl_safe(MSR_KVM_CR0_PINNED,
++					     X86_CR0_WP & mask))
 +			pr_info("Setup paravirtualized cr0 pinning for cpu %d\n",
 +					smp_processor_id());
 +
 +		if (!rdmsrl_safe(MSR_KVM_CR4_PIN_ALLOWED, &mask) &&
-+				!kvm_hypercall2(KVM_HC_CR_PIN, 4,
-+						cr4_pinned_bits & mask))
++				!wrmsrl_safe(MSR_KVM_CR4_PINNED,
++					     cr4_pinned_bits & mask))
 +			pr_info("Setup paravirtualized cr4 pinning for cpu %d\n",
 +					smp_processor_id());
 +	}

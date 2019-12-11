@@ -1,113 +1,3 @@
-vim arch/x86/kvm/x86.c
-time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
-vim arch/x86/kvm/x86.c
-git grep kvm_sregs
-vim tools/arch/x86/include/uapi/asm/kvm.h
-vim arch/x86/kvm/x86.c
-git grep KVM_SYNC_X86_SREGS
-vim tools/testing/selftests/kvm/x86_64/sync_regs_test.c
-git grep KVM_CAP_SYNC_REGS
-vim Documentation/virt/kvm/api.txt
-vim tools/testing/selftests/kvm/x86_64/sync_regs_test.c
-git status
-vim arch/x86/kvm/x86.c
-vim tools/arch/x86/include/uapi/asm/kvm.h
-vim arch/x86/kvm/x86.c
-time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
-vim arch/x86/include/uapi/asm/kvm.h
-time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
-git diff
-vim arch/x86/include/uapi/asm/kvm.h
-vim tools/arch/x86/include/uapi/asm/kvm.h
-git diff
-vim arch/x86/kvm/x86.c
-git diff
-time make -j $(($(nproc)*4)) M=arch/x86/kvm modules
-cd ~/qemu/
-git status
-git commit --amend
-git log | grep migrate
-git log
-git commit --amend
-git log -p
-git blame target/i386/cpu.c
-git log 7f710c32bb8
-git commit --amend
-git log 7f710c32bb8
-git status
-git log
-git push -f
-uname -a
-cd linux-combined/
-git status
-git push -f
-~/run.sh 
-~/run.sh 2>&1 | grep -i pinning
-vim ~/.gitconfig 
-cd linux-combined/
-git send-email --help
-git send-email HEAD~2
-git send-email HEAD~2 --help
-git send-email --help
-git send-email --cc kristen.c.accardi@intel.com --cc rick.p.edgecombe@intel.com --compose --cover-leter
-git send-email --help
-git send-email --cc kristen.c.accardi@intel.com --cc rick.p.edgecombe@intel.com --compose --cover-letter
-git send-email --compose --cover-letter --cc kristen.c.accardi@intel.com --cc rick.p.edgecombe@intel.com HEAD~2
-git send-email --annotate--cover-letter --cc kristen.c.accardi@intel.com --cc rick.p.edgecombe@intel.com HEAD~2
-git send-email --annotate --cover-letter --cc kristen.c.accardi@intel.com --cc rick.p.edgecombe@intel.com HEAD~2
-dmesg 
-dmesg --color=always | tail -n 60
-dmesg --color=always | tail -n 50
-dmesg --color=always | tail -n 52
-watch -n 0.2 sh -c dmesg --color=always | tail -n 52'
-watch -n 0.2 sh -c 'dmesg --color=always | tail -n 52'
-watch -n 0.2 sh -c 'dmesg --color=always | tail -n 48'
-sudo journalctl --dmesg -f
-git status
-cd linux-combined/
-git status
-git diff
-git diff --staged
-vim ~/README.md 
-cd ..
-git status
-git diff
-git add -A
-git c 'udpates'
-git push
-tmux attach
-tmux attach
-tmux
-cd ~/qemu/
-git grep LAPIC
-vim hw/i386/kvm/apic.c
-vim include/sysemu/kvm.h
-git grep irqchip
-dme
-dmesg 
-dmesg --
-dmesg
-sudo journalctl --dmesg -f
-cd ~/seabios/
-vim src/fw/shadow.c 
-git grep qemu_reboot
-vim src/resume.c
-make -jr $(($(nproc)*4))
-make -j $(($(nproc)*4))
-vim src/resume.c
-git grep qemu_reboot
-vim src/fw/shadow.c 
-make -jr $(($(nproc)*4))
-make -j $(($(nproc)*4))
-vim src/fw/shadow.c 
-make -j $(($(nproc)*4))
-vim src/fw/shadow.c 
-git grep PORT_PIC
-git grep PORT_PCI
-git grep PORT_PCI_REBOOT
-~/run.sh
-~/run.sh -smp cpus=2
-git status
 git diff
 cd ~/linux-combined/
 git status
@@ -998,3 +888,113 @@ tmux
 git log --oneline
 cd linux-combined/
 tmux
+ssh -p 2222
+ssh -p 2222 127.0.0.1
+fallocate -l 512M image.iso
+mv image.iso ../
+cd ..
+rm image.iso 
+fallocate -l 512M image.iso
+rm image.iso 
+fallocate -l 10G image.iso
+ll
+mkfs.ext4 -j image.iso
+losetup -d -h
+losetup -h
+losetup -f image.iso 
+sudo losetup -f image.iso 
+losetup 
+sudo mount /dev/loop0 /mnt/
+ll /mnt/
+sudo cp -r chroot/* /mnt/
+ll /mnt/
+sudo umount -d /mnt
+umount -h
+losetup 
+vim run.sh 
+tmux attach
+cd 
+mkdir dropbear
+cd dropbear
+curl -sSL 'https://matt.ucc.asn.au/dropbear/dropbear-2019.78.tar.bz2' | tar xvz
+curl -sSL 'https://matt.ucc.asn.au/dropbear/dropbear-2019.78.tar.bz2' | tar xvJ
+curl -sSL 'https://matt.ucc.asn.au/dropbear/dropbear-2019.78.tar.bz2' | tar xvj
+cd dropbear-2019.78/
+ll
+./configure --disable-shared --enable-static
+./configure --enable-static
+make static -j $(($(nproc)*4))
+make -j $(($(nproc)*4))
+sudo ss -tpln
+ll ~/chroot/var/log/
+ip a
+sudo ss -tpln
+sudo dnf install -y golang
+cd ~/
+mkdir ssh-server
+cd ssh-server
+ll
+curl -O https://gist.github.com/jpillora/b480fde82bff51a06238/raw/546fc573e0520be1cf87da48ce1097214b687dd8/sshd.go
+ll
+vim sshd.go 
+rm sshd.go 
+curl -sSLO https://gist.github.com/jpillora/b480fde82bff51a06238/raw/546fc573e0520be1cf87da48ce1097214b687dd8/sshd.go
+vim sshd.go 
+go get -v .
+ll
+mkdir -p ~/go/src/github.com/jpillora/sshd
+mv sshd.go ~/go/src/github.com/jpillora/sshd/
+cd ~/go/src/github.com/jpillora/sshd/
+ll
+go get -v .
+ll
+go get -v .
+unset CC 
+go get -v .
+go build -tags netgo .
+ll
+file sshd
+du -h 4
+du -h sshd
+sudo cp sshd ~/chroot/usr/bin/go-sshd
+sudo mkdir -p ~/chroot/var/go-sshd/
+cd ~/chroot/var/go-sshd/
+sudo ssh-keygen -t rsa
+ll
+sudo chroot ~/chroot/
+vim arch/x86/kvm/vmx/vmx.c
+git log -p
+python3
+vim target/i386/kvm.c
+cd ~/qemu/
+vim target/i386/kvm.c
+cd ~/qemu/
+git grep XSTATE_FP_MASK
+vim target/i386/cpu.h
+git grep MSR_EFER
+vim target/i386/cpu.h
+git grep MSR_CORE_PERF_GLOBAL_STATUS
+vim target/i386/cpu.h
+git grep MSR_SMI_COUNT
+vim target/i386/kvm.c
+git grep steal_time
+vim target/i386/machine.c
+git grep steal_time
+vim target/i386/machine.c
+git grep steal_time
+vim target/i386/cpu.c
+git grep steal_time
+git grep 'kvm-steal-time'
+dmesg 
+~/run.sh -smp cpus=2 2>&1 | grep -i pinning
+git log -p
+git commit --amend
+git push -f
+git rebase -i HEAD~2
+git status
+git push -f
+vim arch/x86/Kconfig
+git diff
+git add -A
+git commit --amend
+git push -f
