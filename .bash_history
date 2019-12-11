@@ -1,5 +1,3 @@
-git log
-git status
 git diff
 git status
 git reset --hard HEAD
@@ -998,3 +996,5 @@ export INSTALL_MOD_PATH=/home/johnsa1/chroot
 export INSTALL_PATH=${INSTALL_MOD_PATH}/boot
 sudo make -j $(($(nproc)*4)) modules_install && sudo make install
 sudo -E make -j $(($(nproc)*4)) modules_install && sudo -E make install
+git grep pin run.log
+git grep pinning run.log

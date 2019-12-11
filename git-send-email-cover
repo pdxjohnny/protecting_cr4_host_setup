@@ -1,18 +1,29 @@
 Thank you to Rick, Sean, and Arjan for your comments. QEMU does indeed
 hide unknown CPUID bits by default, so I've left out the capability.
+I tested nested and it seems to work, pinning is happening in the guest
+and the guest's guest.
 
+I think it might be good to start the external review process. Please
+let me know if that sounds good or if we should do more internal
+review. Thank you.
 
 
 Paravirtualized Control Register pinning is a strengthened version of
 existing protections on the Write Protect, Supervisor Mode Execution /
 Access Protection, and User-Mode Instruction Prevention bits. The
 existing protections prevent native_write_cr*() functions from writing
-values which disable those bits. A CR pin hypercall has been added to
-KVM which enables the guest kernel to request that KVM prevent the
-guest from disabling specified bits. This stops attackers within guest
-operating systems from using ROP to disable protection bits.
+values which disable those bits. This patchset prevents any guest
+writes to control registers from disabling pinned bits, not just writes
+from native_write_cr*(). This stops attackers within the guest from
+using ROP to disable protection bits.
 
 https://web.archive.org/web/20171029060939/http://www.blackbunny.io/linux-kernel-x86-64-bypass-smep-kaslr-kptr_restric/
+
+The protection is implemented by adding MSRs to KVM which contain the
+bits that are allowed to be pinned, and the bits which are pinned. The
+guest or userspace can enable bit pinning by reading MSRs to check
+which bits are allowed to be pinned, and then writing MSRs to set which
+bits they want pinned.
 
 Other hypervisors such as HyperV have implemented similar protections
 for Control Registers and MSRs; which security researchers have found
@@ -20,47 +31,51 @@ effective.
 
 https://www.abatchy.com/2018/01/kernel-exploitation-4
 
-Add a CR pin feature bit to the KVM cpuid. Add a read only MSR to KVM
-which guests use to identify which bits they may request be pinned. Add
-CR pin hypercall to KVM. Allow guests to request that KVM pin certain
-bits within control register 0 or 4. If bits have already been pinned,
-or the guest attempts to pin unsupported bits, return -KVM_EINVAL.
+We add a CR pin feature bit to the KVM cpuid, read only MSRs which
+guests use to identify which bits they may request be pinned, and
+CR pinned MSRs which contain the pinned bits. Guests can request that
+KVM pin bits within control register 0 or 4 via the CR pinned MSRs.
+Writes to the MSRs fail if they include bits that aren't allowed to be
+pinned. Host userspace may clear or modify pinned bits at any time.
+Once pinned bits are set, the guest may not modify or clear them.
+
 In the event that the guest vcpu attempts to disable any of the pinned
-bits, send that vcpu a general protection fault, and leave the register
-unchanged. Disregard pinning when running in SMM. Entering SMM disables
-pinned bits, writes to control registers within SMM would therefore
-trigger general protection faults if pinning was enforced. When syncing
-control registers with userspace if userspace clears bits that are
-pinned, unpin those bits.
+bits, the vcpu that issued the write is sent a general protection
+fault, and the register is left unchanged.
 
-When running with VMX update the guest/host mask VMCS to ensure changes
-to pinned bits cause VMEXITs so that pinning logic can trigger general
-protection faults if needed. Do not change the functionality of SVM, as
-it already VMEXITs on writes to control registers 0 and 4 for the bits
-which are allowed to be pinned.
+Pinning is not active when running in SMM. Entering SMM disables pinned
+bits, writes to control registers within SMM would therefore trigger
+general protection faults if pinning was enforced.
 
-KVM has no concept of reboot, QEMU zeros control registers on reboot.
-If pining bits are not cleared when userspace clears their control
-register counterparts, initial writes to control registers by the
-rebooted guest cause general protection faults.
+The guest may never read pinned bits. If an attacker were to read the
+CR pinned MSRs, they might decide to preform another attack which would
+not cause a general protection fault.
+
+Should userspace expose the CR pining CPUID feature bit, it must zero CR
+pinned MSRs on reboot. If it does not, it runs the risk of having the
+guest enable pinning and subsequently cause general protection faults on
+next boot due to early boot code setting control registers to values
+which do not contain the pinned bits.
 
 Pinning of sensitive CR bits has already been implemented to protect
 against exploits directly calling native_write_cr*(). The current
 protection cannot stop ROP attacks which jump directly to a MOV CR
-instruction. Guests running with hypervisor based CR pinning are now
+instruction. Guests running with paravirtualized CR pinning are now
 protected against the use of ROP to disable CR bits. The same bits that
-are being pinned in the current implementation are pinned via the
-hypervisor. These bits are WP in CR0, and SMEP, SMAP, and UMIP in CR4.
+are being pinned natively may be pinned via the CR pinned MSRs. These
+bits are WP in CR0, and SMEP, SMAP, and UMIP in CR4.
 
-Guests using the kexec system call currently do not support hypervisor
-based control register pinning. This is due to early boot code writing
-known good values to control registers, these values do not contain the
-protected bits. This is due to CPU feature identification being done at
-a later time, when the kernel properly checks if it can enable
-protections. Paravirtualized and existing pinning are setup at the same
-point on the boot CPU. Non-boot CPUs setup pinning upon identification.
-Security conscious kernel configurations disable kexec already, per
-KSPP guidelines. Projects such as Kata Containers, AWS Lambda, ChromeOS
+Guests using the kexec system call currently do not support
+paravirtualized control register pinning. This is due to early boot
+code writing known good values to control registers, these values do
+not contain the protected bits. This is due to CPU feature
+identification being done at a later time, when the kernel properly
+checks if it can enable protections.
+
+Paravirtualized and existing pinning are setup at the same point on the
+boot CPU. Non-boot CPUs setup pinning upon identification. Security
+conscious kernel configurations disable kexec already, per KSPP
+guidelines. Projects such as Kata Containers, AWS Lambda, ChromeOS
 Termina, and others using Linux with KVM to virtualize Linux will
 benefit from this protection.
 
