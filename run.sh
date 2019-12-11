@@ -52,6 +52,7 @@ sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${HOME}/chroot${HOME}/ch
 sudo chmod 644 "${HOME}/chroot/boot/bzImage"
 sudo chmod 644 "${HOME}/chroot${HOME}/chroot/boot/bzImage"
 sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
+  -smp cpus=4 \
   -m 8192M \
   -chardev \
     "file,path=${HOME}/seabios.log,id=seabios" \
