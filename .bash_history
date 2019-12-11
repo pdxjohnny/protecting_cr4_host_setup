@@ -1,30 +1,3 @@
-git diff
-git status
-git reset --hard HEAD
-git log -p
-git status
-git checkout hc_harden
-git log
-git log -p
-git status
-git rebase -i HEAD~2
-git status
-git log
-git log -p
-git status
-git push -f
-git grep MSR_ arch/x86/kvm/
-vim arch/x86/kvm/x86.c
-git log -p
-vim arch/x86/events/intel/rapl.c
-vim arch/x86/kvm/x86.c
-git diff
-git status
-git diff
-git c 'add msr for pinable bits'
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install && sudo reboot
-tmux
-vim -t x86_spec_ctrl_setup_ap
 cd linux-combined/
 vim -t x86_spec_ctrl_setup_ap
 vim -t identify_secondary_cpu
@@ -998,3 +971,30 @@ sudo make -j $(($(nproc)*4)) modules_install && sudo make install
 sudo -E make -j $(($(nproc)*4)) modules_install && sudo -E make install
 git grep pin run.log
 git grep pinning run.log
+ssh -p 2222 127.0.0.1
+sudo ss -tpln
+ssh -p 2222 localhost
+git status
+git c 'working on cover letter'
+git push
+git status
+cd ~/qemu
+git log -p
+vim target/i386/kvm.c
+make -j $(($(nproc)*4))
+cd by
+cd build/
+cd by
+make -j $(($(nproc)*4))
+~/run.sh 
+INIT=/home/johnsa1/chroot/usr/bin/rebooter ~/run.sh 
+cd ..
+git status
+git diff
+git reset --hard HEAD
+git status
+cd build/
+make -j $(($(nproc)*4))
+~/run.sh 
+INIT=/home/johnsa1/chroot/usr/bin/rebooter ~/run.sh 
+INIT=/home/johnsa1/chroot/usr/bin/rebooter ~/run.sh  | grep -i pinning

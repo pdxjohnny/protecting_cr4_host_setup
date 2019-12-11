@@ -57,13 +57,9 @@ guest enable pinning and subsequently cause general protection faults on
 next boot due to early boot code setting control registers to values
 which do not contain the pinned bits.
 
-Pinning of sensitive CR bits has already been implemented to protect
-against exploits directly calling native_write_cr*(). The current
-protection cannot stop ROP attacks which jump directly to a MOV CR
-instruction. Guests running with paravirtualized CR pinning are now
-protected against the use of ROP to disable CR bits. The same bits that
-are being pinned natively may be pinned via the CR pinned MSRs. These
-bits are WP in CR0, and SMEP, SMAP, and UMIP in CR4.
+When running with KVM guest support and paravirtualized CR pinning
+enabled, paravirtualized and existing pinning are setup at the same
+point on the boot CPU. Non-boot CPUs setup pinning upon identification.
 
 Guests using the kexec system call currently do not support
 paravirtualized control register pinning. This is due to early boot
@@ -71,13 +67,6 @@ code writing known good values to control registers, these values do
 not contain the protected bits. This is due to CPU feature
 identification being done at a later time, when the kernel properly
 checks if it can enable protections.
-
-Paravirtualized and existing pinning are setup at the same point on the
-boot CPU. Non-boot CPUs setup pinning upon identification. Security
-conscious kernel configurations disable kexec already, per KSPP
-guidelines. Projects such as Kata Containers, AWS Lambda, ChromeOS
-Termina, and others using Linux with KVM to virtualize Linux will
-benefit from this protection.
 
 Most distributions enable kexec. However, kexec could be made boot time
 disableable. In this case if a user has disabled kexec at boot time
@@ -92,12 +81,25 @@ pinned can't know if the kernel it's kexecing has been updated to not
 clear protected bits. This would result in the kernel being kexec'd
 almost immediately receiving a general protection fault.
 
+Security conscious kernel configurations disable kexec already, per KSPP
+guidelines. Projects such as Kata Containers, AWS Lambda, ChromeOS
+Termina, and others using KVM to virtualize Linux will benefit from
+this protection.
+
 The usage of SMM in SeaBIOS was explored as a way to communicate to KVM
 that a reboot has occurred and it should zero the pinned bits. When
 using QEMU and SeaBIOS, SMM initialization occurs on reboot. However,
 prior to SMM initialization, BIOS writes zero values to CR0, causing a
 general protection fault to be sent to the guest before SMM can signal
 that the machine has booted.
+
+Pinning of sensitive CR bits has already been implemented to protect
+against exploits directly calling native_write_cr*(). The current
+protection cannot stop ROP attacks which jump directly to a MOV CR
+instruction. Guests running with paravirtualized CR pinning are now
+protected against the use of ROP to disable CR bits. The same bits that
+are being pinned natively may be pinned via the CR pinned MSRs. These
+bits are WP in CR0, and SMEP, SMAP, and UMIP in CR4.
 
 Future patches could implement similar MSR and hypercall combinations
 to protect bits in MSRs. The NXE bit of the EFER MSR is a prime
