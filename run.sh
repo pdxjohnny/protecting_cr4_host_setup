@@ -2,7 +2,7 @@
 set -xe
 
 CHROOT=${CHROOT:-"${HOME}/chroot"}
-IMAGE=${IMAGE:-"${HOME}/chroot.img"}
+IMAGE=${IMAGE:-"${HOME}/image.iso"}
 
 # sudo rm -rf router
 # if [ ! -d router ]; then
@@ -59,12 +59,20 @@ sudo chmod 644 "${HOME}/chroot/boot/bzImage"
     "${HOME}/seabios/out/bios.bin" \
   -kernel \
     "${HOME}/chroot/boot/bzImage" \
-  -append \
-    "console=ttyS0 init=${INIT} rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.u rw nokaslr" \
   -nographic \
   -cpu \
     host \
+  -net \
+    nic,model=virtio \
+  -net \
+    user,hostfwd=tcp::2222-:22 \
+  -append \
+    "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.u,rw nokaslr init=${INIT}" \
   -fsdev \
-    local,id=fsdev-root,path="${HOME}/chroot",security_model=passthrough \
+    local,id=fsdev-root,path="${CHROOT}",security_model=passthrough \
   -device \
     virtio-9p-pci,fsdev=fsdev-root,mount_tag=/dev/root
+
+
+#     "selinux=0 enforcing=0 console=ttyS0 root=/dev/sda rw nokaslr init=${INIT}" \
+#   -drive file="${IMAGE}",index=0,media=disk
