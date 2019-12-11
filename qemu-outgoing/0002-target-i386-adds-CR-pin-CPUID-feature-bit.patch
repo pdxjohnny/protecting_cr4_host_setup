@@ -1,0 +1,44 @@
+From 7e8c770c91616ae8d2d6b15bcc2865be594c8852 Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Thu, 31 Oct 2019 11:33:11 -0700
+Subject: [PATCH 2/2] target-i386: adds CR pin CPUID feature bit
+
+Adds CR pin CPUID feature bit.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ target/i386/cpu.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/target/i386/cpu.c b/target/i386/cpu.c
+index 19751e37a7..6052700628 100644
+--- a/target/i386/cpu.c
++++ b/target/i386/cpu.c
+@@ -906,7 +906,7 @@ static FeatureWordInfo feature_word_info[FEATURE_WORDS] = {
+             "kvmclock", "kvm-nopiodelay", "kvm-mmu", "kvmclock",
+             "kvm-asyncpf", "kvm-steal-time", "kvm-pv-eoi", "kvm-pv-unhalt",
+             NULL, "kvm-pv-tlb-flush", NULL, "kvm-pv-ipi",
+-            NULL, NULL, NULL, NULL,
++            NULL, NULL, "kvm-cr-pin", NULL,
+             NULL, NULL, NULL, NULL,
+             NULL, NULL, NULL, NULL,
+             "kvmclock-stable-bit", NULL, NULL, NULL,
+@@ -2837,6 +2837,7 @@ static PropValue kvm_default_props[] = {
+     { "kvm-asyncpf", "on" },
+     { "kvm-steal-time", "on" },
+     { "kvm-pv-eoi", "on" },
++    { "kvm-cr-pin", "on" },
+     { "kvmclock-stable-bit", "on" },
+     { "x2apic", "on" },
+     { "acpi", "off" },
+@@ -5660,6 +5661,7 @@ static void x86_cpu_initfn(Object *obj)
+     object_property_add_alias(obj, "kvm_steal_time", obj, "kvm-steal-time", &error_abort);
+     object_property_add_alias(obj, "kvm_pv_eoi", obj, "kvm-pv-eoi", &error_abort);
+     object_property_add_alias(obj, "kvm_pv_unhalt", obj, "kvm-pv-unhalt", &error_abort);
++    object_property_add_alias(obj, "kvm_cr_pin", obj, "kvm-cr-pin", &error_abort);
+     object_property_add_alias(obj, "svm_lock", obj, "svm-lock", &error_abort);
+     object_property_add_alias(obj, "nrip_save", obj, "nrip-save", &error_abort);
+     object_property_add_alias(obj, "tsc_scale", obj, "tsc-scale", &error_abort);
+-- 
+2.21.0
+

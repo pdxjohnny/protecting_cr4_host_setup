@@ -1,0 +1,154 @@
+From e7a0ff8a8dcde1ef2b83a9d93129614f512752ae Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Wed, 11 Dec 2019 13:51:58 -0500
+Subject: [PATCH 1/2] target-i386: kvm: Add cr pin MSRs
+
+Add cr0 and cr4 pinned bits MSRs.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ include/standard-headers/asm-x86/kvm_para.h |  3 ++
+ target/i386/cpu.h                           |  2 ++
+ target/i386/kvm.c                           | 14 ++++++++
+ target/i386/machine.c                       | 38 +++++++++++++++++++++
+ 4 files changed, 57 insertions(+)
+
+diff --git a/include/standard-headers/asm-x86/kvm_para.h b/include/standard-headers/asm-x86/kvm_para.h
+index 35cd8d651f..59c706558f 100644
+--- a/include/standard-headers/asm-x86/kvm_para.h
++++ b/include/standard-headers/asm-x86/kvm_para.h
+@@ -29,6 +29,7 @@
+ #define KVM_FEATURE_PV_TLB_FLUSH	9
+ #define KVM_FEATURE_ASYNC_PF_VMEXIT	10
+ #define KVM_FEATURE_PV_SEND_IPI	11
++#define KVM_FEATURE_CR_PIN		14
+ 
+ #define KVM_HINTS_REALTIME      0
+ 
+@@ -47,6 +48,8 @@
+ #define MSR_KVM_ASYNC_PF_EN 0x4b564d02
+ #define MSR_KVM_STEAL_TIME  0x4b564d03
+ #define MSR_KVM_PV_EOI_EN      0x4b564d04
++#define MSR_KVM_CR0_PINNED	0x4b564d08
++#define MSR_KVM_CR4_PINNED	0x4b564d09
+ 
+ struct kvm_steal_time {
+ 	uint64_t steal;
+diff --git a/target/i386/cpu.h b/target/i386/cpu.h
+index 8b3dc5533e..1653844a2e 100644
+--- a/target/i386/cpu.h
++++ b/target/i386/cpu.h
+@@ -1260,6 +1260,8 @@ typedef struct CPUX86State {
+     uint64_t steal_time_msr;
+     uint64_t async_pf_en_msr;
+     uint64_t pv_eoi_en_msr;
++    uint64_t cr0_pinned_msr;
++    uint64_t cr4_pinned_msr;
+ 
+     /* Partition-wide HV MSRs, will be updated only on the first vcpu */
+     uint64_t msr_hv_hypercall;
+diff --git a/target/i386/kvm.c b/target/i386/kvm.c
+index dbbb13772a..1bf48b2c21 100644
+--- a/target/i386/kvm.c
++++ b/target/i386/kvm.c
+@@ -2490,6 +2490,10 @@ static int kvm_put_msrs(X86CPU *cpu, int level)
+         if (env->features[FEAT_KVM] & (1 << KVM_FEATURE_STEAL_TIME)) {
+             kvm_msr_entry_add(cpu, MSR_KVM_STEAL_TIME, env->steal_time_msr);
+         }
++        if (env->features[FEAT_KVM] & (1 << KVM_FEATURE_CR_PIN)) {
++            kvm_msr_entry_add(cpu, MSR_KVM_CR0_PINNED, env->cr0_pinned_msr);
++            kvm_msr_entry_add(cpu, MSR_KVM_CR4_PINNED, env->cr4_pinned_msr);
++        }
+         if (has_architectural_pmu_version > 0) {
+             if (has_architectural_pmu_version > 1) {
+                 /* Stop the counter.  */
+@@ -2875,6 +2879,10 @@ static int kvm_get_msrs(X86CPU *cpu)
+     if (env->features[FEAT_KVM] & (1 << KVM_FEATURE_STEAL_TIME)) {
+         kvm_msr_entry_add(cpu, MSR_KVM_STEAL_TIME, 0);
+     }
++    if (env->features[FEAT_KVM] & (1 << KVM_FEATURE_CR_PIN)) {
++        kvm_msr_entry_add(cpu, MSR_KVM_CR0_PINNED, 0);
++        kvm_msr_entry_add(cpu, MSR_KVM_CR4_PINNED, 0);
++    }
+     if (has_architectural_pmu_version > 0) {
+         if (has_architectural_pmu_version > 1) {
+             kvm_msr_entry_add(cpu, MSR_CORE_PERF_FIXED_CTR_CTRL, 0);
+@@ -3109,6 +3117,12 @@ static int kvm_get_msrs(X86CPU *cpu)
+         case MSR_KVM_STEAL_TIME:
+             env->steal_time_msr = msrs[i].data;
+             break;
++        case MSR_KVM_CR0_PINNED:
++            env->cr0_pinned_msr = msrs[i].data;
++            break;
++        case MSR_KVM_CR4_PINNED:
++            env->cr4_pinned_msr = msrs[i].data;
++            break;
+         case MSR_CORE_PERF_FIXED_CTR_CTRL:
+             env->msr_fixed_ctr_ctrl = msrs[i].data;
+             break;
+diff --git a/target/i386/machine.c b/target/i386/machine.c
+index b1146093b5..2b7c85709c 100644
+--- a/target/i386/machine.c
++++ b/target/i386/machine.c
+@@ -410,6 +410,20 @@ static bool steal_time_msr_needed(void *opaque)
+     return cpu->env.steal_time_msr != 0;
+ }
+ 
++static bool cr0_pinned_msr_needed(void *opaque)
++{
++    X86CPU *cpu = opaque;
++
++    return cpu->env.cr0_pinned_msr != 0;
++}
++
++static bool cr4_pinned_msr_needed(void *opaque)
++{
++    X86CPU *cpu = opaque;
++
++    return cpu->env.cr4_pinned_msr != 0;
++}
++
+ static bool exception_info_needed(void *opaque)
+ {
+     X86CPU *cpu = opaque;
+@@ -450,6 +464,28 @@ static const VMStateDescription vmstate_steal_time_msr = {
+     }
+ };
+ 
++static const VMStateDescription vmstate_cr0_pinned_msr = {
++    .name = "cpu/cr0_pinned_msr",
++    .version_id = 1,
++    .minimum_version_id = 1,
++    .needed = cr0_pinned_msr_needed,
++    .fields = (VMStateField[]) {
++        VMSTATE_UINT64(env.cr0_pinned_msr, X86CPU),
++        VMSTATE_END_OF_LIST()
++    }
++};
++
++static const VMStateDescription vmstate_cr4_pinned_msr = {
++    .name = "cpu/cr4_pinned_msr",
++    .version_id = 1,
++    .minimum_version_id = 1,
++    .needed = cr4_pinned_msr_needed,
++    .fields = (VMStateField[]) {
++        VMSTATE_UINT64(env.cr4_pinned_msr, X86CPU),
++        VMSTATE_END_OF_LIST()
++    }
++};
++
+ static const VMStateDescription vmstate_async_pf_msr = {
+     .name = "cpu/async_pf_msr",
+     .version_id = 1,
+@@ -1356,6 +1392,8 @@ VMStateDescription vmstate_x86_cpu = {
+         &vmstate_async_pf_msr,
+         &vmstate_pv_eoi_msr,
+         &vmstate_steal_time_msr,
++        &vmstate_cr0_pinned_msr,
++        &vmstate_cr4_pinned_msr,
+         &vmstate_fpop_ip_dp,
+         &vmstate_msr_tsc_adjust,
+         &vmstate_msr_tscdeadline,
+-- 
+2.21.0
+
