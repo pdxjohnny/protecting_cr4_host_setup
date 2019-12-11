@@ -1,4 +1,4 @@
-From 5a349970c1fac6a5504d553879508d7d647af02e Mon Sep 17 00:00:00 2001
+From c258ce47d7f37ef32801d343770c085ec3e4675c Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/2] X86: Use KVM CR pin MSRs
@@ -18,6 +18,13 @@ native CR pinning. Therefore, non-boot CPUs access pinned bits setup by
 the boot CPU and request that those be pinned. All CPUs request
 paravirtualized pinning of the same bits which are already pinned
 natively.
+
+Guests using the kexec system call currently do not support
+paravirtualized control register pinning. This is due to early boot
+code writing known good values to control registers, these values do
+not contain the protected bits. This is due to CPU feature
+identification being done at a later time, when the kernel properly
+checks if it can enable protections.
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---

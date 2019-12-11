@@ -1,4 +1,4 @@
-From e6abc9c013e4277ce86d805caae5172d68f6055e Mon Sep 17 00:00:00 2001
+From 598e306ab1f03371b8eeb0c37e204e5d4d9362cf Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 1/2] KVM: X86: Add CR pin MSRs
@@ -7,11 +7,12 @@ Add a CR pin feature bit to the KVM cpuid. Add read only MSRs to KVM
 which guests use to identify which bits they may request be pinned. Add
 CR pinned MSRs to KVM. Allow guests to request that KVM pin certain
 bits within control register 0 or 4 via the CR pinned MSRs. Writes to
-the MSRs fail if they include unsupported bits. Host userspace may clear
-or modify pinned bits at any time. Once pinned bits are set, the guest
-may not modify or clear them. The guest may never read pinned bits. If
-an attacker were to read the CR pinned MSRs, they might decide to
-preform another attack which would not cause a general protection fault.
+the MSRs fail if they include bits which aren't allowed. Host userspace
+may clear or modify pinned bits at any time. Once pinned bits are set,
+the guest may not modify or clear them. The guest may never read pinned
+bits. If an attacker were to read the CR pinned MSRs, they might decide
+to preform another attack which would not cause a general protection
+fault.
 
 In the event that the guest vcpu attempts to disable any of the pinned
 bits, send that vcpu a general protection fault, and leave the register
@@ -55,28 +56,30 @@ https://github.com/qemu/qemu/commit/7e8c770c91616ae8d2d6b15bcc2865be594c8852
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/msr.txt       | 31 +++++++++++++++++++++
+ Documentation/virt/kvm/msr.txt       | 33 ++++++++++++++++++++++
  arch/x86/include/asm/kvm_host.h      |  2 ++
  arch/x86/include/uapi/asm/kvm_para.h |  5 ++++
  arch/x86/kvm/cpuid.c                 |  3 +-
  arch/x86/kvm/x86.c                   | 41 ++++++++++++++++++++++++++++
- 5 files changed, 81 insertions(+), 1 deletion(-)
+ 5 files changed, 83 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/virt/kvm/msr.txt b/Documentation/virt/kvm/msr.txt
-index df1f4338b3ca..1d3922477a43 100644
+index df1f4338b3ca..3270f9aa416d 100644
 --- a/Documentation/virt/kvm/msr.txt
 +++ b/Documentation/virt/kvm/msr.txt
-@@ -282,3 +282,34 @@ MSR_KVM_POLL_CONTROL: 0x4b564d05
+@@ -282,3 +282,36 @@ MSR_KVM_POLL_CONTROL: 0x4b564d05
  	KVM guests can request the host not to poll on HLT, for example if
  	they are performing polling themselves.
  
 +MSR_KVM_CR0_PIN_ALLOWED: 0x4b564d06
 +MSR_KVM_CR4_PIN_ALLOWED: 0x4b564d07
 +	Read only registers informing the guest which bits may be pinned for
-+	each control register respectively via the CR pin hypercall.
++	each control register respectively via the CR pinned MSRs.
 +
-+	data: Bits which may be pinned. Attempting to pin bits other than these
-+	will result in a failure when writing to the CR pinned MSRs.
++	data: Bits which may be pinned.
++
++	Attempting to pin bits other than these will result in a failure when
++	writing to the respective CR pinned MSR.
 +
 +	Bits which are allowed to be pinned are WP for CR0 and SMEP, SMAP, and
 +	UMIP for CR4.
@@ -88,15 +91,15 @@ index df1f4338b3ca..1d3922477a43 100644
 +	data: Bits to be pinned.
 +
 +	Fails if data contains bits which are not allowed to be pinned. Bits
-+	which are allowed to be pinned can be found by reading the
-+	MSR_KVM_CR0_PIN_ALLOWED and MSR_KVM_CR4_PIN_ALLOWED MSRs.
++	which are allowed to be pinned can be found by reading the CR pin
++	allowed MSRs.
 +
 +	Once set, the guest cannot clear or change pinned bits.
 +
 +	Host userspace may clear or change pinned bits at any point. Host
 +	userspace must clear pinned bits on reboot.
 +
-+	The msr enables bit pinning for control registers. Pinning is active
++	The MSR enables bit pinning for control registers. Pinning is active
 +	when the guest is not in SMM. If the guest attempts to write values to
 +	cr* where bits differ from pinned bits, the write will fail and the
 +	guest will be sent a general protection fault.
