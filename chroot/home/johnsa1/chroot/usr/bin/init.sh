@@ -10,19 +10,7 @@ mkdir -p /sys
 mount -t sysfs sysfs /sys -n
 mkdir -p /proc
 mount -t proc proc /proc -n
-mkdir -p /run
-mount -t tmpfs tmpfs /run -n
-/usr/sbin/modprobe kvm
-/usr/sbin/modprobe kvm-intel
 ulimit -u unlimited
-
-do_guest() {
-  sudo -u johnsa1 bash -c 'cd /home/johnsa1 && HOME=/home/johnsa1 /home/johnsa1/run.sh'
-}
-
-do_bash() {
-  exec /usr/bin/bash
-}
 
 do_kexec() {
   echo "Kexecing..."
@@ -42,4 +30,4 @@ do_reboot() {
   done
 }
 
-do_guest
+do_kexec
