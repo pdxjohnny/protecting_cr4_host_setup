@@ -13,7 +13,7 @@ sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -bios \
     "${HOME}/seabios/out/bios.bin" \
   -kernel \
-    "${HOME}/chroot/boot/bzImage" \
+    "/boot/bzImage" \
   -nographic \
   -cpu \
     host \

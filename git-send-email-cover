@@ -1,12 +1,9 @@
-Thank you to Rick, Sean, and Arjan for your comments. QEMU does indeed
-hide unknown CPUID bits by default, so I've left out the capability.
-I tested nested and it seems to work, pinning is happening in the guest
-and the guest's guest.
+Thank you Dave for your comments. I've moved setup_paravirt_cr_pinning
+to kvm.c.
 
-I think it might be good to start the external review process. Please
-let me know if that sounds good or if we should do more internal
-review. Thank you.
-
+Sean would it be possible to get an Acked-by or Reviewed-by from you
+for when I send this externally to the KVM list? Please let me know if
+you have any thoughts or concerns.
 
 Paravirtualized Control Register pinning is a strengthened version of
 existing protections on the Write Protect, Supervisor Mode Execution /

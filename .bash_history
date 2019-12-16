@@ -1,267 +1,3 @@
-cd linux-combined/
-vim -t x86_spec_ctrl_setup_ap
-vim -t identify_secondary_cpu
-git grep identify_secondary_cpu
-vim arch/x86/kernel/smpboot.c
-vim -t identify_secondary_cpu
-git diff
-git stash
-git rebase -i HEAD~2
-git stash pop
-git log
-git status
-vim arch/x86/kernel/cpu/common.c
-git diff
-git add -A
-git status
-git diff --staged
-git rebase --abort
-git status
-git log
-git commit --amend
-git stash pop
-git diff
-git add -A
-git commit --amend
-git format-patch -M upstream/master -o ../outgoing/
-git push -u origin
-git push --set-upstream origin hc_harden_test
-git status
-cd linux-combined/
-git log
-git log --oneline
-git rebase v5.4
-git status
-git diff
-git add -A
-git commit --amend
-git rebase -i v5.4
-git log --oneline
-git log
-git rebase -i HEAD~2
-git log -p
-git status
-rm -rf ../outgoing/
-git format-patch -M upstream/master -o ../outgoing/
-cp ../outgoing/0004-KVM-X86-Add-CR-pin-hypercall.patch ../outgoing/0005-X86-Use-KVM-CR-pin-hypercall.patch
-vim ../outgoing/0005-X86-Use-KVM-CR-pin-hypercall.patch
-vim ../outgoing/0004-KVM-X86-Add-CR-pin-hypercall.patch 
-vim ../outgoing/0005-X86-Use-KVM-CR-pin-hypercall.patch
-git status
-git checkout -b hc_harden_test v5.4
-git am ../outgoing/*
-git log -p
-rm -rf ../outgoing/
-git format-patch -M upstream/master -o ../outgoing/
-git log -p
-./scripts/checkpatch.pl ../outgoing/0001-KVM-X86-VMX-Add-setters-for-guest-owned-CR-bits.patch 
-./scripts/checkpatch.pl ../outgoing/0002-KVM-X86-SVM-Add-setters-for-guest-owned-CR-bits.patch 
-./scripts/checkpatch.pl ../outgoing/0003-KVM-X86-ops-Add-setters-for-guest-owned-CR-bits.patch 
-./scripts/checkpatch.pl ../outgoing/0004-KVM-X86-Add-CR-pin-hypercall.patch 
-vim arch/x86/kvm/x86.c
-git status
-git diff
-git rebase -i HEAD~2
-git stash
-git rebase -i HEAD~2
-git stash pop
-git diff
-git add -A
-git rebase --continue
-git status
-git log -p
-rm -rf ../outgoing/
-git format-patch -M upstream/master -o ../outgoing/
-./scripts/checkpatch.pl ../outgoing/0004-KVM-X86-Add-CR-pin-hypercall.patch 
-./scripts/checkpatch.pl ../outgoing/0005-X86-Use-KVM-CR-pin-hypercall.patch 
-./scripts/checkpatch.pl ../outgoing/0005-X86-Use-KVM-CR-pin-hypercall.patch   --fix
-./scripts/checkpatch.pl --fix ../outgoing/0005-X86-Use-KVM-CR-pin-hypercall.patch
-./scripts/checkpatch.pl --fix-inplace ../outgoing/0005-X86-Use-KVM-CR-pin-hypercall.patch
-./scripts/checkpatch.pl ../outgoing/0005-X86-Use-KVM-CR-pin-hypercall.patch 
-vim ../outgoing/0005-X86-Use-KVM-CR-pin-hypercall.patch
-./scripts/checkpatch.pl ../outgoing/0005-X86-Use-KVM-CR-pin-hypercall.patch 
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install && sudo reboot
-python3.7
-python3.7 -m pip install --prefix=~/.local -U pytype
-vim
-cat /tmp/f
-tmpd
-cd ~/Doc
-cd
-cd $(mktemp -d)
-git clone https://github.com/intel/ittapi
-cd ittapi/
-ll
-git log
-tmux attach
-vim -t SVM_CR0_SELECTIVE_MASK
-vim ~/git-send-email-cover
-vim ~/.vimrc
-vim ~/git-send-email-cover
-cd ~/qemu/
-vim target/i386/cpu.c
-git status
-git diff
-git add target/
-git status
-git commit --amend
-git push -f
-git commit --amend
-git push -f
-vim ~/git-send-email-cover
-cat ~/git-send-email-cover 
-cd ~/outgoing/
-vim 0001-KVM-X86-VMX-Add-setters-for-guest-owned-CR-bits.patch
-cd ../out
-cd ../outgoing/
-vim 0001-KVM-X86-VMX-Add-setters-for-guest-owned-CR-bits.patch 
-vim 0005-KVM-X86-Add-CR-pin-hypercall.patch 
-vim 0006-X86-Use-KVM-CR-pin-hypercall.patch 
-vim 0005-KVM-X86-Add-CR-pin-hypercall.patch 
-vim 0006-X86-Use-KVM-CR-pin-hypercall.patch 
-vim 0005-KVM-X86-Add-CR-pin-hypercall.patch 
-tmux
-cd linux-combined/
-tmuix
-tmux
-git log --oneline
-cd linux-combined/
-tmux
-ssh -p 2222
-ssh -p 2222 127.0.0.1
-fallocate -l 512M image.iso
-mv image.iso ../
-cd ..
-rm image.iso 
-fallocate -l 512M image.iso
-rm image.iso 
-fallocate -l 10G image.iso
-ll
-mkfs.ext4 -j image.iso
-losetup -d -h
-losetup -h
-losetup -f image.iso 
-sudo losetup -f image.iso 
-losetup 
-sudo mount /dev/loop0 /mnt/
-ll /mnt/
-sudo cp -r chroot/* /mnt/
-ll /mnt/
-sudo umount -d /mnt
-umount -h
-losetup 
-vim run.sh 
-tmux attach
-cd 
-mkdir dropbear
-cd dropbear
-curl -sSL 'https://matt.ucc.asn.au/dropbear/dropbear-2019.78.tar.bz2' | tar xvz
-curl -sSL 'https://matt.ucc.asn.au/dropbear/dropbear-2019.78.tar.bz2' | tar xvJ
-curl -sSL 'https://matt.ucc.asn.au/dropbear/dropbear-2019.78.tar.bz2' | tar xvj
-cd dropbear-2019.78/
-ll
-./configure --disable-shared --enable-static
-./configure --enable-static
-make static -j $(($(nproc)*4))
-make -j $(($(nproc)*4))
-sudo ss -tpln
-ll ~/chroot/var/log/
-ip a
-sudo ss -tpln
-sudo dnf install -y golang
-cd ~/
-mkdir ssh-server
-cd ssh-server
-ll
-curl -O https://gist.github.com/jpillora/b480fde82bff51a06238/raw/546fc573e0520be1cf87da48ce1097214b687dd8/sshd.go
-ll
-vim sshd.go 
-rm sshd.go 
-curl -sSLO https://gist.github.com/jpillora/b480fde82bff51a06238/raw/546fc573e0520be1cf87da48ce1097214b687dd8/sshd.go
-vim sshd.go 
-go get -v .
-ll
-mkdir -p ~/go/src/github.com/jpillora/sshd
-mv sshd.go ~/go/src/github.com/jpillora/sshd/
-cd ~/go/src/github.com/jpillora/sshd/
-ll
-go get -v .
-ll
-go get -v .
-unset CC 
-go get -v .
-go build -tags netgo .
-ll
-file sshd
-du -h 4
-du -h sshd
-sudo cp sshd ~/chroot/usr/bin/go-sshd
-sudo mkdir -p ~/chroot/var/go-sshd/
-cd ~/chroot/var/go-sshd/
-sudo ssh-keygen -t rsa
-ll
-sudo chroot ~/chroot/
-vim arch/x86/kvm/vmx/vmx.c
-git log -p
-python3
-vim target/i386/kvm.c
-cd ~/qemu/
-vim target/i386/kvm.c
-cd ~/qemu/
-git grep XSTATE_FP_MASK
-vim target/i386/cpu.h
-git grep MSR_EFER
-vim target/i386/cpu.h
-git grep MSR_CORE_PERF_GLOBAL_STATUS
-vim target/i386/cpu.h
-git grep MSR_SMI_COUNT
-vim target/i386/kvm.c
-git grep steal_time
-vim target/i386/machine.c
-git grep steal_time
-vim target/i386/machine.c
-git grep steal_time
-vim target/i386/cpu.c
-git grep steal_time
-git grep 'kvm-steal-time'
-dmesg 
-~/run.sh -smp cpus=2 2>&1 | grep -i pinning
-git log -p
-git commit --amend
-git push -f
-git rebase -i HEAD~2
-git status
-git push -f
-vim arch/x86/Kconfig
-git diff
-git add -A
-git commit --amend
-git push -f
-vim arch/x86/kvm/svm.c
-vim arch/x86/kvm/vmx/vmx.c
-vim arch/x86/kvm/x86.c
-vim -t setup_cr_pinning
-git grep __ro_after_init
-vim Documentation/security/self-protection.rst
-git grep msr_kvm_poll_control
-vim arch/x86/kvm/x86.c
-find . -name kvm_host.h
-vim ./arch/x86/include/asm/kvm_host.h
-git diff
-vim ./arch/x86/include/asm/kvm_host.h
-git diff
-git grep CR4_GU
-vim arch/x86/kvm/vmx/vmx.c
-cd ..
-git status
-git diff
-git log -p
-git log --stat
-git add -f outgoing/*
-git status
-cd linux-combined/
-ll
-git status
 git diff
 git stash
 git rebase -i HEAD~7
@@ -998,3 +734,267 @@ make -j $(($(nproc)*4))
 ~/run.sh 
 INIT=/home/johnsa1/chroot/usr/bin/rebooter ~/run.sh 
 INIT=/home/johnsa1/chroot/usr/bin/rebooter ~/run.sh  | grep -i pinning
+git status
+cd ~/qemu
+ll
+git status
+git tag my-qemu-tag
+git status
+git push --tags
+uname -a
+sudo chroot ~/chroot/
+tmux
+git status
+git diff git-send-email-cover
+git add git-send-email-cover
+git diff git-send-email-cover
+git add git-send-email-cover
+cd linux-combined/
+git log -p
+git status
+git commit --amend
+git log -p
+git rebase -i HEAD~2
+git status
+git push -f
+git status
+rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
+cd ..
+git statuss
+git status
+git diff
+git add -A
+git status
+git c 'RFC v3'
+git status
+git push
+git log -p
+cd linux-combined/
+git log -p
+git rebase -i HEAD~2
+vim Documentation/virt/kvm/msr.txt
+git diff
+git add -A
+git rebase --continue
+git log -p
+rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
+./scripts/checkpatch.pl ../outgoing/0001-KVM-X86-Add-CR-pin-MSRs.patch
+./scripts/checkpatch.pl ../outgoing/0002-X86-Use-KVM-CR-pin-MSRs.patch 
+git status
+git push -f
+cd ..
+git status
+git diff
+git add -A
+git commit --amend
+git push -f
+cd linux-combined/
+git send-email --subject-prefix="RFC v3" --annotate --cover-letter --to linux-security@eclists.intel.com --to linux-drivers-review@eclists.intel.com --to kristen.c.accardi@intel.com --to rick.p.edgecombe@intel.com --to sean.j.christopherson@intel.com --to arjan@linux.intel.com HEAD~2
+git status
+git log -p
+git rebase -i HEAD~2
+vim arch/x86/kernel/cpu/common.c
+git status
+git rebase --abort
+vim arch/x86/kernel/cpu/common.c
+find . -name kvm_para.h
+vim ./include/linux/kvm_para.h
+vim ./include/uapi/linux/kvm_para.h
+vim ./arch/x86/include/asm/kvm_para.h
+git grep kvm_spin
+vim arch/x86/kernel/kvm.c
+git grep setup_paravirt_cr_pinning
+git grep cr4_pinned_bits
+vim arch/x86/kernel/cpu/common.c
+git diff
+git grep extern
+git grep extern\
+git grep extern\ 
+git grep -E 'extern.*__'
+git grep -E 'extern.*__ro'
+vim ~/run.sh
+sudo ss -tpln
+vim ~/run.sh
+sudo ss -tpln
+vim ~/run.sh
+sudo ss -tpln
+git status
+git diff
+git add run.sh 
+sudo vim ~/chroot/home/johnsa1/run.sh
+sudo chroot ~/chroot/
+~/run.sh
+vim ~/run.sh
+~/run.sh
+git diff
+~/run.sh
+vim ~/run.sh
+~/run.sh
+~/run.sh 2>&1 | tee /tmp/run.log
+vim /tmp/run.log
+grep read /tmp/run.log
+grep root /tmp/run.log
+grep -i mount /tmp/run.log
+vim ~/run.sh
+~/run.sh
+INIT=/usr/bin/bash ~/run.sh
+vim ~/run.sh
+INIT=/usr/bin/bash ~/run.sh
+reset
+ll ~/chroot/home/johnsa1/run.sh
+sudo chown johnsa1:johnsa1 ~/chroot/home/johnsa1/run.sh
+ll ~/chroot/home/johnsa1/run.sh
+vim ~/chroot/home/johnsa1/run.sh
+sudo vim ~/chroot/usr/bin/init.sh
+INIT=/usr/bin/init.sh ~/run.sh
+vim ~/chroot/home/johnsa1/run.sh
+sudo vim ~/chroot/usr/bin/init.sh
+INIT=/usr/bin/init.sh ~/run.sh
+sudo vim ~/chroot/usr/bin/init.sh
+sudo find ~/chroot/ -name modprobe
+sudo vim ~/chroot/usr/bin/init.sh
+INIT=/usr/bin/init.sh ~/run.sh
+htop
+vim ~/run.sh 
+INIT=/usr/bin/init.sh ~/run.sh
+sudo find -name kvmvapic.bin ~/
+sudo find ~ -name kvmvapic.bin
+sudo find /usr/ -name kvmvapic.bin
+sudo chroot ~/chroot/
+INIT=/usr/bin/init.sh ~/run.sh
+sudo vim ~/chroot/usr/bin/init.sh
+sudo vim ~/chroot/home/johnsa1/run.sh
+ll ~/chroot/home/johnsa1/qemu/build/pc-bios/optionrom/kvmvapic.bin
+ll ~/chroot/home/johnsa1/qemu/build/pc-bios/optionrom/*
+sudo find ~/qemu/build/ -name vgabios-stdvga.bin
+sudo vim ~/chroot/usr/bin/init.sh
+sudo vim ~/chroot/home/johnsa1/run.sh
+sudo vim ~/chroot/usr/bin/init.sh
+INIT=/usr/bin/init.sh ~/run.sh
+sudo vim ~/chroot/usr/bin/init.sh
+INIT=/usr/bin/init.sh ~/run.sh
+sudo vim ~/chroot/usr/bin/init.sh
+sudo vim ~/chroot/home/johnsa1/run.sh
+INIT=/usr/bin/init.sh ~/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+vim /tmp/run.log
+sudo chroot ~/chroot/
+sudo vim ~/chroot/home/johnsa1/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+vim /tmp/run.log
+sudo chroot ~/chroot/
+vim ~/run.sh 
+rm -rf ~/chroot/home/johnsa1/qemu/
+sudo cp -r ~/qemu ~/chroot/home/johnsa1/qemu/
+sudo rm -rf ~/chroot/home/johnsa1/qemu/
+cp -r ~/qemu ~/chroot/home/johnsa1/qemu/
+sudo chroot ~/chroot/
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+sudo vim ~/chroot/home/johnsa1/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+sudo vim ~/chroot/home/johnsa1/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+sudo vim ~/chroot/home/johnsa1/run.sh
+sudo chroot ~/chroot/home/johnsa1/chroot/
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+sudo chroot ~/chroot/home/johnsa1/chroot/
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+sudo vim ~/chroot/home/johnsa1/run.sh
+vim ~/run.sh 
+sudo vim ~/chroot/home/johnsa1/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+sudo vim ~/chroot/home/johnsa1/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+sudo vim ~/chroot/home/johnsa1/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+git status
+git add chroot/usr/bin/init.sh chroot/home/johnsa1/chroot/usr/bin/init.sh
+git add -f chroot/home/johnsa1/chroot/usr/bin/init.sh
+git status
+git add run.sh
+git status
+git add -A
+git status
+git dif f--staged
+git diff --staged
+git add -f chroot/usr/share/qemu
+git status
+git add -f chroot/usr/share/qemu-firmware
+git add -f chroot/usr/local/share/qemu
+git add -f chroot/usr/local/share/qemu-firmware/
+git add -f chroot/usr/local/share/qemu-firmware
+git reset HEAD chroot/usr/share/qemu
+git status
+git c 'cp -r qemu_source chroot/home/johnsa1/qemu'
+git push
+vim rebooter.c
+git add -f rebooter.c 
+gcc -static rebooter.c -o rebooter
+vim rebooter.c
+gcc -static rebooter.c -o rebooter
+vim rebooter.c
+gcc -static rebooter.c -o rebooter
+sudo dnf -y install glibc-static
+gcc -static rebooter.c -o rebooter
+file rebooter
+./rebooter 
+sudo cp rebooter chroot/home/johnsa1/chroot/usr/bin/
+sudo vim ~/chroot/home/johnsa1/run.sh
+git add chroot/home/johnsa1/chroot/usr/bin/rebooter
+git add -f chroot/home/johnsa1/chroot/usr/bin/rebooter
+git status
+git add rebooter.c 
+git status
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+vim /tmp/run.log
+grep pinning /tmp/run.log
+sudo vim ~/chroot/home/johnsa1/run.sh
+vim ~/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+git status
+cp /tmp/run.log ./
+git add -f run.log 
+git status
+git add run.sh 
+git diff
+git status
+git diff --staged
+git status
+git add -f chroot/usr/bin/init.sh 
+git add -f chroot/home/johnsa1/run.sh
+git status
+git c 'nested working'
+git push
+it status
+git status
+cd linux-combined/
+rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
+cd ..
+git add -f outgoing/*
+git status
+vim git-send-email-cover 
+cat git-send-email-cover | wc
+vim git-send-email-cover 
+git status
+git diff .bash_history
+git add -A
+git status
+git c 'cover letter update'
+vim README.md 
+git grep wrmsrl
+cd linux-combined/
+git grep wrmsrl
+vim -t wrmsrl_safe
+time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+git status
+git diff
+vim arch/x86/kernel/kvm.c
+time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+vim arch/x86/kernel/kvm.c
+time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+vim arch/x86/kernel/kvm.c
+time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+vim arch/x86/kernel/kvm.c
+time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+sudo reboot
