@@ -16,6 +16,7 @@ mount -t tmpfs tmpfs /run -n
 /usr/sbin/insmod "/lib/modules/$(uname -r)/kernel/arch/x86/kvm/kvm.ko"
 /usr/sbin/insmod "/lib/modules/$(uname -r)/kernel/arch/x86/kvm/kvm-intel.ko"
 ulimit -u unlimited
+/usr/sbin/swapon /dev/sda
 
 do_guest() {
   sudo -u johnsa1 bash -c 'cd /home/johnsa1 && HOME=/home/johnsa1 /home/johnsa1/run.sh'
@@ -43,4 +44,5 @@ do_reboot() {
   done
 }
 
-do_guest
+# do_guest
+do_bash

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# echo reboot > /sys/power/disk
+echo shutdown > /sys/power/disk
+echo disk > /sys/power/state

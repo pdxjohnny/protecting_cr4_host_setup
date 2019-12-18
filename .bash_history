@@ -1,175 +1,4 @@
 git diff
-git stash
-git rebase -i HEAD~7
-git stash pop
-git diff
-git grep CR4_GUES
-vim arch/x86/kvm/vmx/vmx.c
-git grep BUILD_BUG_ON
-vim arch/x86/kvm/vmx/vmcs_shadow_fields.h
-vim arch/x86/kvm/vmx/vmx.c
-git diff
-git status
-git add -A
-git status
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-vim arch/x86/kvm/x86.c
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-vim arch/x86/kvm/x86.c
-vim arch/x86/kvm/vmx/vmx.c
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-git status
-git diff
-git add -A
-git grep capibility arch/x86
-git grep capibility arch/x86/kvm
-git grep cap arch/x86/kvm
-git grep capability arch/x86/kvm
-git grep cap arch/x86/kvm
-vim -t kvm_vcpu_ioctl_enable_cap
-vim arch/x86/kvm/x86.c
-git diff
-vim arch/x86/kvm/x86.c
-git diff
-vim arch/x86/kvm/x86.c
-git diff
-vim arch/x86/kvm/x86.c
-git grep kvm_arch_vcpu_ioctl_get_regs
-vim virt/kvm/kvm_main.c
-git grep -i msr virt/kvm/
-git grep -i msr arch/x86/kvm/
-git grep __kvm_set_msr
-git grep -p __kvm_set_msr
-git grep -p do_set_msr
-vim -t kvm_arch_vcpu_ioctl
-vim arch/x86/kvm/x86.c
-git diff
-vim arch/x86/kvm/x86.c
-git log -p
-vim include/uapi/linux/kvm_para.h
-git status
-git add -A
-git stash
-git status
-git rebase -i HEAD~2
-git status
-git diff
-git status
-git diff
-git diff --staged
-git rebase --abort
-git status
-git rebase -i HEAD~2
-git diff
-git diff HEAD~1
-patch -p1 << 'EOF'
-diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index b83d8201483c..a4625c7e0fec 100644
---- a/arch/x86/kvm/x86.c
-+++ b/arch/x86/kvm/x86.c
-@@ -1249,6 +1249,8 @@ static const u32 emulated_msrs_all[] = {
-        MSR_KVM_POLL_CONTROL,
-        MSR_KVM_CR0_PIN_ALLOWED,
-        MSR_KVM_CR4_PIN_ALLOWED,
-+       MSR_KVM_CR0_PINNED,
-+       MSR_KVM_CR4_PINNED,
- };
-
- static u32 emulated_msrs[ARRAY_SIZE(emulated_msrs_all)];
-@@ -2805,6 +2807,18 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
-                vcpu->arch.msr_kvm_poll_control = data;
-                break;
-
-+       case MSR_KVM_CR0_PINNED:
-+               if ((!msr_info->host_initiated && vcpu->arch.cr0_pinned) ||
-+                   (pin & ~KVM_CR0_PIN_ALLOWED))
-+                       return 1;
-+               vcpu->arch.cr0_pinned = data;
-+               break;
-+       case MSR_KVM_CR4_PINNED:
-+               if ((!msr_info->host_initiated && vcpu->arch.cr4_pinned) ||
-+                   (pin & ~KVM_CR4_PIN_ALLOWED))
-+                       return 1;
-+               vcpu->arch.cr4_pinned = data;
-+               break;
-        case MSR_IA32_MCG_CTL:
-        case MSR_IA32_MCG_STATUS:
-        case MSR_IA32_MC0_CTL ... MSR_IA32_MCx_CTL(KVM_MAX_MCE_BANKS) - 1:
-@@ -3054,6 +3068,12 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
-        case MSR_KVM_CR4_PIN_ALLOWED:
-                msr_info->data = KVM_CR4_PIN_ALLOWED;
-                break;
-+       case MSR_KVM_CR0_PINNED:
-+               msr_info->data = vcpu->arch.cr0_pinned;
-+               break;
-+       case MSR_KVM_CR4_PINNED:
-+               msr_info->data = vcpu->arch.cr4_pinned;
-+               break;
-        case MSR_IA32_P5_MC_ADDR:
-        case MSR_IA32_P5_MC_TYPE:
-        case MSR_IA32_MCG_CAP:
-EOF
-
-vim arch/x86/kvm/x86.c.rej
-git diff HEAD~1
-vim arch/x86/include/uapi/asm/kvm_para.h
-git diff HEAD~1
-vim Documentation/virt/kvm/hypercalls.txt
-vim Documentation/virt/kvm/msr.txt
-patch -p1 << 'EOF'
-diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index b83d8201483c..a4625c7e0fec 100644
---- a/arch/x86/kvm/x86.c
-+++ b/arch/x86/kvm/x86.c
-@@ -1249,6 +1249,8 @@ static const u32 emulated_msrs_all[] = {
-        MSR_KVM_POLL_CONTROL,
-        MSR_KVM_CR0_PIN_ALLOWED,
-        MSR_KVM_CR4_PIN_ALLOWED,
-+       MSR_KVM_CR0_PINNED,
-+       MSR_KVM_CR4_PINNED,
- };
-
- static u32 emulated_msrs[ARRAY_SIZE(emulated_msrs_all)];
-@@ -2805,6 +2807,18 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
-                vcpu->arch.msr_kvm_poll_control = data;
-                break;
-
-+       case MSR_KVM_CR0_PINNED:
-+               if ((!msr_info->host_initiated && vcpu->arch.cr0_pinned) ||
-+                   (pin & ~KVM_CR0_PIN_ALLOWED))
-+                       return 1;
-+               vcpu->arch.cr0_pinned = data;
-+               break;
-+       case MSR_KVM_CR4_PINNED:
-+               if ((!msr_info->host_initiated && vcpu->arch.cr4_pinned) ||
-+                   (pin & ~KVM_CR4_PIN_ALLOWED))
-+                       return 1;
-+               vcpu->arch.cr4_pinned = data;
-+               break;
-        case MSR_IA32_MCG_CTL:
-        case MSR_IA32_MCG_STATUS:
-        case MSR_IA32_MC0_CTL ... MSR_IA32_MCx_CTL(KVM_MAX_MCE_BANKS) - 1:
-@@ -3054,6 +3068,12 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
-        case MSR_KVM_CR4_PIN_ALLOWED:
-                msr_info->data = KVM_CR4_PIN_ALLOWED;
-                break;
-+       case MSR_KVM_CR0_PINNED:
-+               msr_info->data = vcpu->arch.cr0_pinned;
-+               break;
-+       case MSR_KVM_CR4_PINNED:
-+               msr_info->data = vcpu->arch.cr4_pinned;
-+               break;
-        case MSR_IA32_P5_MC_ADDR:
-        case MSR_IA32_P5_MC_TYPE:
-        case MSR_IA32_MCG_CAP:
-EOF
-
-vim arch/x86/kvm/x86.c
-git diff
-vim arch/x86/kvm/x86.c
-git diff
-vim Documentation/virt/kvm/msr.txt
-git diff
 vim Documentation/virt/kvm/msr.txt
 git diff
 vim Documentation/virt/kvm/msr.txt
@@ -998,3 +827,174 @@ time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && 
 vim arch/x86/kernel/kvm.c
 time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
 sudo reboot
+sudo reboot
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+vim ~/run.sh
+sudo vim ~/chroot/home/johnsa1/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+vim /tmp/run.log 
+export INSTALL_MOD_PATH=/home/johnsa1/chroot
+export INSTALL_PATH=${INSTALL_MOD_PATH}/boot
+sudo -E make -j $(($(nproc)*4)) modules_install && sudo -E make install
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+git status
+git diff
+git reset --hard HEAD
+git status
+git commit --amend
+git log -p
+git grep rdmsr
+git grep safe Documentation/
+git grep -i 'msr.*safe' Documentation/
+git grep -i 'msr' Documentation/
+git status
+git log -p
+git status
+git push -f
+rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
+cd ..
+git status
+vim git-send-email-cover 
+hwclock 
+hwclock -h
+sudo hwclock -s
+sudo hwclock -w
+date 
+date -h
+date --help
+date --date='TZ="America/Los_Angeles" 16:39'
+timedatectl --help
+timedatectl  set-timezone 'America/Los_Angeles'
+sudo timedatectl  set-timezone 'America/Los_Angeles'
+date 
+timedatectl set-time 16:39
+timedatectl set-ntp false
+sudo timedatectl set-ntp false
+timedatectl set-time 16:39
+sudo timedatectl set-time 16:39
+date
+sudo timedatectl set-time 16:40
+date
+sudo hwclock -w
+date
+git log -p
+git status
+vim git-send-email-cover 
+git diff
+vim git-send-email-cover 
+git add -A
+git status
+vim README.md 
+cd linux-combined/
+git log -p
+./scripts/checkpatch.pl ../outgoing/0002-X86-Use-KVM-CR-pin-MSRs.patch 
+git send-email --subject-prefix="RFC v4" --annotate --cover-letter --to sean.j.christopherson@intel.com --
+git send-email --subject-prefix="RFC v4" --annotate --cover-letter --to sean.j.christopherson@intel.com --to linux-security@eclists.intel.com --to linux-drivers-review@eclists.intel.com HEAD~2
+git status
+cd ..
+git status
+git diff
+git add -A
+git status
+git c 'RFC v3'
+git push
+ll
+cd kvm-unit-tests/
+ll
+git grep power
+git grep S0
+git grep S1
+git grep S3
+git grep -i suspend
+ll
+cd
+qemu-img create -f qcow2 image.qcow2 300M
+vim run.
+sudo du -h --summarize chroot
+sudo dnf -y install libguestfs-tools libguestfs
+guestmount -a image.qcow2 -i /mnt
+guestmount -a image.qcow2 /mnt
+guestmount -a image.qcow2 /mnt --help
+sudo fdisk -l image.qcow2
+sudo parted image.qcow2
+guestmount -a image.qcow2 /mnt
+guestmount --rw -a image.qcow2
+guestfish --rw -a image.qcow2
+modprobe nbd max_part=8
+sudo modprobe nbd max_part=8
+qemu-nbd --connect=/dev/nbd0 image.qcow2 
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2 
+fdisk /dev/nbd0 -l
+sudo fdisk /dev/nbd0 -l
+sudo du -h --threshold=100M chroot
+vim run.sh 
+rm -rf chroot/usr/lib/modules/5.4.0+
+sudo rm -rf chroot/usr/lib/modules/5.4.0+
+sudo df -h --max-depth=1 ~/chroot
+sudo du -h --threshold=100M chroot
+sudo cp chroot/home/johnsa1/chroot/usr/bin/init.sh chroot/usr/bin/nested-init.sh
+sudo mv chroot/home/johnsa1/chroot/usr/bin/rebooter chroot/usr/bin/
+sudo rm -rf chroot/home/johnsa1/chroot/
+sudo du -h --threshold=100M chroot
+sudo vim chroot/usr/bin/init.sh
+sudo vim chroot/home/johnsa1/run.sh
+git add chroot/home/johnsa1/run.sh
+git status
+git add -A
+git status
+git add -f chroot/usr/bin/rebooter 
+git status
+git c 'removed nested chroot folder'
+git push
+vim run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+vim run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+vim run.sh
+sudo vim chroot/home/johnsa1/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+sudo vim chroot/home/johnsa1/run.sh
+sudo vim chroot/usr/bin/init.sh
+which insmod
+/usr/sbin/insmod --help
+sudo vim chroot/usr/bin/init.sh
+vim ~/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+vim ~/run.sh
+sudo vim chroot/usr/bin/init.sh
+vim ~/run.sh
+sudo vim chroot/usr/bin/init.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+sudo vim chroot/usr/bin/init.sh
+vim ~/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+vim ~/run.sh
+sudo vim chroot/usr/bin/init.sh
+ll "/lib/modules/$(uname -r)/kernel/virt/lib/irqbypass.ko"
+ll "chroot/lib/modules/$(uname -r)/kernel/virt/lib/irqbypass.ko"
+ll "chroot/lib/modules/$(uname -r)/"
+ll "chroot/lib/modules/$(uname -r)/kernel"
+ll "chroot/lib/modules/$(uname -r)/kernel/virt/"
+ll "chroot/lib/modules/$(uname -r)/kernel/virt/lib/"
+vim ~/run.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+sudo vim chroot/usr/bin/init.sh
+INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
+git stauts
+git status
+git diff
+git add -A
+git status
+git commit --amend
+git push -f
+sudo du -h --threshold=100M chroot
+rm image.qcow2
+qemu-img create -f qcow2 image.qcow2 3G
+sudo 
+sudo qemu-nbd --disconnect /dev/nbd0
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2 
+sudo fdisk /dev/nbd0 -l
+sudo partx /dev/ndb0
+sudo part /dev/ndb0
+sudo parted /dev/ndb0
+sudo parted /dev/nbd0

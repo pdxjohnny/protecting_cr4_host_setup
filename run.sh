@@ -48,7 +48,12 @@ sudo modprobe kvm-intel nested=1
 
 INIT=${INIT:-'/usr/lib/systemd/systemd'}
 
+if [ ! -f "${HOME}/swapfile" ]; then
+  sudo fallocate -l 10g "${HOME}/swapfile"
+  sudo mkswap "${HOME}/swapfile"
+fi
 
+#  -blockdev driver=raw,node-name=disk,file.driver=file,file.filename="${HOME}/swapfile" \
 mkdir -p "${HOME}/chroot${HOME}/seabios/out/"
 cp "${HOME}/seabios/out/bios.bin" "${HOME}/chroot${HOME}/seabios/out/bios.bin"
 sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${HOME}/chroot/boot/bzImage"
@@ -56,6 +61,7 @@ sudo chmod 644 "${HOME}/chroot/boot/bzImage"
 sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -smp cpus=4 \
   -m 8192M \
+  -drive file="${HOME}/swapfile",index=1,media=disk,format=raw \
   -chardev \
     "file,path=${HOME}/seabios.log,id=seabios" \
   -device \
@@ -73,9 +79,9 @@ sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -net \
     user,hostfwd=tcp::2222-:22,hostfwd=tcp::4444-:2222 \
   -append \
-    "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root ro rootflags=trans=virtio,version=9p2000.u nokaslr init=${INIT}" \
+    "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.L rw nokaslr init=${INIT} ${CMDLINE}" \
   -fsdev \
-    local,id=fsdev-root,path="${CHROOT}",security_model=passthrough,readonly \
+    local,id=fsdev-root,path="${CHROOT}",security_model=passthrough \
   -device \
     virtio-9p-pci,fsdev=fsdev-root,mount_tag=/dev/root
 
