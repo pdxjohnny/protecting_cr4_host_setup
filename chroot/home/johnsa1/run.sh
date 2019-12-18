@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -xe
 
-CHROOT=${CHROOT:-"${HOME}/chroot"}
 INIT=${INIT:-'/usr/lib/systemd/systemd'}
 
 INIT='/usr/bin/rebooter'
@@ -24,6 +23,6 @@ sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -append \
     "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.u ro nokaslr init=${INIT}" \
   -fsdev \
-    local,id=fsdev-root,path="${CHROOT}",security_model=passthrough,readonly \
+    local,id=fsdev-root,path=/,security_model=passthrough,readonly \
   -device \
     virtio-9p-pci,fsdev=fsdev-root,mount_tag=/dev/root

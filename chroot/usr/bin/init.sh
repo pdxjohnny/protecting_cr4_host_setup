@@ -12,8 +12,9 @@ mkdir -p /proc
 mount -t proc proc /proc -n
 mkdir -p /run
 mount -t tmpfs tmpfs /run -n
-/usr/sbin/modprobe kvm
-/usr/sbin/modprobe kvm-intel
+/usr/sbin/insmod "/lib/modules/$(uname -r)/kernel/virt/lib/irqbypass.ko"
+/usr/sbin/insmod "/lib/modules/$(uname -r)/kernel/arch/x86/kvm/kvm.ko"
+/usr/sbin/insmod "/lib/modules/$(uname -r)/kernel/arch/x86/kvm/kvm-intel.ko"
 ulimit -u unlimited
 
 do_guest() {

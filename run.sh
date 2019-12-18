@@ -38,7 +38,11 @@ sudo modprobe kvm-intel nested=1
 sudo modprobe kvm
 sudo modprobe -rf kvm-intel
 sudo modprobe -rf kvm
+sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
+sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/"
 sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
+sudo cp "${HOME}/linux-combined/virt/lib/irqbypass.ko" "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/irqbypass.ko"
+sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
 sudo modprobe kvm
 sudo modprobe kvm-intel nested=1
 
@@ -48,9 +52,7 @@ INIT=${INIT:-'/usr/lib/systemd/systemd'}
 mkdir -p "${HOME}/chroot${HOME}/seabios/out/"
 cp "${HOME}/seabios/out/bios.bin" "${HOME}/chroot${HOME}/seabios/out/bios.bin"
 sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${HOME}/chroot/boot/bzImage"
-sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${HOME}/chroot${HOME}/chroot/boot/bzImage"
 sudo chmod 644 "${HOME}/chroot/boot/bzImage"
-sudo chmod 644 "${HOME}/chroot${HOME}/chroot/boot/bzImage"
 sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -smp cpus=4 \
   -m 8192M \
