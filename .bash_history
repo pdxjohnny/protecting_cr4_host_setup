@@ -1,5 +1,3 @@
-sudo chroot ~/chroot/
-cat ~/run.sh
 vim ~/run.sh
 vim ~/git-send-email-cover 
 rm -rf /home/johnsa1/chroot/home/johnsa1/qemu/build/
