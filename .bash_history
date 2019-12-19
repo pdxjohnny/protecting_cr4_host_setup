@@ -1,278 +1,3 @@
-cp -r ~/chroot ~/nested
-sudo rm -rf ~/nested
-sudo cp -r ~/chroot ~/nested
-sudo umount ~/chroot/proc
-sudo rm -rf ~/nested
-sudo cp -r ~/chroot ~/nested
-sudo df -h --sumarize ~/chroot
-sudo df -h --summarize ~/chroot
-sudo df -h --sumurize ~/chroot
-sudo df -h --sumerize ~/chroot
-sudo df -h --max-depth=1 ~/chroot
-sudo du -h --max-depth=1 ~/chroot
-sudo du -h --max-depth=1 ~/nested/
-sudo mv ~/nested/ ~/chroot/home/johnsa1/chroot
-sudo cp ~/run.sh ~/chroot/home/johnsa1/
-cat /sys/module/kvm_intel/parameters/nested
-vim ~/run.sh
-sudo cp ~/run.sh ~/chroot/home/johnsa1/run.sh 
-cat ~/chroot/home/johnsa1/run.sh
-cat /etc/modprobe.d/kvm.conf
-sudo vim /etc/modprobe.d/kvm.conf
-sudo vim ~/chroot//etc/modprobe.d/kvm.conf
-sudo vim /etc/modprobe.d/kvm.conf
-sudo reboot
-git log -p
-git rebase -i HEAD~2
-git push -f
-rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
-git statsu
-git status
-git diff
-git log -p
-git push -f
-cd ..
-git status
-git add -A
-git status
-git add -f outgoing/*
-git status
-git c 'RFC v3'
-git push
-vim git-send-email-cover 
-cat > git-send-email-cover
-vim git-send-email-cover
-git add git-send-email-cover
-git status
-git c 'update cover letter'
-git push
-ll ~/chroot/lib/modules/
-ll ~/chroot/lib/*
-ll ~/chroot/lib/mod*
-ll ~/chroot/boot/
-sudo rm ~/chroot/boot/vmlinux
-ll ~/chroot/boot/
-ssh -p 2222 127.0.0.1
-cd linux-combined/
-export INSTALL_MOD_PATH=/home/johnsa1/chroot
-export INSTALL_PATH=${INSTALL_MOD_PATH}/boot
-sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-sudo -E make -j $(($(nproc)*4)) modules_install && sudo -E make install
-git grep pin run.log
-git grep pinning run.log
-ssh -p 2222 127.0.0.1
-sudo ss -tpln
-ssh -p 2222 localhost
-git status
-git c 'working on cover letter'
-git push
-git status
-cd ~/qemu
-git log -p
-vim target/i386/kvm.c
-make -j $(($(nproc)*4))
-cd by
-cd build/
-cd by
-make -j $(($(nproc)*4))
-~/run.sh 
-INIT=/home/johnsa1/chroot/usr/bin/rebooter ~/run.sh 
-cd ..
-git status
-git diff
-git reset --hard HEAD
-git status
-cd build/
-make -j $(($(nproc)*4))
-~/run.sh 
-INIT=/home/johnsa1/chroot/usr/bin/rebooter ~/run.sh 
-INIT=/home/johnsa1/chroot/usr/bin/rebooter ~/run.sh  | grep -i pinning
-git status
-cd ~/qemu
-ll
-git status
-git tag my-qemu-tag
-git status
-git push --tags
-uname -a
-sudo chroot ~/chroot/
-tmux
-git status
-git diff git-send-email-cover
-git add git-send-email-cover
-git diff git-send-email-cover
-git add git-send-email-cover
-cd linux-combined/
-git log -p
-git status
-git commit --amend
-git log -p
-git rebase -i HEAD~2
-git status
-git push -f
-git status
-rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
-cd ..
-git statuss
-git status
-git diff
-git add -A
-git status
-git c 'RFC v3'
-git status
-git push
-git log -p
-cd linux-combined/
-git log -p
-git rebase -i HEAD~2
-vim Documentation/virt/kvm/msr.txt
-git diff
-git add -A
-git rebase --continue
-git log -p
-rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
-./scripts/checkpatch.pl ../outgoing/0001-KVM-X86-Add-CR-pin-MSRs.patch
-./scripts/checkpatch.pl ../outgoing/0002-X86-Use-KVM-CR-pin-MSRs.patch 
-git status
-git push -f
-cd ..
-git status
-git diff
-git add -A
-git commit --amend
-git push -f
-cd linux-combined/
-git send-email --subject-prefix="RFC v3" --annotate --cover-letter --to linux-security@eclists.intel.com --to linux-drivers-review@eclists.intel.com --to kristen.c.accardi@intel.com --to rick.p.edgecombe@intel.com --to sean.j.christopherson@intel.com --to arjan@linux.intel.com HEAD~2
-git status
-git log -p
-git rebase -i HEAD~2
-vim arch/x86/kernel/cpu/common.c
-git status
-git rebase --abort
-vim arch/x86/kernel/cpu/common.c
-find . -name kvm_para.h
-vim ./include/linux/kvm_para.h
-vim ./include/uapi/linux/kvm_para.h
-vim ./arch/x86/include/asm/kvm_para.h
-git grep kvm_spin
-vim arch/x86/kernel/kvm.c
-git grep setup_paravirt_cr_pinning
-git grep cr4_pinned_bits
-vim arch/x86/kernel/cpu/common.c
-git diff
-git grep extern
-git grep extern\
-git grep extern\ 
-git grep -E 'extern.*__'
-git grep -E 'extern.*__ro'
-vim ~/run.sh
-sudo ss -tpln
-vim ~/run.sh
-sudo ss -tpln
-vim ~/run.sh
-sudo ss -tpln
-git status
-git diff
-git add run.sh 
-sudo vim ~/chroot/home/johnsa1/run.sh
-sudo chroot ~/chroot/
-~/run.sh
-vim ~/run.sh
-~/run.sh
-git diff
-~/run.sh
-vim ~/run.sh
-~/run.sh
-~/run.sh 2>&1 | tee /tmp/run.log
-vim /tmp/run.log
-grep read /tmp/run.log
-grep root /tmp/run.log
-grep -i mount /tmp/run.log
-vim ~/run.sh
-~/run.sh
-INIT=/usr/bin/bash ~/run.sh
-vim ~/run.sh
-INIT=/usr/bin/bash ~/run.sh
-reset
-ll ~/chroot/home/johnsa1/run.sh
-sudo chown johnsa1:johnsa1 ~/chroot/home/johnsa1/run.sh
-ll ~/chroot/home/johnsa1/run.sh
-vim ~/chroot/home/johnsa1/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-INIT=/usr/bin/init.sh ~/run.sh
-vim ~/chroot/home/johnsa1/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-INIT=/usr/bin/init.sh ~/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-sudo find ~/chroot/ -name modprobe
-sudo vim ~/chroot/usr/bin/init.sh
-INIT=/usr/bin/init.sh ~/run.sh
-htop
-vim ~/run.sh 
-INIT=/usr/bin/init.sh ~/run.sh
-sudo find -name kvmvapic.bin ~/
-sudo find ~ -name kvmvapic.bin
-sudo find /usr/ -name kvmvapic.bin
-sudo chroot ~/chroot/
-INIT=/usr/bin/init.sh ~/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-sudo vim ~/chroot/home/johnsa1/run.sh
-ll ~/chroot/home/johnsa1/qemu/build/pc-bios/optionrom/kvmvapic.bin
-ll ~/chroot/home/johnsa1/qemu/build/pc-bios/optionrom/*
-sudo find ~/qemu/build/ -name vgabios-stdvga.bin
-sudo vim ~/chroot/usr/bin/init.sh
-sudo vim ~/chroot/home/johnsa1/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-INIT=/usr/bin/init.sh ~/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-INIT=/usr/bin/init.sh ~/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-sudo vim ~/chroot/home/johnsa1/run.sh
-INIT=/usr/bin/init.sh ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim /tmp/run.log
-sudo chroot ~/chroot/
-sudo vim ~/chroot/home/johnsa1/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim /tmp/run.log
-sudo chroot ~/chroot/
-vim ~/run.sh 
-rm -rf ~/chroot/home/johnsa1/qemu/
-sudo cp -r ~/qemu ~/chroot/home/johnsa1/qemu/
-sudo rm -rf ~/chroot/home/johnsa1/qemu/
-cp -r ~/qemu ~/chroot/home/johnsa1/qemu/
-sudo chroot ~/chroot/
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/home/johnsa1/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/home/johnsa1/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/home/johnsa1/run.sh
-sudo chroot ~/chroot/home/johnsa1/chroot/
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo chroot ~/chroot/home/johnsa1/chroot/
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/home/johnsa1/run.sh
-vim ~/run.sh 
-sudo vim ~/chroot/home/johnsa1/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/home/johnsa1/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/home/johnsa1/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-git status
-git add chroot/usr/bin/init.sh chroot/home/johnsa1/chroot/usr/bin/init.sh
-git add -f chroot/home/johnsa1/chroot/usr/bin/init.sh
-git status
-git add run.sh
-git status
-git add -A
-git status
-git dif f--staged
-git diff --staged
-git add -f chroot/usr/share/qemu
-git status
-git add -f chroot/usr/share/qemu-firmware
 git add -f chroot/usr/local/share/qemu
 git add -f chroot/usr/local/share/qemu-firmware/
 git add -f chroot/usr/local/share/qemu-firmware
@@ -998,3 +723,278 @@ efibootmgr --disk /dev/sda --part 1o --CREATE^C-label "Fedora Linux" --
 fibootmgr --disk /dev/sda --part 1o --CREATE^C-label "Fedora Linux" --
 echo efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" -- loader /bzImage.efi --unicode 'console=ttyS0 root=/dev/sda3 rw nokaslr init=/usr/bin/init.sh'
 echo efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" --loader /bzImage.efi --unicode 'console=ttyS0 root=/dev/sda3 rw nokaslr init=/usr/bin/init.sh'
+git status
+git diff
+vim .config/
+cd linux-combined/
+vim .config
+vim ~/run.sh 
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+cd
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo mount /dev/nbd0p3 /mnt
+sudo vim /mnt/usr/bin/init.sh 
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo mount /dev/nbd0p3 /mnt
+sudo vim /mnt/usr/bin/init.sh 
+sudo umount -R /mnt
+sudo qemu-nbd --disconnect /dev/nbd1
+sudo qemu-nbd --disconnect /dev/nbd0\
+sudo qemu-nbd --disconnect /dev/nbd0
+rm -rf chroot
+sudo rm -rf chroot
+mkdir chroot
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo mount /dev/nbd0p3 ~/chroot
+ll ~/chroot
+git status
+git diff
+sudo socat - UNIX-CONNECT:/tmp/monitor
+dmesg
+du -h STATEFILE.gz 
+cd linux-combined/
+rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
+cd ..
+git status
+git diff
+git c 'made seans changes'
+git push
+git remote add kvm https://git.kernel.org/pub/scm/virt/kvm/kvm.git
+rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
+cd linux-combined/
+git remote add kvm https://git.kernel.org/pub/scm/virt/kvm/kvm.git
+git remote -v
+rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
+git checkout kvm/linux-next -b kvm-tree
+git pull
+git log
+git am ../outgoing/*
+git status
+git log -p
+cd ..
+git log -p | grep grubby
+sudo grubby --set-default /boot/vmlinuz-5.4.0-rc7+
+sudo grubby
+sudo grubby --help
+sudo grubby --default-kernel
+vim ~/run.sh
+diff ~/run.sh
+git diff ~/run.sh
+vim ~/run.sh
+sudo lsblk -f /dev/nbd0
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo umount -R /mnt
+sudo qemu-nbd --disconnect /dev/nbd1
+sudo qemu-nbd --disconnect /dev/nbd0
+sudo modprobe nbd max_part=8
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo lsblk -f /dev/nbd0
+vim ~/run.sh
+~/run.sh
+sudo qemu-nbd --disconnect /dev/nbd0
+~/run.sh
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo lsblk -f /dev/nbd0
+sudo lsblk -h /dev/nbd0
+sudo lsblk -o NAME,PARTUUID /dev/nbd0
+vim ~/run.sh
+~/run.sh
+sudo qemu-nbd --disconnect /dev/nbd0
+~/run.sh
+vim ~/run.sh
+~/run.sh
+vim ~/run.sh
+sudo lsblk -o NAME,PARTUUID /dev/nbd0
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo lsblk -o NAME,PARTUUID /dev/nbd0
+sudo qemu-nbd --disconnect /dev/nbd0
+vim ~/run.sh
+~/run.sh
+INIT=/usr/bin/init.sh ~/run.sh
+sudo vim ~/chroot/usr/bin/init.sh
+INIT=/usr/bin/init.sh ~/run.sh
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo mount /dev/nbd0p3 /mnt
+sudo mount /dev/nbd0p1 /mnt/boot
+ll /mnt
+ll /mnt/boot/
+vim ~/run.sh
+sudo vim /mnt/usr/bin/init.sh
+sudo umount -R /mnt
+sudo qemu-nbd --disconnect /dev/nbd0
+INIT=/usr/bin/init.sh ~/run.sh
+ll /mnt/home/johnsa1/
+sudo ls -lAF /mnt/home/johnsa1/
+vim ~/run.sh
+sudo qemu-nbd --disconnect /dev/nbd0
+sudo umount -R /mnt
+INIT=/usr/bin/init.sh ~/run.sh
+sudo qemu-nbd --disconnect /dev/nbd0
+vim ~/run.sh
+INIT=/usr/bin/init.sh ~/run.sh
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo mount /dev/nbd0p3 /mnt
+sudo mount /dev/nbd0p1 /mnt/boot
+sudo chroot /mnt
+sudo umount -R /mnt
+sudo qemu-nbd --disconnect /dev/nbd0
+INIT=/usr/bin/init.sh ~/run.sh
+vim ~/run.sh
+INIT=/usr/bin/init.sh ~/run.sh
+~/run.sh
+vim ~/run.sh
+~/run.sh
+vim ~/run.sh
+~/run.sh
+sudo qemu-nbd --disconnect /dev/nbd0
+sudo umount -R /mnt
+sudo qemu-nbd --disconnect /dev/nbd0
+~/run.sh
+vim ~/run.sh
+~/run.sh
+vim ~/run.sh
+~/run.sh
+INIT=/usr/bin/init.sh ~/run.sh
+vim ~/run.sh
+INIT=/usr/bin/init.sh ~/run.sh
+sudo qemu-nbd --disconnect /dev/nbd0
+sudo umount -R /mnt
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo umount -R /mnt
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo mount /dev/nbd0p1 /mnt/boot
+sudo mount /dev/nbd0p3 /mnt
+sudo umount -R /mnt
+sudo qemu-nbd --disconnect /dev/nbd0
+INIT=/usr/bin/init.sh ~/run.sh
+vim ~/run.sh
+vim chroot/usr/bin/uefi-setup.sh
+sudo tee chroot/usr/bin/uefi-setup.sh
+sudo vim chroot/usr/bin/uefi-setup.sh
+git add -f chroot/usr/bin/uefi-setup.sh
+git status
+git add -A
+git status
+sudo chown -R johnsa1:johnsa chroot/home/johnsa1/
+sudo chown -R johnsa1:johnsa1 chroot/home/johnsa1/
+git add -A
+git status
+git diff --staged
+git c 'uefi setup'
+git push
+sudo cp -r chroot/ chroot.bak
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+ll chroot.bak/
+sudo rm chroot.bak/teleport*
+git status
+rm image.qcow2 
+vim run.sh
+~/run.sh 
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+~/run.sh 
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+ll chroot/
+rm -rf chroot/*
+sudo rm -rf chroot/*
+vim ~/run.sh
+rm image.qcow2 
+~/run.sh 
+ll chroot.bak/
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+vim ~/run.sh
+~/run.sh 
+rm image.qcow2 
+~/run.sh 
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+vim ~/run.sh
+~/run.sh 
+rm image.qcow2 
+sudo qemu-nbd --disconnect /dev/nbd0
+~/run.sh 
+vim ~/run.sh
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+~/run.sh 
+ll ~/chroot/
+rm image.qcow2 
+~/run.sh 
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+~/run.sh 
+rm image.qcow2 
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+~/run.sh 
+vim ~/run.sh
+~/run.sh 
+vim ~/run.sh
+~/run.sh 
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+~/run.sh 
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo mount /dev/nbd0p3 ~/chroot
+ll /usr/bin/uefi-setup.sh
+ll ~/chroot/usr/bin/uefi-setup.sh 
+sudo chmod 755 ~/chroot/usr/bin/uefi-setup.sh
+git status
+git add -A
+git status
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+~/run.sh 
+git status
+sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+sudo mount /dev/nbd0p3 ~/chroot
+git status
+git diff --staged
+vim ~/.bash_history 
+git add -A
+git status
+git c 'uefi-setup.sh working'
+git push
+vim ~/run.sh
+git log -p ~/run.sh
+~/run.sh -monitor unix:/tmp/monitor,server,nowait
+sudo umount -R ~/chroot
+sudo qemu-nbd --disconnect /dev/nbd0
+git status
+vim ~/run.sh
+~/run.sh -monitor unix:/tmp/monitor,server,nowait
+git status
+git diff
+git c 'mount image on exit'
+git push
+~/run.sh -monitor unix:/tmp/monitor,server,nowait
+~/run.sh -incoming "exec: gzip -c -d STATEFILE.gz"
+vim ~/run.sh
+~/run.sh -incoming "exec: gzip -c -d STATEFILE.gz"
+git status
+git diff
+git c 'fix passing args with qoutes'
+git push
+git diff
+vim arch/x86/include/asm/kvm_para.h
+cd linux-combined/
+vim arch/x86/include/asm/kvm_para.h
+git grep kvm_setup_paravirt_cr_pinning
+modules
+modprobe
+modprobe -h
+modinfo
+cat /proc/modules
+vim .config
+time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+time make -j $(($(nproc)*4))
+vim .config
+time make -j $(($(nproc)*4))
+make olddefconfig
+time make -j $(($(nproc)*4))
+sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+sudo reboot
+tmux

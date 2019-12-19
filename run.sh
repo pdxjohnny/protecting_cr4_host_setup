@@ -5,6 +5,8 @@ CHROOT=${CHROOT:-"${HOME}/chroot"}
 IMAGE=${IMAGE:-"${HOME}/image.iso"}
 INIT=${INIT:-'/usr/lib/systemd/systemd'}
 
+sudo modprobe nbd max_part=8
+
 sudo umount -R "${CHROOT}" || echo image was not mounted at "${CHROOT}"
 sudo qemu-nbd --disconnect /dev/nbd0 || echo image was not connected as nbd
 
@@ -79,7 +81,7 @@ sudo qemu-nbd --disconnect /dev/nbd0
 trap mount_image EXIT
 
 sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" "$@" \
-  -smp cpus=4 \
+  -smp 1,maxcpus=2 \
   -m 8192M \
   -enable-kvm \
   -bios \
