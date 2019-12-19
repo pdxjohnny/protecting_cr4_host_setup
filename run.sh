@@ -5,6 +5,15 @@ CHROOT=${CHROOT:-"${HOME}/chroot"}
 IMAGE=${IMAGE:-"${HOME}/image.iso"}
 INIT=${INIT:-'/usr/lib/systemd/systemd'}
 
+sudo umount -R "${CHROOT}" || echo image was not mounted at "${CHROOT}"
+sudo qemu-nbd --disconnect /dev/nbd0 || echo image was not connected as nbd
+
+mount_image() {
+  sudo qemu-nbd --connect=/dev/nbd0 "${HOME}/image.qcow2"
+  sudo mount /dev/nbd0p3 "${CHROOT}"
+  sudo mount /dev/nbd0p1 "${CHROOT}/boot"
+}
+
 sudo modprobe kvm-intel nested=1
 sudo modprobe kvm
 sudo modprobe -rf kvm-intel
@@ -39,9 +48,7 @@ EOF
   sudo qemu-nbd --disconnect /dev/nbd0
 fi
 
-sudo qemu-nbd --connect=/dev/nbd0 "${HOME}/image.qcow2"
-sudo mount /dev/nbd0p3 "${CHROOT}"
-sudo mount /dev/nbd0p1 "${CHROOT}/boot"
+mount_image
 
 sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
 sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/"
@@ -68,6 +75,8 @@ sudo chmod 644 "${CHROOT}/boot/bzImage"
 sudo sync
 sudo umount -R "${CHROOT}"
 sudo qemu-nbd --disconnect /dev/nbd0
+
+trap mount_image EXIT
 
 sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -smp cpus=4 \
