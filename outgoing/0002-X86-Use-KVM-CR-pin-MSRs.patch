@@ -1,4 +1,4 @@
-From 95f933b01c8f8d46625ed516803bccea4376248b Mon Sep 17 00:00:00 2001
+From 74d983583b5e949aa7919b41d518170dabd375b0 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/2] X86: Use KVM CR pin MSRs
@@ -29,13 +29,13 @@ checks if it can enable protections.
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
  arch/x86/Kconfig                |  9 +++++++++
- arch/x86/include/asm/kvm_para.h |  8 ++++++++
- arch/x86/kernel/cpu/common.c    |  7 ++++++-
- arch/x86/kernel/kvm.c           | 18 ++++++++++++++++++
- 4 files changed, 41 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/kvm_para.h | 10 ++++++++++
+ arch/x86/kernel/cpu/common.c    |  5 +++++
+ arch/x86/kernel/kvm.c           | 17 +++++++++++++++++
+ 4 files changed, 41 insertions(+)
 
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 8ef85139553f..2b3996bd14a1 100644
+index 8ef85139553f..f5c61e3bd0c9 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -839,6 +839,15 @@ config PARAVIRT_TIME_ACCOUNTING
@@ -44,7 +44,7 @@ index 8ef85139553f..2b3996bd14a1 100644
  
 +config PARAVIRT_CR_PIN
 +       bool "Paravirtual bit pinning for CR0 and CR4"
-+       depends on PARAVIRT && !KEXEC
++       depends on KVM_GUEST && !KEXEC
 +       help
 +         Select this option to have the virtualised guest request that the
 +         hypervisor disallow it from disabling protections set in control
@@ -55,17 +55,19 @@ index 8ef85139553f..2b3996bd14a1 100644
  	bool "Jailhouse non-root cell support"
  	depends on X86_64 && PCI
 diff --git a/arch/x86/include/asm/kvm_para.h b/arch/x86/include/asm/kvm_para.h
-index 9b4df6eaa11a..1efbc59aa050 100644
+index 9b4df6eaa11a..a7b48e43d2dc 100644
 --- a/arch/x86/include/asm/kvm_para.h
 +++ b/arch/x86/include/asm/kvm_para.h
-@@ -102,6 +102,14 @@ static inline void kvm_spinlock_init(void)
+@@ -102,6 +102,16 @@ static inline void kvm_spinlock_init(void)
  }
  #endif /* CONFIG_PARAVIRT_SPINLOCKS */
  
 +#ifdef CONFIG_PARAVIRT_CR_PIN
-+void setup_paravirt_cr_pinning(void);
++void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
++				   unsigned long cr4_pinned_bits);
 +#else
-+static inline void setup_paravirt_cr_pinning(void)
++static inline void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
++						 unsigned long cr4_pinned_bits)
 +{
 +}
 +#endif /* CONFIG_PARAVIRT_CR_PIN */
@@ -74,7 +76,7 @@ index 9b4df6eaa11a..1efbc59aa050 100644
  #define kvm_async_pf_task_wait(T, I) do {} while(0)
  #define kvm_async_pf_task_wake(T) do {} while(0)
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index fffe21945374..39d3aafe44d3 100644
+index fffe21945374..e6112abb7115 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
 @@ -20,6 +20,7 @@
@@ -85,21 +87,12 @@ index fffe21945374..39d3aafe44d3 100644
  
  #include <asm/stackprotector.h>
  #include <asm/perf_event.h>
-@@ -367,7 +368,7 @@ static __always_inline void setup_umip(struct cpuinfo_x86 *c)
- }
- 
- static DEFINE_STATIC_KEY_FALSE_RO(cr_pinning);
--static unsigned long cr4_pinned_bits __ro_after_init;
-+unsigned long cr4_pinned_bits __ro_after_init;
- 
- void native_write_cr0(unsigned long val)
- {
 @@ -435,6 +436,8 @@ static void __init setup_cr_pinning(void)
  	mask = (X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP);
  	cr4_pinned_bits = this_cpu_read(cpu_tlbstate.cr4) & mask;
  	static_key_enable(&cr_pinning.key);
 +
-+	setup_paravirt_cr_pinning();
++	kvm_setup_paravirt_cr_pinning(X86_CR0_WP, cr4_pinned_bits);
  }
  
  /*
@@ -108,22 +101,21 @@ index fffe21945374..39d3aafe44d3 100644
  	validate_apic_and_package_id(c);
  	x86_spec_ctrl_setup_ap();
 +
-+	setup_paravirt_cr_pinning();
++	kvm_setup_paravirt_cr_pinning(X86_CR0_WP, cr4_pinned_bits);
  }
  
  static __init int setup_noclflush(char *arg)
 diff --git a/arch/x86/kernel/kvm.c b/arch/x86/kernel/kvm.c
-index e820568ed4d5..6f9fb55d896a 100644
+index e820568ed4d5..69edc34e85c8 100644
 --- a/arch/x86/kernel/kvm.c
 +++ b/arch/x86/kernel/kvm.c
-@@ -857,6 +857,24 @@ void __init kvm_spinlock_init(void)
+@@ -857,6 +857,23 @@ void __init kvm_spinlock_init(void)
  
  #endif	/* CONFIG_PARAVIRT_SPINLOCKS */
  
 +#ifdef CONFIG_PARAVIRT_CR_PIN
-+extern unsigned long cr4_pinned_bits __ro_after_init;
-+
-+void setup_paravirt_cr_pinning(void)
++void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
++				   unsigned long cr4_pinned_bits)
 +{
 +	unsigned long long mask;
 +
@@ -131,7 +123,7 @@ index e820568ed4d5..6f9fb55d896a 100644
 +		return;
 +
 +	rdmsrl(MSR_KVM_CR0_PIN_ALLOWED, mask);
-+	wrmsrl(MSR_KVM_CR0_PINNED, X86_CR0_WP & mask);
++	wrmsrl(MSR_KVM_CR0_PINNED, cr0_pinned_bits & mask);
 +
 +	rdmsrl(MSR_KVM_CR4_PIN_ALLOWED, mask);
 +	wrmsrl(MSR_KVM_CR4_PINNED, cr4_pinned_bits & mask);

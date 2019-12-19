@@ -1,4 +1,4 @@
-From 598e306ab1f03371b8eeb0c37e204e5d4d9362cf Mon Sep 17 00:00:00 2001
+From 1674681ef99ca85e066889df00dd6eae567dd192 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 1/2] KVM: X86: Add CR pin MSRs
@@ -9,19 +9,19 @@ CR pinned MSRs to KVM. Allow guests to request that KVM pin certain
 bits within control register 0 or 4 via the CR pinned MSRs. Writes to
 the MSRs fail if they include bits which aren't allowed. Host userspace
 may clear or modify pinned bits at any time. Once pinned bits are set,
-the guest may not modify or clear them. The guest may never read pinned
-bits. If an attacker were to read the CR pinned MSRs, they might decide
-to preform another attack which would not cause a general protection
-fault.
+the guest may pin additional allowed bits, but not clear any. The guest
+may never read pinned bits. If an attacker were to read the CR pinned
+MSRs, they might decide to preform another attack which would not cause
+a general protection fault.
 
 In the event that the guest vcpu attempts to disable any of the pinned
 bits, send that vcpu a general protection fault, and leave the register
-unchanged. Disregard pinning when running in SMM. Entering SMM disables
-pinned bits, writes to control registers within SMM would therefore
-trigger general protection faults if pinning was enforced.
+unchanged. Entering SMM unconditionally clears various CR0/4 bits, some
+of which may be pinned by the OS. To avoid trigerring shutdown on SMIs,
+pinning isn't enforced when the vCPU is running in SMM.
 
-Should userspace expose the CR pining CPUID feature bit, it must zero CR
-pinned MSRs on reboot. If it does not, it runs the risk of having the
+Should userspace expose the CR pinning CPUID feature bit, it must zero
+CR pinned MSRs on reboot. If it does not, it runs the risk of having the
 guest enable pinning and subsequently cause general protection faults on
 next boot due to early boot code setting control registers to values
 which do not contain the pinned bits.
@@ -56,18 +56,18 @@ https://github.com/qemu/qemu/commit/7e8c770c91616ae8d2d6b15bcc2865be594c8852
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/msr.txt       | 33 ++++++++++++++++++++++
+ Documentation/virt/kvm/msr.txt       | 38 +++++++++++++++++++++++
  arch/x86/include/asm/kvm_host.h      |  2 ++
  arch/x86/include/uapi/asm/kvm_para.h |  5 ++++
  arch/x86/kvm/cpuid.c                 |  3 +-
- arch/x86/kvm/x86.c                   | 41 ++++++++++++++++++++++++++++
- 5 files changed, 83 insertions(+), 1 deletion(-)
+ arch/x86/kvm/x86.c                   | 45 ++++++++++++++++++++++++++++
+ 5 files changed, 92 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/virt/kvm/msr.txt b/Documentation/virt/kvm/msr.txt
-index df1f4338b3ca..3270f9aa416d 100644
+index df1f4338b3ca..baa002f52385 100644
 --- a/Documentation/virt/kvm/msr.txt
 +++ b/Documentation/virt/kvm/msr.txt
-@@ -282,3 +282,36 @@ MSR_KVM_POLL_CONTROL: 0x4b564d05
+@@ -282,3 +282,41 @@ MSR_KVM_POLL_CONTROL: 0x4b564d05
  	KVM guests can request the host not to poll on HLT, for example if
  	they are performing polling themselves.
  
@@ -94,7 +94,12 @@ index df1f4338b3ca..3270f9aa416d 100644
 +	which are allowed to be pinned can be found by reading the CR pin
 +	allowed MSRs.
 +
-+	Once set, the guest cannot clear or change pinned bits.
++	The MSRs are read/write for host userspace, and write-only for the
++	guest.
++
++	Once set, the guest cannot clear any of the bits that have been pinned
++	to 1. The guest can set more bits to 1, so long as those bits appear in
++	the allowed MSR.
 +
 +	Host userspace may clear or change pinned bits at any point. Host
 +	userspace must clear pinned bits on reboot.
@@ -159,7 +164,7 @@ index f68c0c753c38..37dd3aa20274 100644
  		if (sched_info_on())
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 5d530521f11d..b5dfb21177c1 100644
+index 5d530521f11d..c3ebf7f82e75 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
 @@ -767,6 +767,9 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
@@ -203,26 +208,30 @@ index 5d530521f11d..b5dfb21177c1 100644
  int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  {
  	bool pr = false;
-@@ -2797,6 +2810,18 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -2797,6 +2810,22 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  		vcpu->arch.msr_kvm_poll_control = data;
  		break;
  
 +	case MSR_KVM_CR0_PINNED:
-+		if ((!msr_info->host_initiated && vcpu->arch.cr0_pinned) ||
-+		    (data & ~KVM_CR0_PIN_ALLOWED))
++		if (data & ~KVM_CR0_PIN_ALLOWED)
 +			return 1;
-+		vcpu->arch.cr0_pinned = data;
++		if (msr_info->host_initiated)
++			vcpu->arch.cr0_pinned = data;
++		else
++			vcpu->arch.cr0_pinned |= data;
 +		break;
 +	case MSR_KVM_CR4_PINNED:
-+		if ((!msr_info->host_initiated && vcpu->arch.cr4_pinned) ||
-+		    (data & ~KVM_CR4_PIN_ALLOWED))
++		if (data & ~KVM_CR4_PIN_ALLOWED)
 +			return 1;
-+		vcpu->arch.cr4_pinned = data;
++		if (msr_info->host_initiated)
++			vcpu->arch.cr4_pinned = data;
++		else
++			vcpu->arch.cr4_pinned |= data;
 +		break;
  	case MSR_IA32_MCG_CTL:
  	case MSR_IA32_MCG_STATUS:
  	case MSR_IA32_MC0_CTL ... MSR_IA32_MCx_CTL(KVM_MAX_MCE_BANKS) - 1:
-@@ -3040,6 +3065,22 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -3040,6 +3069,22 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  	case MSR_KVM_POLL_CONTROL:
  		msr_info->data = vcpu->arch.msr_kvm_poll_control;
  		break;
