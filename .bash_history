@@ -1,9 +1,3 @@
-vim ~/run.sh
-vim ~/git-send-email-cover 
-rm -rf /home/johnsa1/chroot/home/johnsa1/qemu/build/
-cp -r . /home/johnsa1/chroot/home/johnsa1/qemu/build/
-ll /home/johnsa1/chroot/home/johnsa1/qemu/build/
-sudo chroot ~/chroot/
 cp -r ~/chroot ~/nested
 sudo rm -rf ~/nested
 sudo cp -r ~/chroot ~/nested
@@ -996,3 +990,11 @@ sudo ls -lAF /boot/efi/EFI
 sudo ls -lAF /boot/efi/EFI/BOOT
 sudo ls -lAF /boot/efi/EFI/fedora
 sudo reboot
+sudo reboot
+cd linux-combined/
+vim .config
+time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+efibootmgr --disk /dev/sda --part 1o --CREATE^C-label "Fedora Linux" --
+fibootmgr --disk /dev/sda --part 1o --CREATE^C-label "Fedora Linux" --
+echo efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" -- loader /bzImage.efi --unicode 'console=ttyS0 root=/dev/sda3 rw nokaslr init=/usr/bin/init.sh'
+echo efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" --loader /bzImage.efi --unicode 'console=ttyS0 root=/dev/sda3 rw nokaslr init=/usr/bin/init.sh'
