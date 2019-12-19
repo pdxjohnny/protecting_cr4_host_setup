@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+set -x
+
+cat /sys/power/resume
 
 # echo reboot > /sys/power/disk
 echo shutdown > /sys/power/disk

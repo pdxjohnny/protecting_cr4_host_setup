@@ -34,10 +34,10 @@ IMAGE=${IMAGE:-"${HOME}/image.iso"}
 #   sudo losetup -d "${LOOP}"
 # fi
 
-sudo modprobe kvm-intel nested=1
-sudo modprobe kvm
-sudo modprobe -rf kvm-intel
-sudo modprobe -rf kvm
+# sudo modprobe kvm-intel nested=1
+# sudo modprobe kvm
+# sudo modprobe -rf kvm-intel
+# sudo modprobe -rf kvm
 sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
 sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/"
 sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
@@ -46,14 +46,56 @@ sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "${CHROOT}/lib/modules/$(unam
 sudo modprobe kvm
 sudo modprobe kvm-intel nested=1
 
+if [ ! -f "${HOME}/image.qcow2" ]; then
+  qemu-img create -f qcow2 "${HOME}/image.qcow2" 20G
+  sudo modprobe nbd max_part=8
+  sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+  sudo parted /dev/nbd0 << 'EOF'
+mklabel gpt
+mkpart primary fat32 1MiB 261MiB
+set 1 esp on
+mkpart primary linux-swap 261MiB 10491MiB
+mkpart primary ext4 10491MiB 100%
+EOF
+  sudo mkfs.fat -F32 /dev/nbd0p1
+  sudo mkswap /dev/nbd0p2
+  sudo mkfs.ext4 /dev/nbd0p3
+  sudo qemu-nbd --disconnect /dev/nbd0
+fi
+
+sudo qemu-nbd --connect=/dev/nbd0 "${HOME}/image.qcow2"
+sudo mount /dev/nbd0p3 /mnt
+sudo mount /dev/nbd0p1 /mnt/boot
+
 INIT=${INIT:-'/usr/lib/systemd/systemd'}
+CHROOT="/mnt"
+
+sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
+sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/"
+sudo cp "${HOME}/linux-combined/virt/lib/irqbypass.ko" "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/irqbypass.ko"
+sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
+sudo cp "${HOME}/seabios/out/bios.bin" "${CHROOT}/${HOME}/seabios/out/bios.bin"
+sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${CHROOT}/boot/bzImage"
+sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${CHROOT}/boot/bzImage.efi"
+sudo chmod 644 "${CHROOT}/boot/bzImage"
+echo "FS0:\\bzImage.efi console=ttyS0 root=/dev/sda3 rw nokaslr init=/usr/bin/uefi-setup.sh" | \
+  sudo tee "${CHROOT}/boot/startup.nsh"
+
+sudo sync
+sudo umount -R /mnt
+sudo qemu-nbd --disconnect /dev/nbd0
 
 if [ ! -f "${HOME}/swapfile" ]; then
   sudo fallocate -l 10g "${HOME}/swapfile"
   sudo mkswap "${HOME}/swapfile"
 fi
 
-#  -blockdev driver=raw,node-name=disk,file.driver=file,file.filename="${HOME}/swapfile" \
+# lsblk -o NAME,PARTUUID /dev/nbd0
+#   -kernel \
+#     "${HOME}/chroot/boot/bzImage" \
+#   -append \
+#     "console=ttyS0 root=PARTUUID=c87e1069-a73f-4529-a6d4-370a1397ef03 ro nokaslr init=${INIT} ${CMDLINE}" \
+# 
 mkdir -p "${HOME}/chroot${HOME}/seabios/out/"
 cp "${HOME}/seabios/out/bios.bin" "${HOME}/chroot${HOME}/seabios/out/bios.bin"
 sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${HOME}/chroot/boot/bzImage"
@@ -61,30 +103,10 @@ sudo chmod 644 "${HOME}/chroot/boot/bzImage"
 sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -smp cpus=4 \
   -m 8192M \
-  -drive file="${HOME}/swapfile",index=1,media=disk,format=raw \
-  -chardev \
-    "file,path=${HOME}/seabios.log,id=seabios" \
-  -device \
-    isa-debugcon,iobase=0x402,chardev=seabios \
   -enable-kvm \
   -bios \
-    "${HOME}/seabios/out/bios.bin" \
-  -kernel \
-    "${HOME}/chroot/boot/bzImage" \
+    "${HOME}/OVMF.fd" \
   -nographic \
   -cpu \
     host \
-  -net \
-    nic,model=virtio \
-  -net \
-    user,hostfwd=tcp::2222-:22,hostfwd=tcp::4444-:2222 \
-  -append \
-    "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.L rw nokaslr init=${INIT} ${CMDLINE}" \
-  -fsdev \
-    local,id=fsdev-root,path="${CHROOT}",security_model=passthrough \
-  -device \
-    virtio-9p-pci,fsdev=fsdev-root,mount_tag=/dev/root
-
-
-#     "selinux=0 enforcing=0 console=ttyS0 root=/dev/sda rw nokaslr init=${INIT}" \
-#   -drive file="${IMAGE}",index=0,media=disk
+  -drive file="${HOME}/image.qcow2",index=0,media=disk,format=qcow2

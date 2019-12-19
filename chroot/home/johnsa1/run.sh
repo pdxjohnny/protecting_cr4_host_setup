@@ -21,7 +21,7 @@ sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -net \
     user,hostfwd=tcp::2222-:22 \
   -append \
-    "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.u ro nokaslr init=${INIT}" \
+    "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.L ro nokaslr init=${INIT}" \
   -fsdev \
     local,id=fsdev-root,path=/,security_model=passthrough,readonly \
   -device \
