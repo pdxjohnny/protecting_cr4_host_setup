@@ -1,10 +1,3 @@
-Thank you Dave for your comments. I've moved setup_paravirt_cr_pinning
-to kvm.c.
-
-Sean would it be possible to get an Acked-by or Reviewed-by from you
-for when I send this externally to the KVM list? Please let me know if
-you have any thoughts or concerns.
-
 Paravirtualized Control Register pinning is a strengthened version of
 existing protections on the Write Protect, Supervisor Mode Execution /
 Access Protection, and User-Mode Instruction Prevention bits. The
@@ -34,7 +27,8 @@ CR pinned MSRs which contain the pinned bits. Guests can request that
 KVM pin bits within control register 0 or 4 via the CR pinned MSRs.
 Writes to the MSRs fail if they include bits that aren't allowed to be
 pinned. Host userspace may clear or modify pinned bits at any time.
-Once pinned bits are set, the guest may not modify or clear them.
+Once pinned bits are set, the guest may pin more allowed bits, but may
+never clear pinned bits.
 
 In the event that the guest vcpu attempts to disable any of the pinned
 bits, the vcpu that issued the write is sent a general protection
