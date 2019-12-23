@@ -1,4 +1,4 @@
-From 8383bd2534cdea9fe71ecd76a10a0cbefdd04af0 Mon Sep 17 00:00:00 2001
+From e11c5a4a28d3f643462c2671b47c1980c8c5d8b6 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 1/2] KVM: X86: Add CR pin MSRs
@@ -14,10 +14,10 @@ may never read pinned bits. If an attacker were to read the CR pinned
 MSRs, they might decide to preform another attack which would not cause
 a general protection fault.
 
-In the event that the guest vcpu attempts to disable any of the pinned
-bits, send that vcpu a general protection fault, and leave the register
+In the event that the guest vCPU attempts to disable any of the pinned
+bits, send that vCPU a general protection fault, and leave the register
 unchanged. Entering SMM unconditionally clears various CR0/4 bits, some
-of which may be pinned by the OS. To avoid trigerring shutdown on SMIs,
+of which may be pinned by the OS. To avoid triggering shutdown on SMIs,
 pinning isn't enforced when the vCPU is running in SMM.
 
 Should userspace expose the CR pinning CPUID feature bit, it must zero
@@ -66,7 +66,7 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  5 files changed, 92 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/virt/kvm/msr.txt b/Documentation/virt/kvm/msr.txt
-index df1f4338b3ca..baa002f52385 100644
+index df1f4338b3ca..c78efd5bcfc1 100644
 --- a/Documentation/virt/kvm/msr.txt
 +++ b/Documentation/virt/kvm/msr.txt
 @@ -282,3 +282,41 @@ MSR_KVM_POLL_CONTROL: 0x4b564d05
@@ -99,9 +99,9 @@ index df1f4338b3ca..baa002f52385 100644
 +	The MSRs are read/write for host userspace, and write-only for the
 +	guest.
 +
-+	Once set, the guest cannot clear any of the bits that have been pinned
-+	to 1. The guest can set more bits to 1, so long as those bits appear in
-+	the allowed MSR.
++	Once set to a non-zero value, the guest cannot clear any of the bits
++	that have been pinned to 1. The guest can set more bits to 1, so long
++	as those bits appear in the allowed MSR.
 +
 +	Host userspace may clear or change pinned bits at any point. Host
 +	userspace must clear pinned bits on reboot.

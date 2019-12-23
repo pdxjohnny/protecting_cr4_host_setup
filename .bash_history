@@ -1,68 +1,3 @@
-git add -f chroot/usr/local/share/qemu
-git add -f chroot/usr/local/share/qemu-firmware/
-git add -f chroot/usr/local/share/qemu-firmware
-git reset HEAD chroot/usr/share/qemu
-git status
-git c 'cp -r qemu_source chroot/home/johnsa1/qemu'
-git push
-vim rebooter.c
-git add -f rebooter.c 
-gcc -static rebooter.c -o rebooter
-vim rebooter.c
-gcc -static rebooter.c -o rebooter
-vim rebooter.c
-gcc -static rebooter.c -o rebooter
-sudo dnf -y install glibc-static
-gcc -static rebooter.c -o rebooter
-file rebooter
-./rebooter 
-sudo cp rebooter chroot/home/johnsa1/chroot/usr/bin/
-sudo vim ~/chroot/home/johnsa1/run.sh
-git add chroot/home/johnsa1/chroot/usr/bin/rebooter
-git add -f chroot/home/johnsa1/chroot/usr/bin/rebooter
-git status
-git add rebooter.c 
-git status
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim /tmp/run.log
-grep pinning /tmp/run.log
-sudo vim ~/chroot/home/johnsa1/run.sh
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-git status
-cp /tmp/run.log ./
-git add -f run.log 
-git status
-git add run.sh 
-git diff
-git status
-git diff --staged
-git status
-git add -f chroot/usr/bin/init.sh 
-git add -f chroot/home/johnsa1/run.sh
-git status
-git c 'nested working'
-git push
-it status
-git status
-cd linux-combined/
-rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
-cd ..
-git add -f outgoing/*
-git status
-vim git-send-email-cover 
-cat git-send-email-cover | wc
-vim git-send-email-cover 
-git status
-git diff .bash_history
-git add -A
-git status
-git c 'cover letter update'
-vim README.md 
-git grep wrmsrl
-cd linux-combined/
-git grep wrmsrl
-vim -t wrmsrl_safe
 time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
 INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
 git status
@@ -998,3 +933,68 @@ time make -j $(($(nproc)*4))
 sudo make -j $(($(nproc)*4)) modules_install && sudo make install
 sudo reboot
 tmux
+tmux
+vim linux-combined/.config
+vim ~/git-send-email-cover 
+git log
+git status
+git diff
+git checkout -- linux-combined/.config
+git status
+git diff
+git c 'update wording for guest adding more pinned bits'
+git push
+cd linux-combined/
+git log -p
+vim arch/x86/kernel/kvm.c
+git log -p
+git status
+git diff
+git commit --amend
+time make -j $(($(nproc)*4))
+git rebase -i HEAD~2
+git status
+git diff
+git add -A
+git commit --amend
+git rebase -i HEAD~2
+rm -rf ../outgoing/ && git format-patch -M kvm/linux-next -o ../outgoing/
+cd ..
+git status
+git diff
+git add -A
+git c 'external RFC'
+cd linux-combined/
+git send-email --subject-prefix="RFC" --annotate --cover-letter --to sean.j.christopherson@intel.com --to linux-security@eclists.intel.com --to linux-drivers-review@eclists.intel.com HEAD~2
+git send-email --subject-prefix="RFC" --annotate --cover-letter --to kvm@vger.kernel.org HEAD~2
+git rebase -i HEAD~2
+vim Documentation/virt/kvm/msr.txt
+git diff
+git add -A
+git rebase --continue
+git send-email --subject-prefix="RFC" --annotate --cover-letter --to kvm@vger.kernel.org HEAD~2
+vim ~/README.md 
+cat ~/README.md
+git log -p
+rm -rf ../outgoing/ && git format-patch -M kvm/linux-next -o ../outgoing/
+./scripts/checkpatch.pl ../outgoing/0001-KVM-X86-Add-CR-pin-MSRs.patch 
+git commit --amend
+git rebase -i HEAD~2
+git log -p
+rm -rf ../outgoing/ && git format-patch -M kvm/linux-next -o ../outgoing/
+./scripts/checkpatch.pl ../outgoing/0001-KVM-X86-Add-CR-pin-MSRs.patch 
+./scripts/checkpatch.pl ../outgoing/0002
+./scripts/checkpatch.pl ../outgoing/0002-X86-Use-KVM-CR-pin-MSRs.patch 
+git status
+git branch -D hc_harden
+git checkout -b hc_harden
+git push -u pdxjohnny -f
+git remote -v
+git push -u origin -f
+git push -u origin hc_harden -f
+git send-email --subject-prefix="RESEND RFC" --annotate --cover-letter --to tglx@linutronix.de --to mingo@redhat.com --to bp@alien8.de --to x86@kernel.org --to pbonzini@redhat.com --cc hpa@zytor.com --cc sean.j.christopherson@intel.com --cc vkuznets@redhat.com --cc wanpengli@tencent.com --cc jmattson@google.com --cc joro@8bytes.org --cc linux-kernel@vger.kernel.org --cc kvm@vger.kernel.org HEAD~2
+   
+tmux attach
+cd qemu
+vim docs/cpu-hotplug.rst’
+vim docs/cpu-hotplug.rst

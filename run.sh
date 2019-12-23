@@ -54,6 +54,8 @@ mount_image
 
 sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
 sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/"
+sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/fs/fat/"
+sudo cp "${HOME}/linux-combined/fs/fat/"*.ko "${CHROOT}/lib/modules/$(uname -r)/kernel/fs/fat/"
 sudo cp "${HOME}/linux-combined/virt/lib/irqbypass.ko" "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/irqbypass.ko"
 sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
 
