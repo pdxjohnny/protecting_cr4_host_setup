@@ -1,15 +1,4 @@
 time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-git status
-git diff
-vim arch/x86/kernel/kvm.c
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-vim arch/x86/kernel/kvm.c
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-vim arch/x86/kernel/kvm.c
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-vim arch/x86/kernel/kvm.c
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
 sudo reboot
 sudo reboot
 INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
@@ -998,3 +987,14 @@ tmux attach
 cd qemu
 vim docs/cpu-hotplug.rst’
 vim docs/cpu-hotplug.rst
+tmpd
+cd linux-combined/
+git grep kexdc_reinit
+git grep kexec_reinit
+vim arch/arm/include/asm/kexec.h
+git grep kexec_boot_atags
+vim arch/arm/kernel/relocate_kernel.S
+git grep relocate_kernel
+git grep relocate_kernel arch/x86
+vim arch/x86/kernel/relocate_kernel_64.S
+sudo journalctl --dmesg -f
