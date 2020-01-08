@@ -1,192 +1,3 @@
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-sudo reboot
-sudo reboot
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-sudo vim ~/chroot/home/johnsa1/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim /tmp/run.log 
-export INSTALL_MOD_PATH=/home/johnsa1/chroot
-export INSTALL_PATH=${INSTALL_MOD_PATH}/boot
-sudo -E make -j $(($(nproc)*4)) modules_install && sudo -E make install
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-git status
-git diff
-git reset --hard HEAD
-git status
-git commit --amend
-git log -p
-git grep rdmsr
-git grep safe Documentation/
-git grep -i 'msr.*safe' Documentation/
-git grep -i 'msr' Documentation/
-git status
-git log -p
-git status
-git push -f
-rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
-cd ..
-git status
-vim git-send-email-cover 
-hwclock 
-hwclock -h
-sudo hwclock -s
-sudo hwclock -w
-date 
-date -h
-date --help
-date --date='TZ="America/Los_Angeles" 16:39'
-timedatectl --help
-timedatectl  set-timezone 'America/Los_Angeles'
-sudo timedatectl  set-timezone 'America/Los_Angeles'
-date 
-timedatectl set-time 16:39
-timedatectl set-ntp false
-sudo timedatectl set-ntp false
-timedatectl set-time 16:39
-sudo timedatectl set-time 16:39
-date
-sudo timedatectl set-time 16:40
-date
-sudo hwclock -w
-date
-git log -p
-git status
-vim git-send-email-cover 
-git diff
-vim git-send-email-cover 
-git add -A
-git status
-vim README.md 
-cd linux-combined/
-git log -p
-./scripts/checkpatch.pl ../outgoing/0002-X86-Use-KVM-CR-pin-MSRs.patch 
-git send-email --subject-prefix="RFC v4" --annotate --cover-letter --to sean.j.christopherson@intel.com --
-git send-email --subject-prefix="RFC v4" --annotate --cover-letter --to sean.j.christopherson@intel.com --to linux-security@eclists.intel.com --to linux-drivers-review@eclists.intel.com HEAD~2
-git status
-cd ..
-git status
-git diff
-git add -A
-git status
-git c 'RFC v3'
-git push
-ll
-cd kvm-unit-tests/
-ll
-git grep power
-git grep S0
-git grep S1
-git grep S3
-git grep -i suspend
-ll
-cd
-qemu-img create -f qcow2 image.qcow2 300M
-vim run.
-sudo du -h --summarize chroot
-sudo dnf -y install libguestfs-tools libguestfs
-guestmount -a image.qcow2 -i /mnt
-guestmount -a image.qcow2 /mnt
-guestmount -a image.qcow2 /mnt --help
-sudo fdisk -l image.qcow2
-sudo parted image.qcow2
-guestmount -a image.qcow2 /mnt
-guestmount --rw -a image.qcow2
-guestfish --rw -a image.qcow2
-modprobe nbd max_part=8
-sudo modprobe nbd max_part=8
-qemu-nbd --connect=/dev/nbd0 image.qcow2 
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2 
-fdisk /dev/nbd0 -l
-sudo fdisk /dev/nbd0 -l
-sudo du -h --threshold=100M chroot
-vim run.sh 
-rm -rf chroot/usr/lib/modules/5.4.0+
-sudo rm -rf chroot/usr/lib/modules/5.4.0+
-sudo df -h --max-depth=1 ~/chroot
-sudo du -h --threshold=100M chroot
-sudo cp chroot/home/johnsa1/chroot/usr/bin/init.sh chroot/usr/bin/nested-init.sh
-sudo mv chroot/home/johnsa1/chroot/usr/bin/rebooter chroot/usr/bin/
-sudo rm -rf chroot/home/johnsa1/chroot/
-sudo du -h --threshold=100M chroot
-sudo vim chroot/usr/bin/init.sh
-sudo vim chroot/home/johnsa1/run.sh
-git add chroot/home/johnsa1/run.sh
-git status
-git add -A
-git status
-git add -f chroot/usr/bin/rebooter 
-git status
-git c 'removed nested chroot folder'
-git push
-vim run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim run.sh
-sudo vim chroot/home/johnsa1/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim chroot/home/johnsa1/run.sh
-sudo vim chroot/usr/bin/init.sh
-which insmod
-/usr/sbin/insmod --help
-sudo vim chroot/usr/bin/init.sh
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-sudo vim chroot/usr/bin/init.sh
-vim ~/run.sh
-sudo vim chroot/usr/bin/init.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim chroot/usr/bin/init.sh
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-sudo vim chroot/usr/bin/init.sh
-ll "/lib/modules/$(uname -r)/kernel/virt/lib/irqbypass.ko"
-ll "chroot/lib/modules/$(uname -r)/kernel/virt/lib/irqbypass.ko"
-ll "chroot/lib/modules/$(uname -r)/"
-ll "chroot/lib/modules/$(uname -r)/kernel"
-ll "chroot/lib/modules/$(uname -r)/kernel/virt/"
-ll "chroot/lib/modules/$(uname -r)/kernel/virt/lib/"
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim chroot/usr/bin/init.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-git stauts
-git status
-git diff
-git add -A
-git status
-git commit --amend
-git push -f
-sudo du -h --threshold=100M chroot
-rm image.qcow2
-qemu-img create -f qcow2 image.qcow2 3G
-sudo 
-sudo qemu-nbd --disconnect /dev/nbd0
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2 
-sudo fdisk /dev/nbd0 -l
-sudo partx /dev/ndb0
-sudo part /dev/ndb0
-sudo parted /dev/ndb0
-sudo parted /dev/nbd0
-cat ~/run.sh
-sudo qemu-nbd --disconnect /dev/nbd0
-qemu-img create -f qcow2 image.qcow2 6G
-rm image.qcow2 
-qemu-img create -f qcow2 image.qcow2 6G
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2 
-sudo parted /dev/nbd0
-sudo parted /dev/nbd0 << 'EOF'
-mklabel gpt
-mkpart primary fat32 1MiB 261MiB
-set 1 esp on
-mkpart primary ext4 261MiB 100%
-EOF
-
-sudo partx /dev/nbd0
-sudo partx -a /dev/nbd0
 dmesg
 sudo partx -a /dev/nbd0
 ll /dev/nbd0*
@@ -998,3 +809,192 @@ git grep relocate_kernel
 git grep relocate_kernel arch/x86
 vim arch/x86/kernel/relocate_kernel_64.S
 sudo journalctl --dmesg -f
+~/run.sh 
+vim ~/run.sh
+~/run.sh 
+tmux
+tmux attach
+git status
+git diff
+cd linux-combined/
+git status
+git diff
+vim +440 arch/x86//kernel/cpu/common.c
+cd linux-combined/
+vim +440 arch/x86//kernel/cpu/common.c
+sudo socat - UNIX-CONNECT:/tmp/monitor
+find ~/qemu/build/ -name qmp-shell
+find ~/qemu/ -name qmp-shell
+~/qemu/scripts/qmp/qmp-shell -p -v /tmp/monitor 
+~/qemu/scripts/qmp/qmp-shell -p -v /tmp/q
+sudo ~/qemu/scripts/qmp/qmp-shell -p -v /tmp/q
+git grep enter_smm
+vim -t enter_smm
+git grep vmx_pre_leave_smm
+vim -t vmx_pre_leave_smm
+vim -t enter_smm
+vim -t vmx_enable_smi_window
+git grep enable_smi_window
+vim arch/x86/kvm/vmx/vmx.c
+vim -t vmx_enable_smi_window
+vim -t enter_smm
+git grep -E 'trace.*smm'
+vim -t enter_smm
+git grep HF_SMM_MASK
+vim arch/x86/kvm/x86.c
+git grep KVM_VCPUEVENT_VALID_SMM
+vim arch/x86/kvm/x86.c
+git grep -C 4 HF_SMM_MASK
+git grep -C 4 post_leave_smm
+vim arch/x86/kvm/emulate.c
+readelf vmlinux
+readelf -S vmlinux
+readelf -S arch/x86/boot/bzImage 
+xxd arch/x86/boot/bzImage | less
+vim -t machine_kexec
+vim arch/x86/kernel/machine_kexec_64.c
+git grep 'Image loading done'
+vim kernel/power/swap.c
+git grep swsusp_read
+vim kernel/power/hibernate.c
+git grep swsusp_read
+vim kernel/power/hibernate.c
+git grep 'Disabling non-boot CPUs'
+vim kernel/cpu.c
+git grep freeze_secondary_cpus
+vim arch/x86/mm/mmio-mod.c
+vim kernel/power/hibernate.c
+time make -j $(($(nproc)*4)) bzImage
+vim -t machine_kexec
+ll
+git grep kexec
+vim kernel/kexec.c
+vim -t kimage
+vim kernel/kexec_elf.c
+vim kernel/kexec_file.c
+vim kernel/kexec_core.c
+git grep do_kimage_alloc_init
+vim kernel/kexec.c
+git branch
+git log -p nokexec
+vim kernel/kexec.c
+git grep SMAP
+git grep _SMAP
+vim arch/x86/kernel/cpu/common.c
+cd ..
+git status
+git diff
+git c 'run.sh: Add modprobe for irqbypass'
+git push
+cd linux-combined/
+git status
+git diff
+git status
+git diff
+vim arch/x86/boot/compressed/head_64.S
+vim arch/x86/kernel/head_64.S
+git diff
+vim arch/x86/boot/compressed/head_64.S
+git diff
+vim arch/x86/boot/compressed/head_64.S
+git diff
+vim arch/x86/boot/compressed/head_64.S
+git diff
+vim arch/x86/boot/compressed/head_64.S
+vim arch/x86/kernel/head_64.S
+vim arch/x86/kernel/relocate_kernel_64.S
+git diff
+vim arch/x86/kernel/relocate_kernel_64.S
+vim arch/x86/kernel/head_64.S
+vim -t kvm_set_cr4
+git grep startup_64
+cd linux-combined/
+git grep startup_64
+git checkout -b make_kexec_work
+git add -A
+gits tatus
+git staus
+git status
+git c 'working on making kexec work'
+git push -u pdxjohnny
+git push -u origin
+    git push --set-upstream origin make_kexec_work
+git status
+git branch
+git checkout hc_harden
+git status
+git log -p
+git status
+git checkout -b cr_pin_msr_cmdline
+git status
+git grep resume
+git grep noresume
+vim Documentation/admin-guide/kernel-parameters.txt
+git grep nokalsr
+git grep nokaslr
+vim drivers/firmware/efi/libstub/efi-stub-helper.c
+vim arch/x86/boot/compressed/kaslr.c
+git branch -r
+git log -p origin/make_kexec_work
+git checkout make_kexec_work
+git grep secondary_startup_64
+vim arch/x86/realmode/init.c
+git grep secondary_startup_64
+vim arch/x86/realmode/init.c
+git grep mmu_cr4_features
+vim arch/x86/power/hibernate_asm_64.S
+git status
+git log -p
+vim arch/x86/power/hibernate_asm_64.S
+git grep restore_image
+vim arch/x86/power/hibernate_64.c
+git reflog
+git status
+git log -p
+git status
+git grep restore_image
+vim arch/x86/power/hibernate_64.c
+vim kernel/power/hibernate.c
+vim arch/x86/boot/compressed/head_64.S
+git diff
+git diff HEAD~1
+vim arch/x86/kernel/relocate_kernel_64.S
+git grep post susp
+git grep 'post susp'
+vim kernel/power/hibernate.c
+git grep swsusp_arch_resume
+vim arch/x86/power/hibernate_64.c
+vim kernel/power/hibernate.c
+vim arch/x86/power/hibernate_64.c
+git grep restore_image
+vim arch/x86/power/hibernate_asm_64.S
+git grep relocated_restore_code
+vim arch/x86/power/hibernate.c
+vim arch/x86/power/hibernate_asm_64.S
+vim arch/x86/power/hibernate.c
+git grep restore_image
+vim arch/x86/power/hibernate_64.c
+vim arch/x86/power/hibernate.c
+vim arch/x86/power/hibernate_64.c
+git grep mmu_cr4_features
+vim arch/x86/kernel/setup.c
+vim arch/x86/kvm/kvm.c
+vim arch/x86/kvm/x86.c
+git grep setup_kvm_par
+git grep paravirt_kvm
+git grep cr_pinning
+vim arch/x86/kernel/kvm.c
+vim arch/x86/power/hibernate_asm_64.S
+git grep mmu_cr4_features
+vim arch/x86/power/hibernate.c
+vim arch/x86/kernel/setup.c
+git grep mmu_cr4_features
+vim -t setup_cr4_pinning
+vim -t setup_cr_pinning
+dmesg 
+vim -t setup_cr_pinning
+vim arch/x86/kernel/kvm.c
+vim arch/x86/kernel/setup.c
+vim arch/x86/power/hibernate_64.c
+vim arch/x86/power/hibernate.c
+vim kernel/power/hibernate.c
