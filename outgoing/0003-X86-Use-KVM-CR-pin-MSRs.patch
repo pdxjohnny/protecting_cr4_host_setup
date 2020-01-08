@@ -1,4 +1,4 @@
-From 0def1b125775205343b642c63350ff007a07a870 Mon Sep 17 00:00:00 2001
+From 2a9253881a4e986af64cfa09e404d1f878c602b3 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 3/3] X86: Use KVM CR pin MSRs
@@ -76,7 +76,7 @@ index 9b4df6eaa11a..a7b48e43d2dc 100644
  #define kvm_async_pf_task_wait(T, I) do {} while(0)
  #define kvm_async_pf_task_wake(T) do {} while(0)
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 5525541695f9..51b0d316cb85 100644
+index 68b06f4141f7..2c3b3adaeb36 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
 @@ -20,6 +20,7 @@
@@ -87,16 +87,16 @@ index 5525541695f9..51b0d316cb85 100644
  
  #include <asm/stackprotector.h>
  #include <asm/perf_event.h>
-@@ -439,6 +440,8 @@ static void __init setup_cr_pinning(void)
+@@ -440,6 +441,8 @@ static void __init setup_cr_pinning(void)
  	mask = (X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP);
- 	cr4_pinned_bits = mmu_cr4_features & mask;
+ 	cr4_pinned_bits = this_cpu_read(cpu_tlbstate.cr4) & mask;
  	static_key_enable(&cr_pinning.key);
 +
 +	kvm_setup_paravirt_cr_pinning(X86_CR0_WP, cr4_pinned_bits);
  }
  
  /*
-@@ -1601,6 +1604,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
+@@ -1602,6 +1605,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
  	mtrr_ap_init();
  	validate_apic_and_package_id(c);
  	x86_spec_ctrl_setup_ap();
