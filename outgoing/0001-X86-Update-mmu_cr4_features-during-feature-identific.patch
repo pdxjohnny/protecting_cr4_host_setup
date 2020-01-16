@@ -1,0 +1,80 @@
+From ba32a3b25b74cbe855eb4ec6d1ebacb41cd933b3 Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Wed, 8 Jan 2020 13:14:30 -0800
+Subject: [PATCH 1/3] X86: Update mmu_cr4_features during feature
+ identification
+
+In identify_cpu when setting up SMEP/SMAP/UMIP call
+cr4_set_bits_and_update_boot instead of cr4_set_bits. This ensures that
+mmu_cr4_features contains those bits, and does not disable those
+protections when in hibernation asm.
+
+setup_arch updates mmu_cr4_features to save what identified features are
+supported for later use in hibernation asm when cr4 needs to be modified
+to toggle PGE. cr4 writes happen in restore_image and restore_registers.
+setup_arch occurs before identify_cpu, this leads to mmu_cr4_features
+not containing some of the cr4 features which were enabled via
+identify_cpu when hibernation asm is executed.
+
+On CPU bringup when cr4_set_bits_and_update_boot is called
+mmu_cr4_features will now be written to. For the boot CPU,
+the __ro_after_init on mmu_cr4_features does not cause a fault. However,
+__ro_after_init was removed due to it triggering faults on non-boot
+CPUs.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ arch/x86/kernel/cpu/common.c | 6 +++---
+ arch/x86/kernel/setup.c      | 4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
+index fffe21945374..0180b0577990 100644
+--- a/arch/x86/kernel/cpu/common.c
++++ b/arch/x86/kernel/cpu/common.c
+@@ -316,7 +316,7 @@ __setup("nosmep", setup_disable_smep);
+ static __always_inline void setup_smep(struct cpuinfo_x86 *c)
+ {
+ 	if (cpu_has(c, X86_FEATURE_SMEP))
+-		cr4_set_bits(X86_CR4_SMEP);
++		cr4_set_bits_and_update_boot(X86_CR4_SMEP);
+ }
+ 
+ static __init int setup_disable_smap(char *arg)
+@@ -335,7 +335,7 @@ static __always_inline void setup_smap(struct cpuinfo_x86 *c)
+ 
+ 	if (cpu_has(c, X86_FEATURE_SMAP)) {
+ #ifdef CONFIG_X86_SMAP
+-		cr4_set_bits(X86_CR4_SMAP);
++		cr4_set_bits_and_update_boot(X86_CR4_SMAP);
+ #else
+ 		cr4_clear_bits(X86_CR4_SMAP);
+ #endif
+@@ -352,7 +352,7 @@ static __always_inline void setup_umip(struct cpuinfo_x86 *c)
+ 	if (!cpu_has(c, X86_FEATURE_UMIP))
+ 		goto out;
+ 
+-	cr4_set_bits(X86_CR4_UMIP);
++	cr4_set_bits_and_update_boot(X86_CR4_UMIP);
+ 
+ 	pr_info_once("x86/cpu: User Mode Instruction Prevention (UMIP) activated\n");
+ 
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 77ea96b794bd..915545a5ffec 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -198,9 +198,9 @@ EXPORT_SYMBOL(boot_cpu_data);
+ 
+ 
+ #if !defined(CONFIG_X86_PAE) || defined(CONFIG_X86_64)
+-__visible unsigned long mmu_cr4_features __ro_after_init;
++__visible unsigned long mmu_cr4_features;
+ #else
+-__visible unsigned long mmu_cr4_features __ro_after_init = X86_CR4_PAE;
++__visible unsigned long mmu_cr4_features = X86_CR4_PAE;
+ #endif
+ 
+ /* Boot loader ID and version as integers, for the benefit of proc_dointvec */
+-- 
+2.21.0
+

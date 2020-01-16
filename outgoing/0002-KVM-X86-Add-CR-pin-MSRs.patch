@@ -1,4 +1,4 @@
-From d47c94b5fa56571fddac6483d8902cc5945ac610 Mon Sep 17 00:00:00 2001
+From 77e12ec5decea94553cc5f373578ce29b9437a5e Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/3] KVM: X86: Add CR pin MSRs
@@ -9,16 +9,16 @@ CR pinned MSRs to KVM. Allow guests to request that KVM pin certain
 bits within control register 0 or 4 via the CR pinned MSRs. Writes to
 the MSRs fail if they include bits which aren't allowed. Host userspace
 may clear or modify pinned bits at any time. Once pinned bits are set,
-the guest may pin additional allowed bits, but not clear any. The guest
-may never read pinned bits. If an attacker were to read the CR pinned
-MSRs, they might decide to preform another attack which would not cause
-a general protection fault.
+the guest may pin additional allowed bits, but not clear any. Clear
+pinning on vCPU reset.
 
 In the event that the guest vCPU attempts to disable any of the pinned
 bits, send that vCPU a general protection fault, and leave the register
 unchanged. Entering SMM unconditionally clears various CR0/4 bits, some
 of which may be pinned by the OS. To avoid triggering shutdown on SMIs,
-pinning isn't enforced when the vCPU is running in SMM.
+pinning isn't enforced when the vCPU is running in SMM. Clearing pinning
+on vCPU reset avoids faulting when non-boot CPUs are disabled and then
+re-enabled, which is done when hibernating.
 
 Should userspace expose the CR pinning CPUID feature bit, it must zero
 CR pinned MSRs on reboot. If it does not, it runs the risk of having the
@@ -58,12 +58,12 @@ https://github.com/qemu/qemu/commit/7e8c770c91616ae8d2d6b15bcc2865be594c8852
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/msr.txt       | 38 +++++++++++++++++++++++
+ Documentation/virt/kvm/msr.txt       | 38 ++++++++++++++++++++++
  arch/x86/include/asm/kvm_host.h      |  2 ++
- arch/x86/include/uapi/asm/kvm_para.h |  5 ++++
+ arch/x86/include/uapi/asm/kvm_para.h |  5 +++
  arch/x86/kvm/cpuid.c                 |  3 +-
- arch/x86/kvm/x86.c                   | 45 ++++++++++++++++++++++++++++
- 5 files changed, 92 insertions(+), 1 deletion(-)
+ arch/x86/kvm/x86.c                   | 48 ++++++++++++++++++++++++++++
+ 5 files changed, 95 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/virt/kvm/msr.txt b/Documentation/virt/kvm/msr.txt
 index df1f4338b3ca..c78efd5bcfc1 100644
@@ -166,7 +166,7 @@ index cfafa320a8cf..19fb49753442 100644
  		if (sched_info_on())
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 3ed167e039e5..eb1640ada8b8 100644
+index 3ed167e039e5..6e7fbd566be3 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
 @@ -753,6 +753,9 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
@@ -256,6 +256,16 @@ index 3ed167e039e5..eb1640ada8b8 100644
  	case MSR_IA32_P5_MC_ADDR:
  	case MSR_IA32_P5_MC_TYPE:
  	case MSR_IA32_MCG_CAP:
+@@ -9226,6 +9271,9 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
+ 
+ 	vcpu->arch.ia32_xss = 0;
+ 
++	vcpu->arch.cr0_pinned = 0;
++	vcpu->arch.cr4_pinned = 0;
++
+ 	kvm_x86_ops->vcpu_reset(vcpu, init_event);
+ }
+ 
 -- 
 2.21.0
 
