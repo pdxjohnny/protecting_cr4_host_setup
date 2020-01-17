@@ -83,8 +83,9 @@ sudo qemu-nbd --disconnect /dev/nbd0
 
 trap mount_image EXIT
 
+#  -smp 1,maxcpus=2 \
 sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" "$@" \
-  -smp 1,maxcpus=2 \
+  -smp 2 \
   -m 8192M \
   -enable-kvm \
   -bios \

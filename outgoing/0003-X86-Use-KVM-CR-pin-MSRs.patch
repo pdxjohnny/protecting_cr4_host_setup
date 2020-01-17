@@ -1,4 +1,4 @@
-From da1a141ac151ef5cde71bf47aca21d8f447641dc Mon Sep 17 00:00:00 2001
+From 269a050f876eacfea89469213e5df77d6ef5c02d Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 3/3] X86: Use KVM CR pin MSRs
@@ -37,13 +37,13 @@ with pinning enabled.
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- .../admin-guide/kernel-parameters.txt         |  7 ++++++
- arch/x86/Kconfig                              | 10 ++++++++
- arch/x86/include/asm/kvm_para.h               | 10 ++++++++
- arch/x86/kernel/cpu/common.c                  |  5 ++++
- arch/x86/kernel/kvm.c                         | 25 +++++++++++++++++++
- arch/x86/kernel/setup.c                       |  6 +++++
- 6 files changed, 63 insertions(+)
+ .../admin-guide/kernel-parameters.txt         |  7 ++++
+ arch/x86/Kconfig                              | 10 +++++
+ arch/x86/include/asm/kvm_para.h               | 20 ++++++++++
+ arch/x86/kernel/cpu/common.c                  |  5 +++
+ arch/x86/kernel/kvm.c                         | 39 +++++++++++++++++++
+ arch/x86/kernel/setup.c                       |  6 +++
+ 6 files changed, 87 insertions(+)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
 index 9b847f06cb19..e81a048d941f 100644
@@ -92,20 +92,30 @@ index 8ef85139553f..c49b12f719d1 100644
  	bool "Jailhouse non-root cell support"
  	depends on X86_64 && PCI
 diff --git a/arch/x86/include/asm/kvm_para.h b/arch/x86/include/asm/kvm_para.h
-index 9b4df6eaa11a..a7b48e43d2dc 100644
+index 9b4df6eaa11a..bbaf104da71b 100644
 --- a/arch/x86/include/asm/kvm_para.h
 +++ b/arch/x86/include/asm/kvm_para.h
-@@ -102,6 +102,16 @@ static inline void kvm_spinlock_init(void)
+@@ -102,6 +102,26 @@ static inline void kvm_spinlock_init(void)
  }
  #endif /* CONFIG_PARAVIRT_SPINLOCKS */
  
 +#ifdef CONFIG_PARAVIRT_CR_PIN
++#ifdef CONFIG_KEXEC_CORE
++void __init kvm_paravirt_cr_pinning_init(void);
++#else
++static inline void kvm_paravirt_cr_pinning_init(void)
++{
++	return;
++}
++#endif /* CONFIG_KEXEC_CORE */
++
 +void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
 +				   unsigned long cr4_pinned_bits);
 +#else
 +static inline void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
 +						 unsigned long cr4_pinned_bits)
 +{
++	return;
 +}
 +#endif /* CONFIG_PARAVIRT_CR_PIN */
 +
@@ -143,7 +153,7 @@ index 0180b0577990..15cf9934e605 100644
  
  static __init int setup_noclflush(char *arg)
 diff --git a/arch/x86/kernel/kvm.c b/arch/x86/kernel/kvm.c
-index 32ef1ee733b7..4b092cf8687e 100644
+index 32ef1ee733b7..d5f1313edb70 100644
 --- a/arch/x86/kernel/kvm.c
 +++ b/arch/x86/kernel/kvm.c
 @@ -24,6 +24,8 @@
@@ -163,17 +173,40 @@ index 32ef1ee733b7..4b092cf8687e 100644
  
  static int kvmapf = 1;
  
-@@ -858,6 +861,28 @@ void __init kvm_spinlock_init(void)
+@@ -712,6 +715,7 @@ static void __init kvm_apic_init(void)
+ static void __init kvm_init_platform(void)
+ {
+ 	kvmclock_init();
++	kvm_paravirt_cr_pinning_init();
+ 	x86_platform.apic_post_init = kvm_apic_init;
+ }
+ 
+@@ -858,6 +862,41 @@ void __init kvm_spinlock_init(void)
  
  #endif	/* CONFIG_PARAVIRT_SPINLOCKS */
  
 +#ifdef CONFIG_PARAVIRT_CR_PIN
++static int kvm_paravirt_cr_pinning_enabled __ro_after_init = 0;
++
++void __init kvm_paravirt_cr_pinning_init()
++{
++	if (!cmdline_find_option_bool(boot_command_line, "pv_cr_pin"))
++		return;
++
++	kvm_paravirt_cr_pinning_enabled = 1;
++
++#ifdef CONFIG_KEXEC_CORE
++	/* Paravirtualized CR pinning is currently incompatible with kexec */
++	kexec_load_disabled = 1;
++#endif
++}
++
 +void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
 +				   unsigned long cr4_pinned_bits)
 +{
 +	u64 mask;
 +
-+	if (!cmdline_find_option_bool(boot_command_line, "pv_cr_pin"))
++	if (!kvm_paravirt_cr_pinning_enabled)
 +		return;
 +
 +	if (!kvm_para_has_feature(KVM_FEATURE_CR_PIN))
@@ -184,8 +217,6 @@ index 32ef1ee733b7..4b092cf8687e 100644
 +
 +	rdmsrl(MSR_KVM_CR4_PIN_ALLOWED, mask);
 +	wrmsrl(MSR_KVM_CR4_PINNED, cr4_pinned_bits & mask);
-+
-+	kexec_load_disabled = 1;
 +}
 +#endif
 +

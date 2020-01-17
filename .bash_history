@@ -1,686 +1,3 @@
-dmesg
-sudo partx -a /dev/nbd0
-ll /dev/nbd0*
-sudo mount /dev/nbd0p2 /mnt
-mkfs.ext4 /dev/nbd0p2
-sudo mkfs.ext4 /dev/nbd0p2
-grep -rn 9P .config
-make menuconfig
-sudo mkfs.fat /dev/nbd0p2
-sudo mkfs.fat /dev/nbd0p1
-sudo mkfs.ext4 /dev/nbd0p2
-cat ~/run.
-cat ~/run.sh 
-sudo chroot ~/chroot/
-sudo vim chroot/usr/bin/init.sh
-sudo vim ~/chroot/usr/bin/init.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/usr/bin/init.sh
-vim ~/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/usr/bin/init.sh
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo chroot ~/chroot/
-dd if=/dev/zero of=~/chroot/swapfile count=10000 bs=1MiB
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-sudo mkswap ~/chroot/swapfile 
-sudo chmod 600 ~/chroot/swapfile
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-git status
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-sudo mv ~/chroot/swapfile ~/
-ll ~/swapfile 
-rm ~/swapfile 
-ll ~/swapfile
-sudo fallocate -l 10g swapfile
-ll swapfile
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-ll ~/swap
-ll
-mv swapfile ../
-ll
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh -drive file=${HOME}/swapfile,index=1,media=disk 2>&1 | tee /tmp/run.log 
-INIT=/usr/bin/init.sh ~/run.sh -drive file=${HOME}/swapfile,index=1,media=disk,format=raw 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/usr/bin/init.sh
-sudo vim ~/chroot/usr/bin/hibernate
-chmod 755 ~/chroot/usr/bin/hibernate
-sudo chmod 755 ~/chroot/usr/bin/hibernate
-git add -f ~/chroot/usr/bin/hibernate
-cd ..
-git add -f ~/chroot/usr/bin/hibernate
-git status
-git add -A
-git status
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-sudo vim ~/chroot/etc/environment 
-sudo vim ~/chroot/usr/bin/init.sh
-sudo vim ~/chroot/etc/environment 
-sudo vim ~/chroot/usr/bin/init.sh
-git status
-git add -A
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-rm ~/swapfile 
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-INIT=/usr/bin/init.sh ~/run.sh -no-reboot 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-CMDLINE="resume=/dev/sda" INIT=/usr/bin/init.sh ~/run.sh -no-reboot 2>&1 | tee /tmp/run.log 
-CMDLINE="resume=/dev/sda resumewait hibernate=nocompress" INIT=/usr/bin/init.sh ~/run.sh -no-reboot 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/usr/bin/hibernate 
-CMDLINE="resume=/dev/sda resumewait" INIT=/usr/bin/init.sh ~/run.sh -no-reboot 2>&1 | tee /tmp/run.log 
-sudo vim ~/chroot/usr/bin/hibernate 
-git add -f ~/chroot/usr/bin/hibernate
-git status
-git add -A
-git diff
-vim README.md 
-git add -A
-git status
-git c 'not resuming from hibernate'
-git push
-sudo vim ~/chroot/usr/bin/hibernate 
-CMDLINE="resume=/dev/sda resumewait" INIT=/usr/bin/init.sh ~/run.sh -no-reboot 2>&1 | tee /tmp/run.log 
-ll /mnt/
-mount
-sudo journalctl --dmesg -f
-git grep irq_bypass_unregister_consumer
-find . -name irqbypass.ko
-git status
-git log -p
-~/run.sh 
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-cd linux-combined/
-git status
-git diff
-vim arch/x86/kernel/kvm.c
-git diff
-git add -A
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-git status
-git diff --staged
-vim ~/run.sh
-git commit --amend
-git log -p
-git commit --amend
-vim arch/x86/kernel/kvm.c
-time make -j $(($(nproc)*4)) bzImage
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-vim arch/x86/kvm/x86.c
-git grep kvm_set_msr_common
-vim arch/x86/kvm/vmx/vmx.c
-git grep '->set_msr'
-git grep '\->set_msr'
-vim arch/x86/kvm/x86.c
-git status
-git diff
-git grep wrmsrl
-vim -t wrmsrl
-vim arch/x86/kvm/x86.c
-cat README 
-cat ../README.md 
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-tmux
-sudo qemu-nbd --disconnect /dev/nbd0
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2 
-sudo partx -a /dev/nbd0
-ll /dev/nbd*
-ll /dev/nbd*0
-ll /dev/nbd0*
-sudo mount /dev/nbd0p2 /mnt
-ll /mnt
-sudo fdisk -l /dev/nbd0
-sudo umount -R /mnt
-sudo qemu-nbd --disconnect /dev/nbd0
-df -h
-echo $((1024 * 10))
-echo $((1024 * 10 + 251))
-rm image.qcow2 
-qemu-img create -f qcow2 image.qcow2 20G
-qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo parted /dev/nbd0 << 'EOF'
-mklabel gpt
-mkpart primary fat32 1MiB 261MiB
-set 1 esp on
-mkpart primary swap 261MiB 10491MiB
-mkpart primary ext4 10491MiB 100%
-EOF
-
-sudo parted /dev/nbd0
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo qemu-nbd --disconnect /dev/nbd0
-rm image.qcow2 
-qemu-img create -f qcow2 image.qcow2 20G
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo parted /dev/nbd0 << 'EOF'
-mklabel gpt
-mkpart primary fat32 1MiB 261MiB
-set 1 esp on
-mkpart primary linux-swap 261MiB 10491MiB
-mkpart primary ext4 10491MiB 100%
-EOF
-
-sudo ls -lAF /dev/nbd0*
-sudo mkfs.fat /dev/nbd0p1
-sudo mkswap /dev/nbd0p2
-sudo mkfs.ext4 /dev/nbd0p3
-mount /dev/nbd0p3 /mnt
-sudo mount /dev/nbd0p3 /mnt
-ll /mnt
-ll /mnt/
-ll /mnt/lost+found/
-sudo ls -lAF /mnt/lost+found/
-ll /mnt
-git status
-git diff
-rm image.qcow2 
-ll
-git log -p
-vim arch/x86/Kconfig
-git diff
-git add -A
-git commit --amend
-git rebase -i HEAD~2
-vim Documentation/virt/kvm/msr.txt
-git status
-git diff
-vim Documentation/virt/kvm/msr.txt
-git diff
-git add -A
-vim -t kvm_spinlock_init
-vim arch/x86/kernel/kvm.c
-git diff
-git diff --staged
-git rebase --continue
-vim arch/x86/kernel/kvm.c
-git diff
-git grep setup_paravirt_cr_pinning
-vim arch/x86/include/asm/kvm_para.h
-vim arch/x86/kernel/cpu/common.c
-vim arch/x86/include/asm/kvm_para.h
-git grep setup_paravirt_cr_pinning
-git diff
-git add -A
-vim arch/x86/kernel/cpu/common.c
-git diff
-git add -A
-git rebase --continue
-git status
-git commit --amend
-git status
-git push -f
-git rebase -i HEAD~2
-vim arch/x86/kvm/x86.c
-git status
-git diff
-git add -A
-git rebase --continue
-git push -f
-git log -p
-vim arch/x86/kernel/cpu/common.c
-git add -A
-git diff
-git commit --amend
-git log -p
-vim arch/x86/include/asm/kvm_para.h
-vim arch/x86/kernel/cpu/common.c
-git diff
-vim arch/x86/kvm/x86.c
-vim arch/x86/kernel/kvm.c
-git status
-vim arch/x86/kernel/kvm.c
-git diff
-vim arch/x86/kernel/kvm.c
-git add -A
-git commit --amend
-git push -f
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-sudo reboot
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-git status
-git diff
-vim ~/chroot/home/johnsa1/run.sh
-git diff
-INIT=/usr/bin/rebooter ~/run.sh 2>&1 | tee /tmp/run.log 
-git status
-git diff
-cd linux-combined/
-git diff
-git log -p
-vim arch/x86/kvm/x86.c
-git diff
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-sudo reboot
-dmesg 
-tmux
-INIT=/usr/bin/rebooter ~/run.sh 2>&1 | tee /tmp/run.log 
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-socat - UNIX-CONNECT:/opt/local.ch/sys/kvm/vm/kvmtest-vm-inx01.intra.local.ch/monitor
-sudo dnf -y install socat
-socat - UNIX-CONNECT:/tmp/monitor
-socat - UNIX-CONNECT:/tmp/monitor0
-sudo socat - UNIX-CONNECT:/tmp/monitor0
-sudo socat - UNIX-CONNECT:/tmp/monitor1
-vim ~/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-cat /proc/cmdline 
-cd linux-combined/
-git status
-git diff
-git stash
-git rebase -i HEAD~2
-git stash pop
-git diff
-git add -A
-git rebase --continue
-git status
-git log -p
-git log
-git push -f
-git rebase -i HEAD~2
-git push -f
-INIT=/usr/bin/init.sh ~/run.sh 2>&1 | tee /tmp/run.log 
-INIT=/usr/bin/init.sh ~/run.sh -monitor stdio 2>&1 | tee /tmp/run.log 
-INIT=/usr/bin/init.sh ~/run.sh -monitor unix:/tmp/monitor0,server,nowait 2>&1 | tee /tmp/run.log 
-git status
-cd ..
-qemu-img create -f qcow2 image.qcow2 20G
-rm image.qcow2 
-qemu-img create -f qcow2 image.qcow2 20G
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo modprobe nbd max_part=8
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo parted /dev/nbd0 << 'EOF'
-mklabel gpt
-mkpart primary fat32 1MiB 261MiB
-set 1 esp on
-mkpart primary linux-swap 261MiB 10491MiB
-mkpart primary ext4 10491MiB 100%
-EOF
-
-sudo mkfs.fat /dev/nbd0p1
-sudo mkswap /dev/nbd0p2
-sudo mkfs.ext4 /dev/nbd0p3
-mount /dev/nbd0p3 /mnt
-sudo mount /dev/nbd0p3 /mnt
-cp -r chroot/* /mnt/
-sudo cp -r chroot/* /mnt/
-ll /mnt/boot/
-sudo cp -r /mnt/boot/bzImage /mnt/boot/bzImage.efi
-ll /mnt/boot/bzImage.efi
-vim ~/run.sh 
-git diff
-vim ~/run.sh 
-wget https://cdn.download.clearlinux.org/image/OVMF.fd
-vim ~/run.sh 
-~/run.sh
-sudo qemu-nbd --disconnect /dev/nbd0
-~/run.sh
-vim ~/run.sh 
-git diff ~/run.sh
-vim ~/run.sh 
-~/run.sh
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-ll image.qcow2
-rm image.qcow2
-qemu-img create -f qcow2 image.qcow2 20G
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo modprobe nbd max_part=8
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo modprobe -rf nbd
-sudo qemu-nbd --disconnect /dev/nbd0
-sudo modprobe -rf nbd
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo reboot
-ps aux | grep mon
-INIT=/usr/bin/init.sh ~/run.sh -monitor unix:/tmp/monitor0,server,nowait 2>&1 | tee /tmp/run.log 
-INIT=/usr/bin/init.sh ~/run.sh -monitor unix:/tmp/monitor1,server,nowait 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh -monitor unix:/tmp/monitor1,server,nowait 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh -monitor unix:/tmp/monitor1,server,nowait 2>&1 | tee /tmp/run.log 
-vim ~/run.sh
-sudo fallocate -l 10g swapfile1
-VMN=1 INIT=/usr/bin/init.sh ~/run.sh -monitor unix:/tmp/monitor1,server,nowait 2>&1 | tee /tmp/run.log 
-sudo mkswap ~/swapfile1 
-VMN=1 INIT=/usr/bin/init.sh ~/run.sh -monitor unix:/tmp/monitor1,server,nowait 2>&1 | tee /tmp/run.log 
-VMN=1 INIT=/usr/bin/init.sh ~/run.sh -monitor unix:/tmp/monitor1,server,nowait 2>&1 | tee /tmp-incoming tcp:0:5555 /run.log 
-VMN=1 INIT=/usr/bin/init.sh ~/run.sh -monitor unix:/tmp/monitor1,server,nowait -incoming tcp:0:5555 2>&1 | tee /tmp/run2.log 
-cd ~/linux-combined/
-git status
-vim .config
-make menuconfig
-find . -name \*.efi
-vim .config
-find . -name \*.EFI
-tmux
-~/run.sh 
-reset
-qemu-img create -f qcow2 image.qcow2 20G
-sudo modprobe nbd max_part=8
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo parted /dev/nbd0 << 'EOF'
-mklabel gpt
-mkpart primary fat32 1MiB 261MiB
-set 1 esp on
-mkpart primary linux-swap 261MiB 10491MiB
-mkpart primary ext4 10491MiB 100%
-EOF
-
-sudo fdisk -l /dev/nbd0
-sudo mkswap /dev/nbd0p2
-sudo mkfs.ext4 /dev/nbd0p3
-sudo mkfs.fat -F32 /dev/nbd0p1
-sudo fdisk -l /dev/nbd0
-sudo mount /dev/nbd0p3 /mnt
-ll /mnt
-sudo cp -r ~/chroot/* /mnt/
-ll /mnt/boot/
-rm -rf /mnt/boot/
-sudo rm -rf /mnt/boot/
-sudo mount /dev/nbd0p1 /mnt/boot
-mkdir /mnt/boot
-sudo mkdir /mnt/boot
-sudo mount /dev/nbd0p1 /mnt/boot
-ll /mnt/boot
-mount
-sudo cp -r ~/chroot/boot/* /mnt/boot/
-ll /mnt/boot/
-ll /mnt/boot/bzImage.efi
-sudo cp -r /mnt/boot/bzImage /mnt/boot/bzImage.efi
-ll /mnt/boot/
-sudo qemu-nbd --disconnect /dev/nbd0
-ll /dev/nbd0
-ll /dev/nbd*
-~/run.sh 
-reset
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-ll image.qcow2
-ll
-~/run.sh 
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo qemu-nbd --connect=/dev/nbd1 image.qcow2
-sudo mount /dev/nbd0p3 /mnt
-umount -R /mnt
-sudo umount -R /mnt
-sudo mount /dev/nbd0p3 /mnt
-sudo mount /dev/nbd1p3 /mnt
-ll /mnt/boot/
-sudo mount /dev/nbd1p1 /mnt/boot
-sudo cp -r /mnt/boot/bzImage /mnt/boot/bzImage.efi
-ll /mnt/boot/
-sudo umount -R /mnt
-sudo qemu-nbd --disconnect /dev/nbd0
-sudo qemu-nbd --disconnect /dev/nbd1
-~/run.sh 
-reset
-efibootmgr
-sudo fdisk -l /dev/nbd0
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo fdisk -l /dev/nbd0
-sudo fdisk -lh /dev/nbd0
-sudo blkid /dev/nbd0
-sudo blkid /dev/nbd0p*
-sudo blkid -f /dev/nbd0
-sudo lsblk /dev/nbd0
-sudo lsblk -f /dev/nbd0
-efibootmgr --disk /dev/sdX --part Y --create --label "Arch Linux" --loader /vmlinuz-linux --unicode 'root=PARTUUID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX rw initrd=\initramfs-linux.img' --verbose
-efibootmgr --disk /dev/nbd0 --part 1 --create --label "Fedora Linux" --loader /bzImage --unicode 'root=UUID=439272ca-ae11-4bae-9284-5e5ac2d8fd12 ro' --verbose
-sudo efibootmgr --disk /dev/nbd0 --part 1 --create --label "Fedora Linux" --loader /bzImage --unicode 'root=UUID=439272ca-ae11-4bae-9284-5e5ac2d8fd12 ro' --verbose
-sudo efibootmgr --verbose
-sudo efibootmgr --verbose -u
-sudo efibootmgr --disk /dev/nbd0 --part 1 --create --label "Fedora Linux" --loader /bzImage --unicode 'root=UUID=439272ca-ae11-4bae-9284-5e5ac2d8fd12 ro'
-man efibootmgr 
-ll /boot/efi/
-sudo ls -lAF /boot/efi/
-sudo ls -lAF /boot/efi/EFI
-sudo ls -lAF /boot/efi/EFI/BOOT
-sudo ls -lAF /boot/efi/EFI/fedora
-sudo reboot
-sudo reboot
-cd linux-combined/
-vim .config
-time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-efibootmgr --disk /dev/sda --part 1o --CREATE^C-label "Fedora Linux" --
-fibootmgr --disk /dev/sda --part 1o --CREATE^C-label "Fedora Linux" --
-echo efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" -- loader /bzImage.efi --unicode 'console=ttyS0 root=/dev/sda3 rw nokaslr init=/usr/bin/init.sh'
-echo efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" --loader /bzImage.efi --unicode 'console=ttyS0 root=/dev/sda3 rw nokaslr init=/usr/bin/init.sh'
-git status
-git diff
-vim .config/
-cd linux-combined/
-vim .config
-vim ~/run.sh 
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-cd
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo mount /dev/nbd0p3 /mnt
-sudo vim /mnt/usr/bin/init.sh 
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo mount /dev/nbd0p3 /mnt
-sudo vim /mnt/usr/bin/init.sh 
-sudo umount -R /mnt
-sudo qemu-nbd --disconnect /dev/nbd1
-sudo qemu-nbd --disconnect /dev/nbd0\
-sudo qemu-nbd --disconnect /dev/nbd0
-rm -rf chroot
-sudo rm -rf chroot
-mkdir chroot
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo mount /dev/nbd0p3 ~/chroot
-ll ~/chroot
-git status
-git diff
-sudo socat - UNIX-CONNECT:/tmp/monitor
-dmesg
-du -h STATEFILE.gz 
-cd linux-combined/
-rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
-cd ..
-git status
-git diff
-git c 'made seans changes'
-git push
-git remote add kvm https://git.kernel.org/pub/scm/virt/kvm/kvm.git
-rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
-cd linux-combined/
-git remote add kvm https://git.kernel.org/pub/scm/virt/kvm/kvm.git
-git remote -v
-rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
-git checkout kvm/linux-next -b kvm-tree
-git pull
-git log
-git am ../outgoing/*
-git status
-git log -p
-cd ..
-git log -p | grep grubby
-sudo grubby --set-default /boot/vmlinuz-5.4.0-rc7+
-sudo grubby
-sudo grubby --help
-sudo grubby --default-kernel
-vim ~/run.sh
-diff ~/run.sh
-git diff ~/run.sh
-vim ~/run.sh
-sudo lsblk -f /dev/nbd0
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo umount -R /mnt
-sudo qemu-nbd --disconnect /dev/nbd1
-sudo qemu-nbd --disconnect /dev/nbd0
-sudo modprobe nbd max_part=8
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo lsblk -f /dev/nbd0
-vim ~/run.sh
-~/run.sh
-sudo qemu-nbd --disconnect /dev/nbd0
-~/run.sh
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo lsblk -f /dev/nbd0
-sudo lsblk -h /dev/nbd0
-sudo lsblk -o NAME,PARTUUID /dev/nbd0
-vim ~/run.sh
-~/run.sh
-sudo qemu-nbd --disconnect /dev/nbd0
-~/run.sh
-vim ~/run.sh
-~/run.sh
-vim ~/run.sh
-sudo lsblk -o NAME,PARTUUID /dev/nbd0
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo lsblk -o NAME,PARTUUID /dev/nbd0
-sudo qemu-nbd --disconnect /dev/nbd0
-vim ~/run.sh
-~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh
-sudo vim ~/chroot/usr/bin/init.sh
-INIT=/usr/bin/init.sh ~/run.sh
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo mount /dev/nbd0p3 /mnt
-sudo mount /dev/nbd0p1 /mnt/boot
-ll /mnt
-ll /mnt/boot/
-vim ~/run.sh
-sudo vim /mnt/usr/bin/init.sh
-sudo umount -R /mnt
-sudo qemu-nbd --disconnect /dev/nbd0
-INIT=/usr/bin/init.sh ~/run.sh
-ll /mnt/home/johnsa1/
-sudo ls -lAF /mnt/home/johnsa1/
-vim ~/run.sh
-sudo qemu-nbd --disconnect /dev/nbd0
-sudo umount -R /mnt
-INIT=/usr/bin/init.sh ~/run.sh
-sudo qemu-nbd --disconnect /dev/nbd0
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo mount /dev/nbd0p3 /mnt
-sudo mount /dev/nbd0p1 /mnt/boot
-sudo chroot /mnt
-sudo umount -R /mnt
-sudo qemu-nbd --disconnect /dev/nbd0
-INIT=/usr/bin/init.sh ~/run.sh
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh
-~/run.sh
-vim ~/run.sh
-~/run.sh
-vim ~/run.sh
-~/run.sh
-sudo qemu-nbd --disconnect /dev/nbd0
-sudo umount -R /mnt
-sudo qemu-nbd --disconnect /dev/nbd0
-~/run.sh
-vim ~/run.sh
-~/run.sh
-vim ~/run.sh
-~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh
-vim ~/run.sh
-INIT=/usr/bin/init.sh ~/run.sh
-sudo qemu-nbd --disconnect /dev/nbd0
-sudo umount -R /mnt
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo umount -R /mnt
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo mount /dev/nbd0p1 /mnt/boot
-sudo mount /dev/nbd0p3 /mnt
-sudo umount -R /mnt
-sudo qemu-nbd --disconnect /dev/nbd0
-INIT=/usr/bin/init.sh ~/run.sh
-vim ~/run.sh
-vim chroot/usr/bin/uefi-setup.sh
-sudo tee chroot/usr/bin/uefi-setup.sh
-sudo vim chroot/usr/bin/uefi-setup.sh
-git add -f chroot/usr/bin/uefi-setup.sh
-git status
-git add -A
-git status
-sudo chown -R johnsa1:johnsa chroot/home/johnsa1/
-sudo chown -R johnsa1:johnsa1 chroot/home/johnsa1/
-git add -A
-git status
-git diff --staged
-git c 'uefi setup'
-git push
-sudo cp -r chroot/ chroot.bak
-sudo umount -R ~/chroot
-sudo qemu-nbd --disconnect /dev/nbd0
-ll chroot.bak/
-sudo rm chroot.bak/teleport*
-git status
-rm image.qcow2 
-vim run.sh
-~/run.sh 
-sudo umount -R ~/chroot
-sudo qemu-nbd --disconnect /dev/nbd0
-~/run.sh 
-sudo umount -R ~/chroot
-sudo qemu-nbd --disconnect /dev/nbd0
-ll chroot/
-rm -rf chroot/*
-sudo rm -rf chroot/*
-vim ~/run.sh
-rm image.qcow2 
-~/run.sh 
-ll chroot.bak/
-sudo umount -R ~/chroot
-sudo qemu-nbd --disconnect /dev/nbd0
-vim ~/run.sh
-~/run.sh 
-rm image.qcow2 
-~/run.sh 
-sudo umount -R ~/chroot
-sudo qemu-nbd --disconnect /dev/nbd0
-vim ~/run.sh
-~/run.sh 
-rm image.qcow2 
-sudo qemu-nbd --disconnect /dev/nbd0
-~/run.sh 
-vim ~/run.sh
-sudo umount -R ~/chroot
-sudo qemu-nbd --disconnect /dev/nbd0
-~/run.sh 
-ll ~/chroot/
-rm image.qcow2 
-~/run.sh 
-sudo umount -R ~/chroot
-sudo qemu-nbd --disconnect /dev/nbd0
-~/run.sh 
-rm image.qcow2 
-sudo umount -R ~/chroot
-sudo qemu-nbd --disconnect /dev/nbd0
-~/run.sh 
-vim ~/run.sh
-~/run.sh 
-vim ~/run.sh
-~/run.sh 
-sudo umount -R ~/chroot
-sudo qemu-nbd --disconnect /dev/nbd0
-~/run.sh 
-sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
-sudo mount /dev/nbd0p3 ~/chroot
-ll /usr/bin/uefi-setup.sh
-ll ~/chroot/usr/bin/uefi-setup.sh 
-sudo chmod 755 ~/chroot/usr/bin/uefi-setup.sh
-git status
-git add -A
-git status
-sudo umount -R ~/chroot
 sudo qemu-nbd --disconnect /dev/nbd0
 ~/run.sh 
 git status
@@ -998,3 +315,686 @@ vim arch/x86/kernel/setup.c
 vim arch/x86/power/hibernate_64.c
 vim arch/x86/power/hibernate.c
 vim kernel/power/hibernate.c
+cd linux-combined/
+git grep -C 5 mmu_cr4_features
+git grep -C 5 cr4_set_bits_and_update_boot
+git status
+git log
+git grep -C 5 cr4_set_bits_and_update_boot
+vim arch/x86/mm/init.c-
+vim arch/x86/mm/init.c
+git grep FEATURE_UMIP
+git grep CR4_UMIP
+vim arch/x86/kernel/cpu/common.c
+git diff
+vim -t setup_cr_pinning
+git status
+git diff
+git add -A
+git commit --amend
+git status
+cd ..
+cd 
+git status
+git add outgoing/*
+git status
+git diff --staged
+git commit -sm 'Use cr4_set_bits_and_update_boot instaed of writing to mmu_cr4_features'
+git push
+vim -t cr4_set_bits_and_update_boot
+dmesg 
+git log | grep qmp
+git log -p | grep qmp
+sudo ~/qemu/scripts/qmp/qmp-shell -p -v /tmp/q
+addr2line
+sudo ~/qemu/scripts/qmp/qmp-shell -p -v /tmp/q
+addr2line -e ~/linux-combined/vmlinux f8f7acec27ce78d7
+addr2line -e ~/linux-combined/vmlinux 0xf8f7acec27ce78d7
+addr2line -e ~/linux-combined/vmlinux 0010:identify_cpu+0x4f5/0x6c0
+addr2line -h
+sudo ~/qemu/scripts/qmp/qmp-shell -p -v /tmp/q
+vim ~/run.sh
+python3 -c 'print(hex(0xffffffff8103c1a0U + 0x47eU))'
+python3 -c 'print(hex(0x00ffffffff8103c1a0U + 0x0047e))'
+python3 -c 'print(hex(0x00ffffffff8103c1a0 + 0x0047e))'
+dmesg 
+cd linux-combined/
+vim arch/x86/kernel/kvm.c
+git grep smp_
+vim arch/x86/kernel/kvm.c
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh
+~/run.sh 2>&1 | grep -i pin
+git log -p
+vim .config
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh 2>&1 | grep -i pin
+~/run.sh -monitor unix:/tmp/monitor,server,nowait 2>&1 | grep -i pin
+~/run.sh -qmp unix:/tmp/monitor,server,nowait 2>&1 | grep -i pin
+vim ~/run.sh
+~/run.sh -qmp unix:/tmp/monitor,server,nowait
+~/run.sh -qmp unix:/tmp/q,server,nowait
+~/run.sh -qmp unix:/tmp/q,server,nowait -device host-x86_64-cpu,socket-id=1,core-id=0,thread-id=0,id=cpu4,hotplugged=on
+vim ~/run.sh
+~/run.sh -qmp unix:/tmp/q,server,nowait -device host-x86_64-cpu,socket-id=1,core-id=0,thread-id=0,id=cpu4,hotplugged=on
+vim ~/run.sh
+git diff
+vim ~/run.sh 
+~/run.sh -qmp unix:/tmp/q,server,nowait
+git status
+git diff
+git reset --hard HEAD
+cd ../
+git status
+git diff
+git c 'confimed hotplug working'
+git push
+cd linux-combined/
+vim .config
+time make -j $(($(nproc)*4)) bzImage
+vim -t kvm_vcpu_reinit
+git grep kvm_vcpu_reinit
+git grep kvm_vcpu_init
+git grep kvm_vcpu_reset
+uname -a
+~/run.sh
+find . -name vfat.ko
+vim ~/run.sh
+~/run.sh
+vim ~/run.sh
+~/run.sh
+vim ~/run.sh
+find . -name vfat.ko
+find fd -name \*.ko
+find fs -name \*.ko
+~/run.sh
+vim ~/run.sh
+~/run.sh
+vim ~/run.sh
+~/run.sh
+cat ~/chroot/usr/bin/uefi-setup.sh
+echo /usr/sbin/efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" --loader /bzImage.efi --unicode 'console=ttyS0 resume=/dev/sda2 root=/dev/sda3 rw nokaslr init=/usr/bin/init.sh'
+vim ~/chroot/usr/bin/uefi-setup.sh
+sudo vim ~/chroot/usr/bin/uefi-setup.sh
+git add ~/chroot/usr/bin/uefi-setup.sh
+git status
+cd ..
+git status
+git diff
+git add -A
+git status
+git diff --staged
+git c 'add resume to cmdline'
+git push
+git tag rfc
+git push --tags
+git add -f git-send-email-cover 
+git status
+cd linux-combined/
+~/run.sh
+vim ~/run.sh
+vim arch/x86/kvm/x86.c
+git diff
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+vim arch/x86/kvm/x86.c
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+~/run.sh
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh
+~/run.sh -S
+~/run.sh
+~/run.sh -S
+~/run.sh -S -s
+time make -j $(($(nproc)*4)) bzImage
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+git grep irq_bypass_register_consumer
+make -j $(($(nproc)*4)) M=virt/lib/ modules
+git grep irq_bypass_register_consumer
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+vim scripts/Makefile.modpost
+ll arch/x86/kvm//kvm.ko
+git grep Module.symvers
+find . -name Module.symvers
+vim Module.symvers
+git grep Module.symvers
+git grep irq_bypass_register_consumer
+vim virt/lib/Module.symvers 
+cat virt/lib/Module.symvers >> Module.symvers 
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+make -j $(($(nproc)*4))
+sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+sudo time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+~/run.sh 
+~/run.sh -S -s
+~/run.sh 
+~/run.sh -no-reboot -S -s
+~/run.sh 
+~/run.sh -no-reboot -S -s
+~/run.sh 
+~/run.sh -no-reboot -S -s
+~/run.sh 
+sudo time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+~/run.sh 
+sudo time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+~/run.sh 
+~/run.sh -no-reboot -S -s
+~/run.sh 
+git status
+git diff
+git log -p
+git commit --amend
+git status
+git add -A
+git commit --amend
+git status
+git log -p
+git checkout HEAD~1 -- arch/x86/boot/compressed/head_64.S
+git commit --amend
+git log -p
+git checkout HEAD~1 -- arch/x86/kernel/head_64.S arch/x86/kernel/relocate_kernel_64.S
+git commit --amend
+git log -p
+rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
+git log
+rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
+git reset --hard HEAD~3
+git am ../outgoing/*
+git am --show-current-patch 
+git status
+git am --abort
+git status
+git branch -D hc_harden
+git checkout -b hc_harden
+git log
+git status
+vim arch/x86/kernel/cpu/common.c
+git diff
+git c 'X86: Update mmu_cr4_features when when pinning'
+git am ../outgoing/0002
+git am ../outgoing/0003
+vim ../outgoing/0003
+git am --abort
+git am ../outgoing/0003
+vim arch/x86/kernel/cpu/common.c
+git diff
+git add -A
+git commit --amend
+git status
+rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
+git rebase -i HEAD~3
+git status
+git rebase --continue
+git status
+git log -p
+git status
+git rebase -i HEAD~3
+git apply
+git status
+git log
+git log -p
+git rebase --continue
+git rebase -i HEAD~3
+git log -p
+git log
+git status
+git rebase -i HEAD~3
+git log
+git log -p HEAD~1
+git status
+git reset --hard HEAD~2
+git status
+git log
+git am ../outgoing/*
+git rebase -i HEAD~3
+git apply
+git log -p
+git apply
+git log -p
+git checkout HEAD~1 -- arch/x86/kernel/cpu/common.c
+vim arch/x86/kernel/cpu/common.c
+git diff
+git status
+git add -A
+git diff --staged
+git status
+git rebase --continue
+git status
+git log -p
+git rebase -i HEAD~3
+dmesg 
+git rebase -i HEAD~3
+git status
+vim arch/x86/kernel/cpu/common.c
+git rebase --continue
+git add -A
+git rebase --continue
+rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
+git status
+git push -f
+git push -u origin -f hc_harden
+vim -t cr4_set_bits_and_update_boot
+git rebase -i HEAD~3
+vim arch/x86/kernel/cpu/common.c
+git diff
+git add -A
+git stastus
+git status
+git rebase --continue
+git push -f
+vim -t cr4_set_bits_and_update_boot
+git grep CR4
+git status
+vim -t identify_secondary_cpu
+objdump -D vmlinux | less
+vim arch/x86/kvm/x86.c
+dmesg 
+vim -t identify_secondary_cpu
+objdump -D vmlinux | less
+tmux attaahc
+tmux attach
+sudo vim /etc/ssh/sshd_config 
+sudo systemctl restart sshd
+cd linux-combined/
+vim -t identify_cpu
+git grep identify_cpu
+vim arch/x86/kernel/cpu/common.c
+vim -t mmu_cr4_features
+git grep mmu_cr4_features
+vim arch/x86/kernel/setup.c
+git status
+git diff
+git add arch/x86/kernel/setup.c
+git commit -sm 'hotpllug bringup works, hibernate with multiple cpus does not'
+git push
+git grep 'Booting Node'
+vim arch/x86/kernel/smpboot.c
+git diff
+vim -t hibernation_snapshot
+git grep state_store
+vim -t hibernation_snapshot
+vim -t enable_nonboot_cpus
+git grep enable_nonboot_cpus
+git grep native_cpu_up
+vim -t enable_nonboot_cpus
+vim -t native_cpu_up
+git diff 
+vim arch/x86/kernel/smpboot.
+vim arch/x86/kernel/smpboot.c
+vim arch/x86/kvm/x86.c
+git diff
+git checkout -- arch/x86/kernel/smpboot.c
+git diff
+vim arch/x86/kvm/x86.c
+git diff
+git stash
+git status
+git log -p
+git rebase -i HEAD~2
+git rebase -i HEAD~4
+git stash pop
+git add -A
+git rebase --continue
+git push -f
+git status
+git log -p
+vim kernel/power/hibernate.c
+git log -p
+git status
+git log -p
+git rebase -i HEAD~4
+git apply
+git add -A
+git rebase --continue
+git log -p
+git log -p HEAD~3
+git log -p HEAD~2
+git grep cr4_set_bits_and_update_boot
+vim arch/x86/mm/init.c
+git grep nokalsr
+git grep nokaslr
+git status
+git log
+vim arch/x86/kernel/kvm.c
+git grep nokaslr
+vim Documentation/admin-guide/kernel-parameters.txt
+git grep cmdline_find_option_bool
+vim -t cmdline_find_option_bool
+git grep cmdline
+vim Documentation/admin-guide/kernel-parameters.txt
+git dif
+git diff
+git add -A
+git commit --amend
+git push -f
+ll scripts/
+vim scripts/xz_wrap.sh
+vim scripts/extract-vmlinux 
+git status
+tmux attach
+git status
+git diff
+git add chroot/usr/bin/uefi-setup.sh 
+git status
+git commit -sm 'Add pv_cr_pin to cmdline'
+git push
+git diff
+git status
+git diff
+cd linux-combined/
+git log -p
+rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
+cd ..
+git status
+git diff outgoing/
+git add -f outgoing/0001-X86-Update-mmu_cr4_features-when-when-pinning.patch 
+git status
+git add outgoing/*
+git add -f outgoing/*
+git status
+git diff --staged
+git status
+git log -p | CONFIG_
+git log -p | grep CONFIG_
+git log -p | grep if\.\*CONFIG_
+git log -p | grep if\.\*(CONFIG_
+git log -p | grep if\.\*\(CONFIG_
+git grep config_enabled
+git grep id_enabled
+git grep is_enabled
+git grep enabled
+git log -p grep CONFIG
+git log -p | grep CONFIG
+git log -p | grep ifCONFIG
+git log -p | grep 'if.*CONFIG'
+git log -p | grep 'if.*PARAVIRT'
+git log -p | grep 'if.*CR'
+git grep IS_ENABLED
+dmesg 
+vim arch/x86/kernel/relocate_kernel_64.S
+cd linux-combined/
+git grep \.S
+git grep \\.S
+history | grep \\.S
+git grep mmu_cr4_features
+vim arch/x86/power/hibernate_asm_64.S
+vim -t mmu_cr4_features
+vim arch/x86/kernel/setup.c
+git grep -p mmu_cr4_features
+vim -t cr4_set_bits_and_update_boot
+git grep -p cr4_set_bits_and_update_boot
+vim arch/x86/kernel/setup.c
+vim arch/x86/power/hibernate_asm_64.S
+vim arch/x86/kernel/cpu/common.c
+git status
+git grep cmdline_find_option_bool
+vim arch/x86/boot/main.c
+git grep boot.h
+git grep cmdline_find_option_bool
+git grep boot.h arch/x86/mm/pti.c
+git grep cmdline.h arch/x86/mm/pti.c
+vim arch/x86/kernel/kvm.c
+git grep cmdline_find_option_bool\(const
+vim -t boot_command_line
+vim arch/x86/kernel/fpu/init.c
+git grep boot_command_line
+git grep boot_command_line | grep extern
+git grep boot_command_line | grep \\.h
+vim arch/x86/kernel/kvm.c
+git grep cmdline_find_option_bool
+arch/x86/lib/cmdline.c
+vim arch/x86/lib/cmdline.c
+git status
+git diff
+git log -p
+git commit --amend
+git add -A
+git commit --amend
+git log -p
+vim arch/x86/Kconfig
+vim 
+vim Documentation/admin-guide/kernel-parameters.txt
+git status
+git idff
+git diff
+git diff HEAD~1
+git grep X86_CR0_WP
+git diff
+git add -A
+git commit --amend
+git grep kexec
+vim kernel/kexec.c
+git grep kexec_load_disabled
+vim Documentation/admin-guide/sysctl/kernel.rst
+vim kernel/kexec.c
+git grep cmdline_find_option_bool
+vim arch/x86/boot/main.c
+git grep cmdline_find
+git grep cmdline_
+vim arch/x86/kernel/setup.c
+git grep crashkernel
+vim kernel/crash_core.c
+git grep crashkernel
+git grep arch/x86/kernel/setup.c
+vim arch/x86/kernel/setup.c
+git status
+git diff
+git log -p
+vim arch/x86/kernel/setup.c
+git diff
+vim Documentation/admin-guide/kernel-parameters.txt
+git grep elfcorehdr
+git status
+git diff
+git add -A
+git commit --amend
+git push -f
+git status
+git grep elfcorehdr
+vim kernel/crash_dump.c
+vim fs/proc/vmcore.c
+git grep -C 20 elfcorehdr | grep kexec
+git grep -C 20 elfcorehdr | grep -C 40 kexec
+git grep -C 20 elfcorehdr | grep -C 40 kexec | grep -C 20 elfcorehdr
+git grep -C 20 elfcorehdr | grep -C 40 kexec | grep -C 20 -E 'elfcorehdr|kexec'
+git grep -C 20 elfcorehdr | grep -C 40 kexec | grep -C 20 -E 'elfcorehdr|kexec' | less
+git grep -C 20 elfcorehdr | grep -C 40 kexec | grep -C 20 -E 'elfcorehdr|kexec'
+vim kernel/kexec.c
+git grep kexec_load_disabled
+vim arch/x86/kernel/kvm.c
+vim kernel/kexec.c
+git grep kexec_load_disabled
+vim arch/x86/kernel/kvm.c
+git status
+git diff
+git add -A
+git commit --amend
+git status
+git push -f
+vim ~/run.sh
+~/run.sh
+vim ~/run.sh
+~/run.sh
+vim ~/run.sh
+~/run.sh
+vim ~/compile.sh
+chmod 755 ~/compile.sh
+~/compile.sh
+git status
+~/run.sh
+dmesg 
+git status
+git c 'asdf'
+git push
+git status
+sudo reboot
+cd linux-combined/
+gdb ./vmlinux 
+git grep kvm test/
+ll
+ll sound/
+git status
+git log
+git commit --amend
+git log
+git log -p HEAD~3
+git log -p HEAD~2
+git rebase -i HEAD~2
+git rebase -i HEAD~3
+git push -f
+git status
+git rebase -i HEAD~3
+git push -f
+sudo time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+git grep 
+sudo time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+dmesg 
+git log -p
+vim arch/x86/kernel/setup.c
+git diff
+git add -A
+git commit --amend
+git status
+git push -f
+git grep secondary_startup_64
+git grep start_secondary
+git grep start_secondary arch/x86/
+vim arch/x86/kernel/smpboot.c
+git grep smp_store_cpu_info
+vim arch/x86/kernel/smpboot.c
+vim arch/x86/kernel/kvm.c
+vim kernel/kexec.c
+vim arch/x86/boot/setup.c
+vim arch/x86/boot/main.c
+vim init/main.c
+vim arch/x86/kernel/kvm.c
+git log -p
+vim arch/x86/include/asm/kvm_para.h
+vim arch/x86/kernel/kvm.c
+git status
+git diff
+vim arch/x86/kernel/kvm.c
+git diff
+git add -A
+vim arch/x86/include/asm/kvm_para.h
+git add -A
+git grep kexec_load_disabled
+vim arch/x86/kernel/kvm.c
+git grep kexec_load_disabled
+git status
+git diff HEAD~1 | grep kexec.h
+git diff HEAD~1 | grep -C 40 kexec.h
+vim arch/x86/kernel/kvm.c
+vim arch/x86/include/asm/kvm_para.h
+git status
+git add -A
+git status
+git diff --staged
+git status
+git diff --staged
+git grep is_enabled
+git grep config_enabled
+git status
+git diff
+git add arch/x86/
+git status
+git add -f compile.sh 
+git commit -sm 'add compile.sh'
+cd linux-combined/
+git grep 'ifdef.*&&'
+git grep -E 'ifdef.*&&'
+git grep kexec_load_disabled
+vim kernel/sysctl.c
+git grep KEXEC_CORE
+git grep KEXEC
+git grep __initdata
+vim arch/x86/kernel/kvm.c
+git add -A
+git grep cmdline_find_option_bool
+vim arch/x86/boot/main.c
+vim arch/x86/kernel/setup.c
+git grep init_hypervisor_platform
+vim arch/x86/kernel/cpu/hypervisor.c
+git grep init_platform
+vim arch/x86/kernel/kvm.c
+git diff
+git status
+git add arch/x86/
+git status
+git diff --staged
+vim .config
+make olddefconfig
+vim .config
+vim arch/x86/include/asm/kvm_para.h
+vim arch/x86/kernel/kvm.c
+git status
+git add arch/x86/
+git status
+vim arch/x86/kernel/kvm.c
+git grep IS_ENABLED
+vim arch/x86/kernel/kvm.c
+git grep __ro_after_init
+vim arch/x86/kernel/kvm.c
+dmesg | grep dead
+sudo ~/qemu/scripts/qmp/qmp-shell -p -v /tmp/q
+dmesg | grep dead
+dmesg | grep 'Ya dead'
+cd linux-combined/
+objdump ~/linux-combined/vmlinux | less
+objdump -F ~/linux-combined/vmlinux | less
+objdump -D ~/linux-combined/vmlinux | less
+dmesg | grep -E 'Ya dead|kvm:'
+watch -n 0.2 -d sh -c dmesg | grep -E "Ya dead|kvm:"
+watch -n 0.2 -d sh -c 'dmesg | grep -E "Ya dead|kvm:"'
+cd outgoing/
+mv 0001-KVM-X86-Add-CR-pin-MSRs.patch 0002
+mv 0003-X86-Update-mmu_cr4_features-when-during-pinning.patch 0001
+mv 0002-X86-Use-KVM-CR-pin-MSRs.patch 0003
+vim 0001 
+cat 0001
+rm 0001
+cd -
+git status
+git add outgoing/*
+git add -f outgoing/*
+git status
+git add -A
+git status
+git c 'fix hibernate'
+git log -p
+cd linux-combined/
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh
+~/run.sh -no-reboot
+~/run.sh
+vim ~/run.sh
+~/run.sh -qmp unix:/tmp/q,server,nowait
+~/run.sh
+~/run.sh -qmp unix:/tmp/q,server,nowait
+time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+~/run.sh -qmp unix:/tmp/q,server,nowait
+time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+~/run.sh -qmp unix:/tmp/q,server,nowait
+vim ~/run.sh
+~/run.sh
+~/run.sh -no-reboot
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh -no-reboot
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh -no-reboot
+time make -j $(($(nproc)*4)) bzImage
+~/run.sh -no-reboot
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+~/run.sh -no-reboot
+sudo vim /etc/ssh/sshd_config 
+sudo systemctl restart sshd
+tmux attach
