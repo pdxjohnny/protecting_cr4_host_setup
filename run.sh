@@ -29,6 +29,10 @@ sudo modprobe irqbypass
 sudo modprobe kvm
 sudo modprobe kvm-intel nested=1
 
+if [ "x${RELOAD}" != "x" ]; then
+  exit 0
+fi
+
 if [ ! -f "${HOME}/image.qcow2" ]; then
   qemu-img create -f qcow2 "${HOME}/image.qcow2" 20G
   sudo modprobe nbd max_part=8
@@ -83,9 +87,8 @@ sudo qemu-nbd --disconnect /dev/nbd0
 
 trap mount_image EXIT
 
-#  -smp 1,maxcpus=2 \
 sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" "$@" \
-  -smp 2 \
+  -smp 1,maxcpus=2 \
   -m 8192M \
   -enable-kvm \
   -bios \

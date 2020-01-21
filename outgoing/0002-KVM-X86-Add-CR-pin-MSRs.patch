@@ -1,4 +1,4 @@
-From 77e12ec5decea94553cc5f373578ce29b9437a5e Mon Sep 17 00:00:00 2001
+From 8e3c463b24561e6105adfd9dfffafd369bc198c1 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/3] KVM: X86: Add CR pin MSRs
@@ -58,12 +58,12 @@ https://github.com/qemu/qemu/commit/7e8c770c91616ae8d2d6b15bcc2865be594c8852
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/msr.txt       | 38 ++++++++++++++++++++++
+ Documentation/virt/kvm/msr.txt       | 38 ++++++++++++++++++++++++
  arch/x86/include/asm/kvm_host.h      |  2 ++
- arch/x86/include/uapi/asm/kvm_para.h |  5 +++
+ arch/x86/include/uapi/asm/kvm_para.h |  5 ++++
  arch/x86/kvm/cpuid.c                 |  3 +-
- arch/x86/kvm/x86.c                   | 48 ++++++++++++++++++++++++++++
- 5 files changed, 95 insertions(+), 1 deletion(-)
+ arch/x86/kvm/x86.c                   | 44 ++++++++++++++++++++++++++++
+ 5 files changed, 91 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/virt/kvm/msr.txt b/Documentation/virt/kvm/msr.txt
 index df1f4338b3ca..c78efd5bcfc1 100644
@@ -166,7 +166,7 @@ index cfafa320a8cf..19fb49753442 100644
  		if (sched_info_on())
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 3ed167e039e5..6e7fbd566be3 100644
+index 3ed167e039e5..c198fcc4a528 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
 @@ -753,6 +753,9 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
@@ -233,7 +233,7 @@ index 3ed167e039e5..6e7fbd566be3 100644
  	case MSR_IA32_MCG_CTL:
  	case MSR_IA32_MCG_STATUS:
  	case MSR_IA32_MC0_CTL ... MSR_IA32_MCx_CTL(KVM_MAX_MCE_BANKS) - 1:
-@@ -3054,6 +3083,22 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -3054,6 +3083,18 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  	case MSR_KVM_POLL_CONTROL:
  		msr_info->data = vcpu->arch.msr_kvm_poll_control;
  		break;
@@ -244,19 +244,15 @@ index 3ed167e039e5..6e7fbd566be3 100644
 +		msr_info->data = KVM_CR4_PIN_ALLOWED;
 +		break;
 +	case MSR_KVM_CR0_PINNED:
-+		if (!msr_info->host_initiated)
-+			return 1;
 +		msr_info->data = vcpu->arch.cr0_pinned;
 +		break;
 +	case MSR_KVM_CR4_PINNED:
-+		if (!msr_info->host_initiated)
-+			return 1;
 +		msr_info->data = vcpu->arch.cr4_pinned;
 +		break;
  	case MSR_IA32_P5_MC_ADDR:
  	case MSR_IA32_P5_MC_TYPE:
  	case MSR_IA32_MCG_CAP:
-@@ -9226,6 +9271,9 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
+@@ -9226,6 +9267,9 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
  
  	vcpu->arch.ia32_xss = 0;
  

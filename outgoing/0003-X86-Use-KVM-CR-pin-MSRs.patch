@@ -1,4 +1,4 @@
-From 269a050f876eacfea89469213e5df77d6ef5c02d Mon Sep 17 00:00:00 2001
+From 0db8fd5411c0c614b39119c4773cc02802d11750 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 3/3] X86: Use KVM CR pin MSRs
@@ -26,14 +26,21 @@ code writing known good values to control registers, these values do
 not contain the protected bits. This is due to CPU feature
 identification being done at a later time, when the kernel properly
 checks if it can enable protections. As such, specifying the pv_cr_pin
-option on the kernel command line will disable kexec.
+option on the kernel command line will disable kexec (as well as
+crashkernel which uses kexec).
 
 When we fix kexec, we still need a way for patched kernels to know if
 the kernel they are loading has been patched. If a patched kernel
 attempted to kexec a kernel which was not patched, it would trigger a
 fault almost immediately. Liran suggested adding a section to the built
 image acting as a flag to signify support for being kexec'd by a kernel
-with pinning enabled.
+with pinning enabled. Should that approach be implemented, it is likely
+that the command line flag (pv_cr_pin) would still be desired for some
+deprecation period. We wouldn't want the default behavior to change from
+being able to kexec older kernels to not being able to, as this might
+break some users workflows. Since we require that the user opt-in to
+break kexec we've held off on attempting to fix kexec in this patchset.
+This way no one sees any behavior they are not explicitly opting in to.
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
