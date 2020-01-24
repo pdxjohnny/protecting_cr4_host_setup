@@ -1,4 +1,4 @@
-From 0db8fd5411c0c614b39119c4773cc02802d11750 Mon Sep 17 00:00:00 2001
+From b78bd23ecb9de376e8a9ef5297e152729ea836f5 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 3/3] X86: Use KVM CR pin MSRs
@@ -53,10 +53,10 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  6 files changed, 87 insertions(+)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 9b847f06cb19..e81a048d941f 100644
+index ade4e6ec23e0..48f72cfb2039 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -3761,6 +3761,13 @@
+@@ -3791,6 +3791,13 @@
  			[KNL] Number of legacy pty's. Overwrites compiled-in
  			default number.
  
@@ -71,7 +71,7 @@ index 9b847f06cb19..e81a048d941f 100644
  
  	r128=		[HW,DRM]
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 8ef85139553f..c49b12f719d1 100644
+index 5e8949953660..2660e7afb7e8 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -796,6 +796,7 @@ config KVM_GUEST
@@ -130,7 +130,7 @@ index 9b4df6eaa11a..bbaf104da71b 100644
  #define kvm_async_pf_task_wait(T, I) do {} while(0)
  #define kvm_async_pf_task_wake(T) do {} while(0)
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 0180b0577990..15cf9934e605 100644
+index 8d2448710762..e36aaad80b98 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
 @@ -20,6 +20,7 @@
@@ -141,7 +141,7 @@ index 0180b0577990..15cf9934e605 100644
  
  #include <asm/stackprotector.h>
  #include <asm/perf_event.h>
-@@ -435,6 +436,8 @@ static void __init setup_cr_pinning(void)
+@@ -433,6 +434,8 @@ static void __init setup_cr_pinning(void)
  	mask = (X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP);
  	cr4_pinned_bits = this_cpu_read(cpu_tlbstate.cr4) & mask;
  	static_key_enable(&cr_pinning.key);
@@ -150,7 +150,7 @@ index 0180b0577990..15cf9934e605 100644
  }
  
  /*
-@@ -1597,6 +1600,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
+@@ -1596,6 +1599,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
  	mtrr_ap_init();
  	validate_apic_and_package_id(c);
  	x86_spec_ctrl_setup_ap();
@@ -231,7 +231,7 @@ index 32ef1ee733b7..d5f1313edb70 100644
  
  static void kvm_disable_host_haltpoll(void *i)
 diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 915545a5ffec..de94699a2918 100644
+index 9d3de7a813db..0fb5a723ee44 100644
 --- a/arch/x86/kernel/setup.c
 +++ b/arch/x86/kernel/setup.c
 @@ -95,6 +95,7 @@
@@ -242,7 +242,7 @@ index 915545a5ffec..de94699a2918 100644
  
  #include <asm/vsyscall.h>
  #include <asm/cpu.h>
-@@ -550,6 +551,11 @@ static void __init reserve_crashkernel(void)
+@@ -563,6 +564,11 @@ static void __init reserve_crashkernel(void)
  		return;
  	}
  

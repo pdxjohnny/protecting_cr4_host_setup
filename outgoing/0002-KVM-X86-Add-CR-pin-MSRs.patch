@@ -1,4 +1,4 @@
-From 8e3c463b24561e6105adfd9dfffafd369bc198c1 Mon Sep 17 00:00:00 2001
+From 97d9028467631c61c2415ff29f83a0132049b818 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/3] KVM: X86: Add CR pin MSRs
@@ -58,12 +58,12 @@ https://github.com/qemu/qemu/commit/7e8c770c91616ae8d2d6b15bcc2865be594c8852
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/msr.txt       | 38 ++++++++++++++++++++++++
+ Documentation/virt/kvm/msr.txt       | 38 +++++++++++++++++++++
  arch/x86/include/asm/kvm_host.h      |  2 ++
- arch/x86/include/uapi/asm/kvm_para.h |  5 ++++
+ arch/x86/include/uapi/asm/kvm_para.h |  5 +++
  arch/x86/kvm/cpuid.c                 |  3 +-
- arch/x86/kvm/x86.c                   | 44 ++++++++++++++++++++++++++++
- 5 files changed, 91 insertions(+), 1 deletion(-)
+ arch/x86/kvm/x86.c                   | 50 ++++++++++++++++++++++++++++
+ 5 files changed, 97 insertions(+), 1 deletion(-)
 
 diff --git a/Documentation/virt/kvm/msr.txt b/Documentation/virt/kvm/msr.txt
 index df1f4338b3ca..c78efd5bcfc1 100644
@@ -112,10 +112,10 @@ index df1f4338b3ca..c78efd5bcfc1 100644
 +	guest will be sent a general protection fault.
 +
 diff --git a/arch/x86/include/asm/kvm_host.h b/arch/x86/include/asm/kvm_host.h
-index b79cd6aa4075..ee8da4191920 100644
+index 69e31dbdfdc2..e0734bdbefb3 100644
 --- a/arch/x86/include/asm/kvm_host.h
 +++ b/arch/x86/include/asm/kvm_host.h
-@@ -562,10 +562,12 @@ struct kvm_vcpu_arch {
+@@ -567,10 +567,12 @@ struct kvm_vcpu_arch {
  
  	unsigned long cr0;
  	unsigned long cr0_guest_owned_bits;
@@ -152,10 +152,10 @@ index 2a8e0b6b9805..e6c61e455adf 100644
  struct kvm_steal_time {
  	__u64 steal;
 diff --git a/arch/x86/kvm/cpuid.c b/arch/x86/kvm/cpuid.c
-index cfafa320a8cf..19fb49753442 100644
+index b1c469446b07..94f0b2032524 100644
 --- a/arch/x86/kvm/cpuid.c
 +++ b/arch/x86/kvm/cpuid.c
-@@ -712,7 +712,8 @@ static inline int __do_cpuid_func(struct kvm_cpuid_entry2 *entry, u32 function,
+@@ -716,7 +716,8 @@ static inline int __do_cpuid_func(struct kvm_cpuid_entry2 *entry, u32 function,
  			     (1 << KVM_FEATURE_ASYNC_PF_VMEXIT) |
  			     (1 << KVM_FEATURE_PV_SEND_IPI) |
  			     (1 << KVM_FEATURE_POLL_CONTROL) |
@@ -166,10 +166,10 @@ index cfafa320a8cf..19fb49753442 100644
  		if (sched_info_on())
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 3ed167e039e5..c198fcc4a528 100644
+index 7e118883d8f1..b9343bfd36e9 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
-@@ -753,6 +753,9 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+@@ -756,6 +756,9 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
  	if ((cr0 & X86_CR0_PG) && !(cr0 & X86_CR0_PE))
  		return 1;
  
@@ -179,7 +179,7 @@ index 3ed167e039e5..c198fcc4a528 100644
  	if (!is_paging(vcpu) && (cr0 & X86_CR0_PG)) {
  #ifdef CONFIG_X86_64
  		if ((vcpu->arch.efer & EFER_LME)) {
-@@ -916,6 +919,9 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
+@@ -933,6 +936,9 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
  	if (kvm_valid_cr4(vcpu, cr4))
  		return 1;
  
@@ -189,7 +189,7 @@ index 3ed167e039e5..c198fcc4a528 100644
  	if (is_long_mode(vcpu)) {
  		if (!(cr4 & X86_CR4_PAE))
  			return 1;
-@@ -1234,6 +1240,10 @@ static const u32 emulated_msrs_all[] = {
+@@ -1256,6 +1262,10 @@ static const u32 emulated_msrs_all[] = {
  
  	MSR_K7_HWCR,
  	MSR_KVM_POLL_CONTROL,
@@ -200,7 +200,7 @@ index 3ed167e039e5..c198fcc4a528 100644
  };
  
  static u32 emulated_msrs[ARRAY_SIZE(emulated_msrs_all)];
-@@ -2621,6 +2631,9 @@ static void record_steal_time(struct kvm_vcpu *vcpu)
+@@ -2689,6 +2699,9 @@ static void record_steal_time(struct kvm_vcpu *vcpu)
  		&vcpu->arch.st.steal, sizeof(struct kvm_steal_time));
  }
  
@@ -210,10 +210,16 @@ index 3ed167e039e5..c198fcc4a528 100644
  int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  {
  	bool pr = false;
-@@ -2811,6 +2824,22 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -2879,6 +2892,28 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  		vcpu->arch.msr_kvm_poll_control = data;
  		break;
  
++	case MSR_KVM_CR0_PIN_ALLOWED:
++	case MSR_KVM_CR4_PIN_ALLOWED:
++		if (report_ignored_msrs)
++			vcpu_debug_ratelimited(vcpu, "unhandled wrmsr: 0x%x data 0x%llx\n",
++				    msr, data);
++		break;
 +	case MSR_KVM_CR0_PINNED:
 +		if (data & ~KVM_CR0_PIN_ALLOWED)
 +			return 1;
@@ -233,7 +239,7 @@ index 3ed167e039e5..c198fcc4a528 100644
  	case MSR_IA32_MCG_CTL:
  	case MSR_IA32_MCG_STATUS:
  	case MSR_IA32_MC0_CTL ... MSR_IA32_MCx_CTL(KVM_MAX_MCE_BANKS) - 1:
-@@ -3054,6 +3083,18 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -3125,6 +3160,18 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  	case MSR_KVM_POLL_CONTROL:
  		msr_info->data = vcpu->arch.msr_kvm_poll_control;
  		break;
@@ -252,7 +258,7 @@ index 3ed167e039e5..c198fcc4a528 100644
  	case MSR_IA32_P5_MC_ADDR:
  	case MSR_IA32_P5_MC_TYPE:
  	case MSR_IA32_MCG_CAP:
-@@ -9226,6 +9267,9 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
+@@ -9416,6 +9463,9 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
  
  	vcpu->arch.ia32_xss = 0;
  
