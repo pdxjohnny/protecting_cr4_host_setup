@@ -1,332 +1,3 @@
-ll
-git grep kexec
-vim kernel/kexec.c
-vim -t kimage
-vim kernel/kexec_elf.c
-vim kernel/kexec_file.c
-vim kernel/kexec_core.c
-git grep do_kimage_alloc_init
-vim kernel/kexec.c
-git branch
-git log -p nokexec
-vim kernel/kexec.c
-git grep SMAP
-git grep _SMAP
-vim arch/x86/kernel/cpu/common.c
-cd ..
-git status
-git diff
-git c 'run.sh: Add modprobe for irqbypass'
-git push
-cd linux-combined/
-git status
-git diff
-git status
-git diff
-vim arch/x86/boot/compressed/head_64.S
-vim arch/x86/kernel/head_64.S
-git diff
-vim arch/x86/boot/compressed/head_64.S
-git diff
-vim arch/x86/boot/compressed/head_64.S
-git diff
-vim arch/x86/boot/compressed/head_64.S
-git diff
-vim arch/x86/boot/compressed/head_64.S
-vim arch/x86/kernel/head_64.S
-vim arch/x86/kernel/relocate_kernel_64.S
-git diff
-vim arch/x86/kernel/relocate_kernel_64.S
-vim arch/x86/kernel/head_64.S
-vim -t kvm_set_cr4
-git grep startup_64
-cd linux-combined/
-git grep startup_64
-git checkout -b make_kexec_work
-git add -A
-gits tatus
-git staus
-git status
-git c 'working on making kexec work'
-git push -u pdxjohnny
-git push -u origin
-    git push --set-upstream origin make_kexec_work
-git status
-git branch
-git checkout hc_harden
-git status
-git log -p
-git status
-git checkout -b cr_pin_msr_cmdline
-git status
-git grep resume
-git grep noresume
-vim Documentation/admin-guide/kernel-parameters.txt
-git grep nokalsr
-git grep nokaslr
-vim drivers/firmware/efi/libstub/efi-stub-helper.c
-vim arch/x86/boot/compressed/kaslr.c
-git branch -r
-git log -p origin/make_kexec_work
-git checkout make_kexec_work
-git grep secondary_startup_64
-vim arch/x86/realmode/init.c
-git grep secondary_startup_64
-vim arch/x86/realmode/init.c
-git grep mmu_cr4_features
-vim arch/x86/power/hibernate_asm_64.S
-git status
-git log -p
-vim arch/x86/power/hibernate_asm_64.S
-git grep restore_image
-vim arch/x86/power/hibernate_64.c
-git reflog
-git status
-git log -p
-git status
-git grep restore_image
-vim arch/x86/power/hibernate_64.c
-vim kernel/power/hibernate.c
-vim arch/x86/boot/compressed/head_64.S
-git diff
-git diff HEAD~1
-vim arch/x86/kernel/relocate_kernel_64.S
-git grep post susp
-git grep 'post susp'
-vim kernel/power/hibernate.c
-git grep swsusp_arch_resume
-vim arch/x86/power/hibernate_64.c
-vim kernel/power/hibernate.c
-vim arch/x86/power/hibernate_64.c
-git grep restore_image
-vim arch/x86/power/hibernate_asm_64.S
-git grep relocated_restore_code
-vim arch/x86/power/hibernate.c
-vim arch/x86/power/hibernate_asm_64.S
-vim arch/x86/power/hibernate.c
-git grep restore_image
-vim arch/x86/power/hibernate_64.c
-vim arch/x86/power/hibernate.c
-vim arch/x86/power/hibernate_64.c
-git grep mmu_cr4_features
-vim arch/x86/kernel/setup.c
-vim arch/x86/kvm/kvm.c
-vim arch/x86/kvm/x86.c
-git grep setup_kvm_par
-git grep paravirt_kvm
-git grep cr_pinning
-vim arch/x86/kernel/kvm.c
-vim arch/x86/power/hibernate_asm_64.S
-git grep mmu_cr4_features
-vim arch/x86/power/hibernate.c
-vim arch/x86/kernel/setup.c
-git grep mmu_cr4_features
-vim -t setup_cr4_pinning
-vim -t setup_cr_pinning
-dmesg 
-vim -t setup_cr_pinning
-vim arch/x86/kernel/kvm.c
-vim arch/x86/kernel/setup.c
-vim arch/x86/power/hibernate_64.c
-vim arch/x86/power/hibernate.c
-vim kernel/power/hibernate.c
-cd linux-combined/
-git grep -C 5 mmu_cr4_features
-git grep -C 5 cr4_set_bits_and_update_boot
-git status
-git log
-git grep -C 5 cr4_set_bits_and_update_boot
-vim arch/x86/mm/init.c-
-vim arch/x86/mm/init.c
-git grep FEATURE_UMIP
-git grep CR4_UMIP
-vim arch/x86/kernel/cpu/common.c
-git diff
-vim -t setup_cr_pinning
-git status
-git diff
-git add -A
-git commit --amend
-git status
-cd ..
-cd 
-git status
-git add outgoing/*
-git status
-git diff --staged
-git commit -sm 'Use cr4_set_bits_and_update_boot instaed of writing to mmu_cr4_features'
-git push
-vim -t cr4_set_bits_and_update_boot
-dmesg 
-git log | grep qmp
-git log -p | grep qmp
-sudo ~/qemu/scripts/qmp/qmp-shell -p -v /tmp/q
-addr2line
-sudo ~/qemu/scripts/qmp/qmp-shell -p -v /tmp/q
-addr2line -e ~/linux-combined/vmlinux f8f7acec27ce78d7
-addr2line -e ~/linux-combined/vmlinux 0xf8f7acec27ce78d7
-addr2line -e ~/linux-combined/vmlinux 0010:identify_cpu+0x4f5/0x6c0
-addr2line -h
-sudo ~/qemu/scripts/qmp/qmp-shell -p -v /tmp/q
-vim ~/run.sh
-python3 -c 'print(hex(0xffffffff8103c1a0U + 0x47eU))'
-python3 -c 'print(hex(0x00ffffffff8103c1a0U + 0x0047e))'
-python3 -c 'print(hex(0x00ffffffff8103c1a0 + 0x0047e))'
-dmesg 
-cd linux-combined/
-vim arch/x86/kernel/kvm.c
-git grep smp_
-vim arch/x86/kernel/kvm.c
-time make -j $(($(nproc)*4)) bzImage
-~/run.sh
-~/run.sh 2>&1 | grep -i pin
-git log -p
-vim .config
-time make -j $(($(nproc)*4)) bzImage
-~/run.sh 2>&1 | grep -i pin
-~/run.sh -monitor unix:/tmp/monitor,server,nowait 2>&1 | grep -i pin
-~/run.sh -qmp unix:/tmp/monitor,server,nowait 2>&1 | grep -i pin
-vim ~/run.sh
-~/run.sh -qmp unix:/tmp/monitor,server,nowait
-~/run.sh -qmp unix:/tmp/q,server,nowait
-~/run.sh -qmp unix:/tmp/q,server,nowait -device host-x86_64-cpu,socket-id=1,core-id=0,thread-id=0,id=cpu4,hotplugged=on
-vim ~/run.sh
-~/run.sh -qmp unix:/tmp/q,server,nowait -device host-x86_64-cpu,socket-id=1,core-id=0,thread-id=0,id=cpu4,hotplugged=on
-vim ~/run.sh
-git diff
-vim ~/run.sh 
-~/run.sh -qmp unix:/tmp/q,server,nowait
-git status
-git diff
-git reset --hard HEAD
-cd ../
-git status
-git diff
-git c 'confimed hotplug working'
-git push
-cd linux-combined/
-vim .config
-time make -j $(($(nproc)*4)) bzImage
-vim -t kvm_vcpu_reinit
-git grep kvm_vcpu_reinit
-git grep kvm_vcpu_init
-git grep kvm_vcpu_reset
-uname -a
-~/run.sh
-find . -name vfat.ko
-vim ~/run.sh
-~/run.sh
-vim ~/run.sh
-~/run.sh
-vim ~/run.sh
-find . -name vfat.ko
-find fd -name \*.ko
-find fs -name \*.ko
-~/run.sh
-vim ~/run.sh
-~/run.sh
-vim ~/run.sh
-~/run.sh
-cat ~/chroot/usr/bin/uefi-setup.sh
-echo /usr/sbin/efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" --loader /bzImage.efi --unicode 'console=ttyS0 resume=/dev/sda2 root=/dev/sda3 rw nokaslr init=/usr/bin/init.sh'
-vim ~/chroot/usr/bin/uefi-setup.sh
-sudo vim ~/chroot/usr/bin/uefi-setup.sh
-git add ~/chroot/usr/bin/uefi-setup.sh
-git status
-cd ..
-git status
-git diff
-git add -A
-git status
-git diff --staged
-git c 'add resume to cmdline'
-git push
-git tag rfc
-git push --tags
-git add -f git-send-email-cover 
-git status
-cd linux-combined/
-~/run.sh
-vim ~/run.sh
-vim arch/x86/kvm/x86.c
-git diff
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-vim arch/x86/kvm/x86.c
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-~/run.sh
-time make -j $(($(nproc)*4)) bzImage
-~/run.sh
-time make -j $(($(nproc)*4)) bzImage
-~/run.sh
-time make -j $(($(nproc)*4)) bzImage
-~/run.sh
-time make -j $(($(nproc)*4)) bzImage
-~/run.sh
-~/run.sh -S
-~/run.sh
-~/run.sh -S
-~/run.sh -S -s
-time make -j $(($(nproc)*4)) bzImage
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-git grep irq_bypass_register_consumer
-make -j $(($(nproc)*4)) M=virt/lib/ modules
-git grep irq_bypass_register_consumer
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-vim scripts/Makefile.modpost
-ll arch/x86/kvm//kvm.ko
-git grep Module.symvers
-find . -name Module.symvers
-vim Module.symvers
-git grep Module.symvers
-git grep irq_bypass_register_consumer
-vim virt/lib/Module.symvers 
-cat virt/lib/Module.symvers >> Module.symvers 
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-make -j $(($(nproc)*4))
-sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-sudo time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-~/run.sh 
-~/run.sh -S -s
-~/run.sh 
-~/run.sh -no-reboot -S -s
-~/run.sh 
-~/run.sh -no-reboot -S -s
-~/run.sh 
-~/run.sh -no-reboot -S -s
-~/run.sh 
-sudo time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-~/run.sh 
-sudo time make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
-~/run.sh 
-~/run.sh -no-reboot -S -s
-~/run.sh 
-git status
-git diff
-git log -p
-git commit --amend
-git status
-git add -A
-git commit --amend
-git status
-git log -p
-git checkout HEAD~1 -- arch/x86/boot/compressed/head_64.S
-git commit --amend
-git log -p
-git checkout HEAD~1 -- arch/x86/kernel/head_64.S arch/x86/kernel/relocate_kernel_64.S
-git commit --amend
-git log -p
-rm -rf ../outgoing/ && git format-patch -M upstream/master -o ../outgoing/
-git log
-rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
-git reset --hard HEAD~3
-git am ../outgoing/*
-git am --show-current-patch 
-git status
-git am --abort
-git status
-git branch -D hc_harden
-git checkout -b hc_harden
 git log
 git status
 vim arch/x86/kernel/cpu/common.c
@@ -998,3 +669,332 @@ vim x86/umip.c
 vim x86/cr_pin.c
 vim x86/umip.c
 vim x86/cr_pin.c
+tmux attach
+tmux attach
+curl 'https://apims.kaiserpermanente.org/kp/care/di-microservices/di-bff-self-registration/v1/user' -H 'Connection: keep-alive' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' -H 'x-firstname: John' -H 'X-IBM-client-Id: d3be9564-d33f-4235-83c8-4349ea78b151' -H 'X-appName: self-registration' -H 'x-dob: 02/21/1997' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36' -H 'X-env: ' -H 'Content-Type: application/json' -H 'Accept: application/json, text/plain, */*' -H 'x-region: KNW' -H 'x-mrn: 102211718' -H 'X-User-Role: MBR' -H 'x-lastName: Andersen' -H 'DNT: 1' -H 'Origin: https://healthy.kaiserpermanente.org' -H 'Sec-Fetch-Site: same-site' -H 'Sec-Fetch-Mode: cors' -H 'Referer: https://healthy.kaiserpermanente.org/register/member-registration' -H 'Accept-Encoding: gzip, deflate, br' -H 'Accept-Language: en-US,en;q=0.9' -H 'Cookie: KPSessionId=119ce1df1307152533aea5f4dd90e372536d73803350187e4cf; S=1; kpLanguage=en-US; rxVisitor=15798233440281BMIVO9P9Q4037H5NTPNTJ5K1CC3Q2I6; check=true; AMCVS_9644AD4E5628B1ED7F000101%40AdobeOrg=1; AMCV_9644AD4E5628B1ED7F000101%40AdobeOrg=-1712354808%7CMCIDTS%7C18285%7CMCMID%7C02858741508825541134171977310090493840%7CMCAAMLH-1580428144%7C9%7CMCAAMB-1580428144%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%7CMCOPTOUT-1579830544s%7CNONE%7CvVersion%7C4.3.0; KP_SESSION_REGION=NAT; s_cc=true; WT_FPC=id=dfd443f4-6da5-49a3-a0dd-d33ceebc9ad4:lv=1579823797858:ss=1579823345898; dtSa=-; mbox=session#c4426a2aff6c4489bc25e3ed6832f005#1579825821|PC#c4426a2aff6c4489bc25e3ed6832f005.28_0#1643068146; dtPC=30$23960589_636h-vFMCJBCGKBMFDICODBULCANJDEODFEXMB; dtCookie=30$4950905A585113C48D913AE367203F43|114cf834d5fbf36b|1|de3cc81e9e0783a6|1; rxvt=1579825783299|1579823344030; dtLatC=1' --compressed
+sudo ~/qemu/scripts/qmp/qmp-shell -p -v /tmp/q
+cd kvm-unit-tests/
+gi tatus
+vim README.md
+git pull
+vim README.md
+ll
+git grep umip
+vim x86/unittests.cfg
+git grep extra_params
+vim scripts/runtime.bash
+vim scripts/common.bash
+vim x86/run
+vim scripts/common.bash
+git grep for_each_unittest
+vim README
+dmesg
+dmesg 
+git grep write_cr4
+vim x86/smap.c
+git status
+cd kvm-unit-tests/
+git clean -ndf
+git clean -ndx
+ll logs/
+vim logs/msr.log 
+git grep accel
+vim x86/run
+dmesg 
+vim x86/run
+git status
+git diff
+git add -A
+uname -a
+git status
+git add -A
+git status
+git c 'in progress on cr_pin'
+git push
+vim x86/cr_pin.c
+ctags -R * .
+vim -t init_test
+vim x86/cr_pin.c
+vim x86/smap.c
+vim x86/cr_pin.c
+git diff
+git status
+git add -A
+git status
+git commit --amend
+git log
+vim .gitlab-ci.yml 
+git status
+git push -f
+git fetch origin
+git format-patch HEAD~1
+cp 0001-Add-cr-pinning-test.patch ../
+git status
+rm 0001-Add-cr-pinning-test.patch 
+git reset --hard origin/master
+git am ../0001-Add-cr-pinning-test.patch
+git status
+git log
+git grep selftest
+git log
+git commit --amend
+git log
+git commit --amend
+git push -f
+git status
+git log -p
+git status
+git grep smm
+git grep -i smm
+vim x86/cr_pin.c
+git grep -i smm
+cd linux-combined/
+ll
+vim arch/x86/kvm/x86.c
+git status
+git stash
+git rebase -i HEAD~2
+git stash pop
+git diff
+git add -A
+git status
+git rebase --continue
+git status
+git push -f
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+~/run.sh
+git log -p HEAD~2 -n 1
+git log -p HEAD~1 -n 1
+git status
+vim arch/x86/kvm/x86.c
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+dmesg 
+rs
+dmesg 
+vim ~/run.sh 
+RELOAD=1 ~/run.sh
+dmesg 
+git grep CR_PIN
+vim arch/x86/kvm/cpuid.c
+git grep X86_FEATURE_SMAP
+git grep X86_FEATURE_SMEP
+vim arch/x86/kvm/cpuid.c
+git grep bit
+git grep \#define bit
+git grep \#define\ bit
+python3
+vim arch/x86/kvm/vmx/vmx.c
+vim arch/x86/kvm/vmx/ops.h
+vim arch/x86/kvm/x86.c
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+RELOAD=1 ~/run.sh
+dme
+dmesg 
+dmesg
+dmesg 
+git grep X86_FEATURE_ARCH_CAPABILITIES
+vim arch/x86/include/asm/cpufeatures.h
+git grep INVPCID_SINGLE
+vim arch/x86/include/asm/cpufeatures.h
+vim arch/x86/kvm/x86.c
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+RELOAD=1 ~/run.sh
+vim arch/x86/kvm/x86.c
+git diff
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+RELOAD=1 ~/run.sh
+git status
+dmesg 
+git status
+git log
+git status
+git diff
+git reset --hard HEAD
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+git log -p
+git commit --amend
+git push -f
+sudo /home/johnsa1/chroot/usr/bin
+ll /home/johnsa1/chroot/usr/bin
+ll /home/johnsa1/chroot/
+~/run.sh 
+git log -n 3
+git log -n 3 | grep -i patch
+git commit --amend
+git push -f
+git status
+tmux attach
+cd ~/kvm-unit-tests/
+nodemon
+nodemon -e c,h --exec 'clear; make standalone -j $(($(nproc)*4)) && ./x86-run x86/cr_pin.flat; test 1'
+nodemon -e c,h --exec 'clear; make x86/cr_pin.flat -j $(($(nproc)*4)) && ./x86-run x86/cr_pin.flat; test 1'
+nodemon -e c,h --exec 'clear; make x86/cr_pin.flat -j $(($(nproc)*4)) && QEMU=~/qemu/x86_64-softmmu/qemu-system-x86_64 ./x86-run x86/cr_pin.flat; test 1'
+nodemon -e c,h --exec 'clear; make x86/cr_pin.flat -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ./x86-run x86/cr_pin.flat; test 1'
+nodemon -e c,h --exec 'clear; make x86/cr_pin.flat -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./x86-run x86/cr_pin.flat; test 1'
+dmesg 
+nodemon -e c,h --exec 'clear; make x86/cr_pin.flat -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./x86-run x86/cr_pin.flat; test 1'
+dmesg 
+git config format.subjectprefix 'kvm-unit-tests PATCH'
+cat .git/config 
+git config diff.orderFile scripts/git.difforder
+nodemon -e c,h --exec 'clear; make x86/cr_pin.flat -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./x86-run x86/cr_pin.flat; test 1'
+nodemon -e c,h --exec 'clear; make standalone -j $(($(nproc)*4)) && ./x86-run x86/cr_pin.flat; test 1'
+QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./x86-run x86/umip.flat
+nodemon -e c,h --exec 'clear; make x86/cr_pin.flat -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./x86-run x86/cr_pin.flat; test 1'
+git status
+git diff
+git clean -xdf
+nodemon -e c,h --exec 'clear; make x86/cr_pin.flat -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./x86-run x86/cr_pin.flat; test 1'
+./configure 
+nodemon -e c,h --exec 'clear; make x86/cr_pin.flat -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./x86-run x86/cr_pin.flat; test 1'
+nodemon -e c,h --exec 'clear; make x86/umip.flat -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./x86-run x86/umip.flat; test 1'
+nodemon -e c,h --exec 'clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./x86-run x86/cr_pin.flat; test 1'
+nodemon -e c,h --exec 'clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./x86/cr_pin; test 1'
+nodemon -e c,h --exec 'clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./tests/cr_pin; test 1'
+clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./tests/cr_pin
+man timeout
+clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./tests/cr_pin
+nodemon -e c,h --exec 'clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./tests/cr_pin; test 1'
+clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./tests/cr_pin
+nodemon -e c --exec 'clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./tests/cr_pin; test 1'
+clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./tests/cr_pin
+git status
+cd ../linux-combined/
+git status
+git log -p
+git status
+cd ..
+cd linux-combined/
+rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
+cd ..
+git status
+git diff
+git status
+git diff
+git status
+git c 'allow guest reads of pinned msrs'
+git push
+sudo ~/chroot/usr/bin/hibernate 
+git status
+cd linux-combined/
+ll
+ll tools/testing/selftests/kvm
+git grep -i smm tools/testing/selftests/kvm
+vim tools/testing/selftests/kvm/x86_64/smm_test.c
+clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./tests/cr_pin
+cd ../kvm-unit-tests/
+clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./tests/cr_pin
+git status
+git diff
+git add -A
+git commit --ammend
+git commit --amend
+git push -f
+git log -n 3
+git log -n 3 | grep patch
+git log -n 3 | grep -i patch
+git log -n 3
+vim tools/testing/selftests/kvm/x86_64/smm_test.c
+cd ~/linux-combined/
+vim tools/testing/selftests/kvm/x86_64/smm_test.c
+cd tools/testing/selftests/kvm/x86_64/smm_test.c
+cd tools/testing/selftests/kvm/x86_64/
+ll
+cd ..
+ll
+make
+ll
+make check
+ll
+ll x86_64/
+./x86_64/smm_test 
+git status
+make TARGETS="kvm" kselftest
+cd ~/linux-combined/
+make TARGETS="kvm" kselftest
+make TARGETS="kvm" summary=1 kselftest
+sudo make TARGETS="kvm" summary=1 kselftest
+git statu
+cd tools/testing/selftests/kvm/x86_64/
+cd ..
+ll
+./x86_64/smm_test 
+echo $?
+vim x86_64/smm_test.c
+git grep processor.c
+vim lib/x86_64/processor.c
+git grep kvm_msrs
+(cd ~/linux-combined && git grep kvm_msrs)
+vim tools/arch/x86/include/uapi/asm/kvm.h
+vim ~/linux-combined/tools/arch/x86/include/uapi/asm/kvm.h
+vim lib/x86_64/processor.c
+vim x86_64/smm_test.c
+vim lib/x86_64/processor.c
+git status
+git log
+git push -f
+git checkout linux/next
+git checkout kvm/next
+cd ~/linux-combined/
+time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+sudo reboot
+uname -a
+ll
+tmux attach
+tmux
+git status
+git diff
+git status
+git log
+git status
+git diff origin/master 
+git diff outgoing/
+cd linux-combined/
+sudo make TARGETS="kvm" summary=1 kselftest
+git status
+git checkout hc_harden
+rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
+git checkout kvm/next
+git pull
+git log
+git fetch kvm
+git pull kvm/next
+git pull kvm next
+time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+make olddefconfig
+time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+sudo reboot
+cd linux-combined/
+sudo make TARGETS="kvm" summary=1 kselftest
+cd tools/testing/selftests/kvm/
+ll
+cp x86_64/smm_test.c x86_64/smm_cr_pin.c
+ll
+git grep smm_test
+ll
+ll x86_64/
+mv x86_64/smm_cr_pin.c x86_64/smm_cr_pin_test.c
+vim Makefile 
+git status
+git diff
+rm ../../../../scripts/pnmtologo
+git add -A
+git status
+git log
+git stash
+git am ~/outgoing/*.patch
+git status
+tmux attach
+tmux
+cd ~/linux-combined/
+time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install && sudo reboot
+cd ~/linux-combined/
+sudo make TARGETS="kvm" summary=1 kselftest
+git status
+uname -a
+cd tools/testing/selftests/kvm/
+./x86_64/smm_test 
+vim lib/x86_64/processor.c
+tmux attach
+tmux
