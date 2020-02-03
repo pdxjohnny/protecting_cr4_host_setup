@@ -1,7 +1,7 @@
 From b78bd23ecb9de376e8a9ef5297e152729ea836f5 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
-Subject: [PATCH 3/3] X86: Use KVM CR pin MSRs
+Subject: [PATCH 3/4] X86: Use KVM CR pin MSRs
 
 Strengthen existing control register pinning when running
 paravirtualized under KVM. Add a command line flag (pv_cr_pin) to

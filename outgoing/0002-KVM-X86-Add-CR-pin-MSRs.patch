@@ -1,7 +1,7 @@
 From 97d9028467631c61c2415ff29f83a0132049b818 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
-Subject: [PATCH 2/3] KVM: X86: Add CR pin MSRs
+Subject: [PATCH 2/4] KVM: X86: Add CR pin MSRs
 
 Add a CR pin feature bit to the KVM cpuid. Add read only MSRs to KVM
 which guests use to identify which bits they may request be pinned. Add

@@ -16,10 +16,13 @@ mount_image() {
   sudo mount /dev/nbd0p1 "${CHROOT}/boot"
 }
 
-sudo modprobe kvm-intel nested=1
-sudo modprobe kvm
-sudo modprobe -rf kvm-intel
-sudo modprobe -rf kvm
+# sudo modprobe kvm-intel nested=1
+if [ -d "/sys/module/kvm_intel" ]; then
+  sudo modprobe -rf kvm-intel
+fi
+if [ -d "/sys/module/kvm" ]; then
+  sudo modprobe -rf kvm
+fi
 sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
 sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/"
 sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
@@ -27,7 +30,8 @@ sudo cp "${HOME}/linux-combined/virt/lib/irqbypass.ko" "${CHROOT}/lib/modules/$(
 sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
 sudo modprobe irqbypass
 sudo modprobe kvm
-sudo modprobe kvm-intel nested=1
+sudo modprobe kvm-intel
+# sudo modprobe kvm-intel nested=1
 
 if [ "x${RELOAD}" != "x" ]; then
   exit 0
