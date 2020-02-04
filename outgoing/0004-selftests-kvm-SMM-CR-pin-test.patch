@@ -1,136 +1,17 @@
-From 662ecb1ad84e3aa0eabe48241d2d704511f54c0d Mon Sep 17 00:00:00 2001
+From 98d10e2206f9169d37c749e3210e99eb62559dd1 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 27 Jan 2020 16:32:19 -0800
 Subject: [PATCH 4/4] selftests: kvm: SMM CR pin test
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- arch/x86/kvm/x86.c                            |  76 +++++++-
  tools/testing/selftests/kvm/.gitignore        |   1 +
  tools/testing/selftests/kvm/Makefile          |   1 +
  .../selftests/kvm/include/x86_64/processor.h  |   9 +
  .../selftests/kvm/x86_64/smm_cr_pin_test.c    | 183 ++++++++++++++++++
- 5 files changed, 264 insertions(+), 6 deletions(-)
+ 4 files changed, 194 insertions(+)
  create mode 100644 tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 
-diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index b9343bfd36e9..edc79d4def53 100644
---- a/arch/x86/kvm/x86.c
-+++ b/arch/x86/kvm/x86.c
-@@ -736,6 +736,9 @@ bool pdptrs_changed(struct kvm_vcpu *vcpu)
- }
- EXPORT_SYMBOL_GPL(pdptrs_changed);
- 
-+#define KVM_CR0_PIN_ALLOWED	(X86_CR0_WP)
-+#define KVM_CR4_PIN_ALLOWED	(X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP)
-+
- int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
- {
- 	unsigned long old_cr0 = kvm_read_cr0(vcpu);
-@@ -756,7 +759,13 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
- 	if ((cr0 & X86_CR0_PG) && !(cr0 & X86_CR0_PE))
- 		return 1;
- 
--	if (!is_smm(vcpu) && (cr0 ^ old_cr0) & vcpu->arch.cr0_pinned)
-+	/* We can't check against the old cr0 value here because we might be
-+ 	 * tansitioning from SMM where we allow pinned bits to be 0. */
-+	if (!is_smm(vcpu)
-+		&& vcpu->arch.cr0_pinned
-+		&& (!(cr0 & vcpu->arch.cr0_pinned)
-+		|| ((~cr0 & KVM_CR0_PIN_ALLOWED)
-+			^ (~vcpu->arch.cr0_pinned & KVM_CR0_PIN_ALLOWED))))
- 		return 1;
- 
- 	if (!is_paging(vcpu) && (cr0 & X86_CR0_PG)) {
-@@ -936,7 +945,13 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
- 	if (kvm_valid_cr4(vcpu, cr4))
- 		return 1;
- 
--	if (!is_smm(vcpu) && (cr4 ^ old_cr4) & vcpu->arch.cr4_pinned)
-+	/* We can't check against the old cr4 value here because we might be
-+ 	 * tansitioning from SMM where we allow pinned bits to be 0. */
-+	if (!is_smm(vcpu)
-+		&& vcpu->arch.cr4_pinned
-+		&& (!(cr4 & vcpu->arch.cr4_pinned)
-+		|| ((~cr4 & KVM_CR4_PIN_ALLOWED)
-+			^ (~vcpu->arch.cr4_pinned & KVM_CR4_PIN_ALLOWED))))
- 		return 1;
- 
- 	if (is_long_mode(vcpu)) {
-@@ -2699,9 +2714,6 @@ static void record_steal_time(struct kvm_vcpu *vcpu)
- 		&vcpu->arch.st.steal, sizeof(struct kvm_steal_time));
- }
- 
--#define KVM_CR0_PIN_ALLOWED	(X86_CR0_WP)
--#define KVM_CR4_PIN_ALLOWED	(X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP)
--
- int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
- {
- 	bool pr = false;
-@@ -6339,10 +6351,62 @@ static void emulator_set_hflags(struct x86_emulate_ctxt *ctxt, unsigned emul_fla
- 	emul_to_vcpu(ctxt)->arch.hflags = emul_flags;
- }
- 
-+static u64 restore_pinned(u64 val, u64 subset, u64 pinned)
-+{
-+	u64 restored = val;
-+
-+	u64 pinned_high = pinned & subset;
-+	u64 pinned_low = ~pinned & subset;
-+
-+	restored &= ~pinned_low;
-+	restored |= pinned_high;
-+
-+	return restored;
-+}
-+
-+static void kvm_pre_leave_smm_restore_cr_pinned_32(struct kvm_vcpu *vcpu,
-+				  		   const char *smstate)
-+{
-+	u32 cr0, cr4;
-+
-+	cr0 = GET_SMSTATE(u32, smstate, 0x7ffc);
-+	cr4 = GET_SMSTATE(u32, smstate, 0x7f14);
-+
-+	cr0 = (u32)restore_pinned(cr0, KVM_CR0_PIN_ALLOWED, vcpu->arch.cr0_pinned);
-+	cr4 = (u32)restore_pinned(cr4, KVM_CR4_PIN_ALLOWED, vcpu->arch.cr4_pinned);
-+
-+	put_smstate(u32, smstate, 0x7ffc, cr0);
-+	put_smstate(u32, smstate, 0x7f14, cr4);
-+}
-+
-+static void kvm_pre_leave_smm_restore_cr_pinned_64(struct kvm_vcpu *vcpu,
-+				  		   const char *smstate)
-+{
-+	u64 cr0, cr4;
-+
-+	cr0 = GET_SMSTATE(u64, smstate, 0x7f58);
-+	cr4 = GET_SMSTATE(u64, smstate, 0x7f48);
-+
-+	cr0 = restore_pinned(cr0, KVM_CR0_PIN_ALLOWED, vcpu->arch.cr0_pinned);
-+	cr4 = restore_pinned(cr4, KVM_CR4_PIN_ALLOWED, vcpu->arch.cr4_pinned);
-+
-+	put_smstate(u64, smstate, 0x7f58, cr0);
-+	put_smstate(u64, smstate, 0x7f48, cr4);
-+}
-+
- static int emulator_pre_leave_smm(struct x86_emulate_ctxt *ctxt,
- 				  const char *smstate)
- {
--	return kvm_x86_ops->pre_leave_smm(emul_to_vcpu(ctxt), smstate);
-+	struct kvm_vcpu *vcpu = emul_to_vcpu(ctxt);
-+
-+#ifdef CONFIG_X86_64
-+	if (guest_cpuid_has(vcpu, X86_FEATURE_LM))
-+		kvm_pre_leave_smm_restore_cr_pinned_64(vcpu, smstate);
-+	else
-+#endif
-+		kvm_pre_leave_smm_restore_cr_pinned_32(vcpu, smstate);
-+
-+	return kvm_x86_ops->pre_leave_smm(vcpu, smstate);
- }
- 
- static void emulator_post_leave_smm(struct x86_emulate_ctxt *ctxt)
 diff --git a/tools/testing/selftests/kvm/.gitignore b/tools/testing/selftests/kvm/.gitignore
 index 30072c3f52fb..08e18ae1b80f 100644
 --- a/tools/testing/selftests/kvm/.gitignore
