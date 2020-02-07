@@ -1,4 +1,4 @@
-From ce21ba830e15be82105fd7e5a140ce3efc94893c Mon Sep 17 00:00:00 2001
+From 7c1a05f118e2d653704944fb3a23759a814bdacc Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 8 Jan 2020 13:14:30 -0800
 Subject: [PATCH 1/4] X86: Update mmu_cr4_features during feature
@@ -29,10 +29,10 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 2e4d90294fe6..8d2448710762 100644
+index 52c9bfbbdb2a..08682757e547 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
-@@ -314,7 +314,7 @@ __setup("nosmep", setup_disable_smep);
+@@ -297,7 +297,7 @@ __setup("nosmep", setup_disable_smep);
  static __always_inline void setup_smep(struct cpuinfo_x86 *c)
  {
  	if (cpu_has(c, X86_FEATURE_SMEP))
@@ -41,7 +41,7 @@ index 2e4d90294fe6..8d2448710762 100644
  }
  
  static __init int setup_disable_smap(char *arg)
-@@ -333,7 +333,7 @@ static __always_inline void setup_smap(struct cpuinfo_x86 *c)
+@@ -316,7 +316,7 @@ static __always_inline void setup_smap(struct cpuinfo_x86 *c)
  
  	if (cpu_has(c, X86_FEATURE_SMAP)) {
  #ifdef CONFIG_X86_SMAP
@@ -50,7 +50,7 @@ index 2e4d90294fe6..8d2448710762 100644
  #else
  		cr4_clear_bits(X86_CR4_SMAP);
  #endif
-@@ -350,7 +350,7 @@ static __always_inline void setup_umip(struct cpuinfo_x86 *c)
+@@ -333,7 +333,7 @@ static __always_inline void setup_umip(struct cpuinfo_x86 *c)
  	if (!cpu_has(c, X86_FEATURE_UMIP))
  		goto out;
  
@@ -60,10 +60,10 @@ index 2e4d90294fe6..8d2448710762 100644
  	pr_info_once("x86/cpu: User Mode Instruction Prevention (UMIP) activated\n");
  
 diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index cedfe2077a69..9d3de7a813db 100644
+index a74262c71484..9e71d6f6e564 100644
 --- a/arch/x86/kernel/setup.c
 +++ b/arch/x86/kernel/setup.c
-@@ -205,9 +205,9 @@ EXPORT_SYMBOL(boot_cpu_data);
+@@ -138,9 +138,9 @@ EXPORT_SYMBOL(boot_cpu_data);
  
  
  #if !defined(CONFIG_X86_PAE) || defined(CONFIG_X86_64)

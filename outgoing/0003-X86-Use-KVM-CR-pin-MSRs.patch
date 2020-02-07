@@ -1,4 +1,4 @@
-From 395e5362f3d97bd7fdd417d62d16aba0e0b68548 Mon Sep 17 00:00:00 2001
+From 655f991f5cb44b92db3412a8986ca46c62df1946 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 3/4] X86: Use KVM CR pin MSRs
@@ -46,17 +46,17 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
  .../admin-guide/kernel-parameters.txt         |  7 ++++
  arch/x86/Kconfig                              | 10 +++++
- arch/x86/include/asm/kvm_para.h               | 20 ++++++++++
+ arch/x86/include/asm/kvm_para.h               | 16 ++++++++
  arch/x86/kernel/cpu/common.c                  |  5 +++
  arch/x86/kernel/kvm.c                         | 39 +++++++++++++++++++
- arch/x86/kernel/setup.c                       |  6 +++
- 6 files changed, 87 insertions(+)
+ arch/x86/kernel/setup.c                       |  7 ++++
+ 6 files changed, 84 insertions(+)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index ade4e6ec23e0..48f72cfb2039 100644
+index ec92120a7952..0939541290b6 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -3791,6 +3791,13 @@
+@@ -3818,6 +3818,13 @@
  			[KNL] Number of legacy pty's. Overwrites compiled-in
  			default number.
  
@@ -71,10 +71,10 @@ index ade4e6ec23e0..48f72cfb2039 100644
  
  	r128=		[HW,DRM]
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 5e8949953660..2660e7afb7e8 100644
+index 90288ab1b99e..8ae50eec60a5 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -796,6 +796,7 @@ config KVM_GUEST
+@@ -799,6 +799,7 @@ config KVM_GUEST
  	bool "KVM Guest support (including kvmclock)"
  	depends on PARAVIRT
  	select PARAVIRT_CLOCK
@@ -82,7 +82,7 @@ index 5e8949953660..2660e7afb7e8 100644
  	select ARCH_CPUIDLE_HALTPOLL
  	default y
  	---help---
-@@ -839,6 +840,15 @@ config PARAVIRT_TIME_ACCOUNTING
+@@ -842,6 +843,15 @@ config PARAVIRT_TIME_ACCOUNTING
  config PARAVIRT_CLOCK
  	bool
  
@@ -99,26 +99,22 @@ index 5e8949953660..2660e7afb7e8 100644
  	bool "Jailhouse non-root cell support"
  	depends on X86_64 && PCI
 diff --git a/arch/x86/include/asm/kvm_para.h b/arch/x86/include/asm/kvm_para.h
-index 9b4df6eaa11a..bbaf104da71b 100644
+index 9b4df6eaa11a..b47b70f0e2f7 100644
 --- a/arch/x86/include/asm/kvm_para.h
 +++ b/arch/x86/include/asm/kvm_para.h
-@@ -102,6 +102,26 @@ static inline void kvm_spinlock_init(void)
+@@ -102,6 +102,22 @@ static inline void kvm_spinlock_init(void)
  }
  #endif /* CONFIG_PARAVIRT_SPINLOCKS */
  
 +#ifdef CONFIG_PARAVIRT_CR_PIN
-+#ifdef CONFIG_KEXEC_CORE
 +void __init kvm_paravirt_cr_pinning_init(void);
++void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
++				   unsigned long cr4_pinned_bits);
 +#else
 +static inline void kvm_paravirt_cr_pinning_init(void)
 +{
 +	return;
 +}
-+#endif /* CONFIG_KEXEC_CORE */
-+
-+void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
-+				   unsigned long cr4_pinned_bits);
-+#else
 +static inline void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
 +						 unsigned long cr4_pinned_bits)
 +{
@@ -130,10 +126,10 @@ index 9b4df6eaa11a..bbaf104da71b 100644
  #define kvm_async_pf_task_wait(T, I) do {} while(0)
  #define kvm_async_pf_task_wake(T) do {} while(0)
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 8d2448710762..e36aaad80b98 100644
+index 08682757e547..bbf1de0cb253 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
-@@ -20,6 +20,7 @@
+@@ -21,6 +21,7 @@
  #include <linux/smp.h>
  #include <linux/io.h>
  #include <linux/syscore_ops.h>
@@ -141,7 +137,7 @@ index 8d2448710762..e36aaad80b98 100644
  
  #include <asm/stackprotector.h>
  #include <asm/perf_event.h>
-@@ -433,6 +434,8 @@ static void __init setup_cr_pinning(void)
+@@ -416,6 +417,8 @@ static void __init setup_cr_pinning(void)
  	mask = (X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP);
  	cr4_pinned_bits = this_cpu_read(cpu_tlbstate.cr4) & mask;
  	static_key_enable(&cr_pinning.key);
@@ -150,7 +146,7 @@ index 8d2448710762..e36aaad80b98 100644
  }
  
  /*
-@@ -1596,6 +1599,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
+@@ -1589,6 +1592,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
  	mtrr_ap_init();
  	validate_apic_and_package_id(c);
  	x86_spec_ctrl_setup_ap();
@@ -160,7 +156,7 @@ index 8d2448710762..e36aaad80b98 100644
  
  static __init int setup_noclflush(char *arg)
 diff --git a/arch/x86/kernel/kvm.c b/arch/x86/kernel/kvm.c
-index 32ef1ee733b7..d5f1313edb70 100644
+index d817f255aed8..04ceeb90df1f 100644
 --- a/arch/x86/kernel/kvm.c
 +++ b/arch/x86/kernel/kvm.c
 @@ -24,6 +24,8 @@
@@ -180,7 +176,7 @@ index 32ef1ee733b7..d5f1313edb70 100644
  
  static int kvmapf = 1;
  
-@@ -712,6 +715,7 @@ static void __init kvm_apic_init(void)
+@@ -708,6 +711,7 @@ static void __init kvm_apic_init(void)
  static void __init kvm_init_platform(void)
  {
  	kvmclock_init();
@@ -188,7 +184,7 @@ index 32ef1ee733b7..d5f1313edb70 100644
  	x86_platform.apic_post_init = kvm_apic_init;
  }
  
-@@ -858,6 +862,41 @@ void __init kvm_spinlock_init(void)
+@@ -857,6 +861,41 @@ void __init kvm_spinlock_init(void)
  
  #endif	/* CONFIG_PARAVIRT_SPINLOCKS */
  
@@ -231,18 +227,19 @@ index 32ef1ee733b7..d5f1313edb70 100644
  
  static void kvm_disable_host_haltpoll(void *i)
 diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 9d3de7a813db..0fb5a723ee44 100644
+index 9e71d6f6e564..84e4579a3b5a 100644
 --- a/arch/x86/kernel/setup.c
 +++ b/arch/x86/kernel/setup.c
-@@ -95,6 +95,7 @@
- #include <asm/processor.h>
+@@ -26,6 +26,8 @@
+ #include <asm/apic.h>
+ #include <asm/bios_ebda.h>
  #include <asm/bugs.h>
- #include <asm/kasan.h>
 +#include <asm/cmdline.h>
- 
- #include <asm/vsyscall.h>
++
  #include <asm/cpu.h>
-@@ -563,6 +564,11 @@ static void __init reserve_crashkernel(void)
+ #include <asm/efi.h>
+ #include <asm/gart.h>
+@@ -496,6 +498,11 @@ static void __init reserve_crashkernel(void)
  		return;
  	}
  

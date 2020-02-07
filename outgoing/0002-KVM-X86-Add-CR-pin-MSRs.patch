@@ -1,4 +1,4 @@
-From 4c1799479df6ed7aee76d00c17712570b81c39b8 Mon Sep 17 00:00:00 2001
+From 70cf654a3066a1154a5b38b857596b6ea2e01f93 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/4] KVM: X86: Add CR pin MSRs
@@ -58,12 +58,12 @@ https://github.com/qemu/qemu/commit/7e8c770c91616ae8d2d6b15bcc2865be594c8852
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/msr.txt       |  38 +++++++++
+ Documentation/virt/kvm/msr.txt       |  38 ++++++++++
  arch/x86/include/asm/kvm_host.h      |   2 +
  arch/x86/include/uapi/asm/kvm_para.h |   5 ++
  arch/x86/kvm/cpuid.c                 |   3 +-
- arch/x86/kvm/x86.c                   | 116 ++++++++++++++++++++++++++-
- 5 files changed, 162 insertions(+), 2 deletions(-)
+ arch/x86/kvm/x86.c                   | 106 ++++++++++++++++++++++++++-
+ 5 files changed, 152 insertions(+), 2 deletions(-)
 
 diff --git a/Documentation/virt/kvm/msr.txt b/Documentation/virt/kvm/msr.txt
 index df1f4338b3ca..c78efd5bcfc1 100644
@@ -112,10 +112,10 @@ index df1f4338b3ca..c78efd5bcfc1 100644
 +	guest will be sent a general protection fault.
 +
 diff --git a/arch/x86/include/asm/kvm_host.h b/arch/x86/include/asm/kvm_host.h
-index 69e31dbdfdc2..e0734bdbefb3 100644
+index 4dffbc10d3f8..8bae5601c9df 100644
 --- a/arch/x86/include/asm/kvm_host.h
 +++ b/arch/x86/include/asm/kvm_host.h
-@@ -567,10 +567,12 @@ struct kvm_vcpu_arch {
+@@ -569,10 +569,12 @@ struct kvm_vcpu_arch {
  
  	unsigned long cr0;
  	unsigned long cr0_guest_owned_bits;
@@ -166,10 +166,10 @@ index b1c469446b07..94f0b2032524 100644
  		if (sched_info_on())
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 7e118883d8f1..c271363edb52 100644
+index fbabb2f06273..3683330773be 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
-@@ -736,6 +736,9 @@ bool pdptrs_changed(struct kvm_vcpu *vcpu)
+@@ -737,6 +737,9 @@ bool pdptrs_changed(struct kvm_vcpu *vcpu)
  }
  EXPORT_SYMBOL_GPL(pdptrs_changed);
  
@@ -179,39 +179,31 @@ index 7e118883d8f1..c271363edb52 100644
  int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
  {
  	unsigned long old_cr0 = kvm_read_cr0(vcpu);
-@@ -756,6 +759,15 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+@@ -757,6 +760,11 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
  	if ((cr0 & X86_CR0_PG) && !(cr0 & X86_CR0_PE))
  		return 1;
  
-+	/* We can't check against the old cr0 value here because we might be
-+	 * tansitioning from SMM where we allow pinned bits to be 0. */
 +	if (!is_smm(vcpu)
 +		&& vcpu->arch.cr0_pinned
-+		&& (!(cr0 & vcpu->arch.cr0_pinned)
-+		|| ((~cr0 & KVM_CR0_PIN_ALLOWED)
-+			^ (~vcpu->arch.cr0_pinned & KVM_CR0_PIN_ALLOWED))))
++		&& ((cr0 ^ vcpu->arch.cr0_pinned) & KVM_CR0_PIN_ALLOWED))
 +		return 1;
 +
  	if (!is_paging(vcpu) && (cr0 & X86_CR0_PG)) {
  #ifdef CONFIG_X86_64
  		if ((vcpu->arch.efer & EFER_LME)) {
-@@ -933,6 +945,15 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
- 	if (kvm_valid_cr4(vcpu, cr4))
- 		return 1;
+@@ -924,6 +932,11 @@ static int kvm_valid_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
+ 	if (cr4 & __cr4_reserved_bits(guest_cpuid_has, vcpu))
+ 		return -EINVAL;
  
-+	/* We can't check against the old cr4 value here because we might be
-+	 * tansitioning from SMM where we allow pinned bits to be 0. */
 +	if (!is_smm(vcpu)
 +		&& vcpu->arch.cr4_pinned
-+		&& (!(cr4 & vcpu->arch.cr4_pinned)
-+		|| ((~cr4 & KVM_CR4_PIN_ALLOWED)
-+			^ (~vcpu->arch.cr4_pinned & KVM_CR4_PIN_ALLOWED))))
-+		return 1;
++		&& ((cr4 ^ vcpu->arch.cr4_pinned) & KVM_CR4_PIN_ALLOWED))
++		return -EINVAL;
 +
- 	if (is_long_mode(vcpu)) {
- 		if (!(cr4 & X86_CR4_PAE))
- 			return 1;
-@@ -1256,6 +1277,10 @@ static const u32 emulated_msrs_all[] = {
+ 	return 0;
+ }
+ 
+@@ -1259,6 +1272,10 @@ static const u32 emulated_msrs_all[] = {
  
  	MSR_K7_HWCR,
  	MSR_KVM_POLL_CONTROL,
@@ -222,7 +214,7 @@ index 7e118883d8f1..c271363edb52 100644
  };
  
  static u32 emulated_msrs[ARRAY_SIZE(emulated_msrs_all)];
-@@ -2879,6 +2904,28 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -2882,6 +2899,28 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  		vcpu->arch.msr_kvm_poll_control = data;
  		break;
  
@@ -251,7 +243,7 @@ index 7e118883d8f1..c271363edb52 100644
  	case MSR_IA32_MCG_CTL:
  	case MSR_IA32_MCG_STATUS:
  	case MSR_IA32_MC0_CTL ... MSR_IA32_MCx_CTL(KVM_MAX_MCE_BANKS) - 1:
-@@ -3125,6 +3172,18 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -3128,6 +3167,18 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  	case MSR_KVM_POLL_CONTROL:
  		msr_info->data = vcpu->arch.msr_kvm_poll_control;
  		break;
@@ -270,21 +262,19 @@ index 7e118883d8f1..c271363edb52 100644
  	case MSR_IA32_P5_MC_ADDR:
  	case MSR_IA32_P5_MC_TYPE:
  	case MSR_IA32_MCG_CAP:
-@@ -6292,10 +6351,62 @@ static void emulator_set_hflags(struct x86_emulate_ctxt *ctxt, unsigned emul_fla
+@@ -6305,10 +6356,60 @@ static void emulator_set_hflags(struct x86_emulate_ctxt *ctxt, unsigned emul_fla
  	emul_to_vcpu(ctxt)->arch.hflags = emul_flags;
  }
  
-+static u64 restore_pinned(u64 val, u64 subset, u64 pinned)
++static inline u64 restore_pinned(u64 val, u64 subset, u64 pinned)
 +{
-+	u64 restored = val;
-+
 +	u64 pinned_high = pinned & subset;
 +	u64 pinned_low = ~pinned & subset;
 +
-+	restored &= ~pinned_low;
-+	restored |= pinned_high;
++	val &= ~pinned_low;
++	val |= pinned_high;
 +
-+	return restored;
++	return val;
 +}
 +
 +static void kvm_pre_leave_smm_restore_cr_pinned_32(struct kvm_vcpu *vcpu,
@@ -334,7 +324,7 @@ index 7e118883d8f1..c271363edb52 100644
  }
  
  static void emulator_post_leave_smm(struct x86_emulate_ctxt *ctxt)
-@@ -9416,6 +9527,9 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
+@@ -9480,6 +9581,9 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
  
  	vcpu->arch.ia32_xss = 0;
  

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -x
+
+cat /sys/power/resume
+
+echo test_resume > /sys/power/disk
+echo deep > /sys/power/mem_sleep
+echo mem > /sys/power/state

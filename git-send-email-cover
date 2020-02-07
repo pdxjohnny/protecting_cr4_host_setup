@@ -30,13 +30,15 @@ pinned. Host userspace may clear or modify pinned bits at any time.
 Once pinned bits are set, the guest may pin more allowed bits, but may
 never clear pinned bits.
 
-In the event that the guest vcpu attempts to disable any of the pinned
-bits, the vcpu that issued the write is sent a general protection
+In the event that the guest vCPU attempts to disable any of the pinned
+bits, the vCPU that issued the write is sent a general protection
 fault, and the register is left unchanged.
 
 Pinning is not active when running in SMM. Entering SMM disables pinned
 bits, writes to control registers within SMM would therefore trigger
-general protection faults if pinning was enforced.
+general protection faults if pinning was enforced. Upon exit from SMM,
+SMRAM is modified to ensure the values of CR0/4 that will be restored contain
+the correct values for pinned bits.
 
 The guest may never read pinned bits. If an attacker were to read the
 CR pinned MSRs, they might decide to preform another attack which would
@@ -51,6 +53,8 @@ which do not contain the pinned bits.
 When running with KVM guest support and paravirtualized CR pinning
 enabled, paravirtualized and existing pinning are setup at the same
 point on the boot CPU. Non-boot CPUs setup pinning upon identification.
+
+Hibernation 
 
 Guests using the kexec system call currently do not support
 paravirtualized control register pinning. This is due to early boot
@@ -82,7 +86,8 @@ that a reboot has occurred and it should zero the pinned bits. When
 using QEMU and SeaBIOS, SMM initialization occurs on reboot. However,
 prior to SMM initialization, BIOS writes zero values to CR0, causing a
 general protection fault to be sent to the guest before SMM can signal
-that the machine has booted.
+that the machine has booted. In addition, SMM 
+
 
 Pinning of sensitive CR bits has already been implemented to protect
 against exploits directly calling native_write_cr*(). The current
