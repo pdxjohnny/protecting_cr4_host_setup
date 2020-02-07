@@ -1,35 +1,3 @@
-arch/x86/lib/cmdline.c
-bash
-bash 
-. ~/.bashrc 
-cat 0001
-cat .git/config 
-cd -
-cd ..
-cd ../kvm-unit-tests/
-cd ~/kvm-unit-tests/
-cd kvm-unit-tests/
-cd ../linux-combined/
-cd ~/linux-combined/
-cd linux-combined/
-(cd ~/linux-combined && git grep kvm_msrs)
-cd outgoing/
-cd tools/testing/selftests/kvm/
-cd tools/testing/selftests/kvm/x86_64/
-cd tools/testing/selftests/kvm/x86_64/smm_test.c
-chmod 755 ~/compile.sh
-clear; make standalone -j $(($(nproc)*4)) && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ACCEL=kvm ./tests/cr_pin
-~/compile.sh
-./configure 
-cp 0001-Add-cr-pinning-test.patch ../
-cp x86_64/smm_test.c x86_64/smm_cr_pin.c
-cp x86/msr.c x86/cr_pin.c
-ctags -R *
-ctags -R * .
-curl 'https://apims.kaiserpermanente.org/kp/care/di-microservices/di-bff-self-registration/v1/user' -H 'Connection: keep-alive' -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' -H 'x-firstname: John' -H 'X-IBM-client-Id: d3be9564-d33f-4235-83c8-4349ea78b151' -H 'X-appName: self-registration' -H 'x-dob: 02/21/1997' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.117 Safari/537.36' -H 'X-env: ' -H 'Content-Type: application/json' -H 'Accept: application/json, text/plain, */*' -H 'x-region: KNW' -H 'x-mrn: 102211718' -H 'X-User-Role: MBR' -H 'x-lastName: Andersen' -H 'DNT: 1' -H 'Origin: https://healthy.kaiserpermanente.org' -H 'Sec-Fetch-Site: same-site' -H 'Sec-Fetch-Mode: cors' -H 'Referer: https://healthy.kaiserpermanente.org/register/member-registration' -H 'Accept-Encoding: gzip, deflate, br' -H 'Accept-Language: en-US,en;q=0.9' -H 'Cookie: KPSessionId=119ce1df1307152533aea5f4dd90e372536d73803350187e4cf; S=1; kpLanguage=en-US; rxVisitor=15798233440281BMIVO9P9Q4037H5NTPNTJ5K1CC3Q2I6; check=true; AMCVS_9644AD4E5628B1ED7F000101%40AdobeOrg=1; AMCV_9644AD4E5628B1ED7F000101%40AdobeOrg=-1712354808%7CMCIDTS%7C18285%7CMCMID%7C02858741508825541134171977310090493840%7CMCAAMLH-1580428144%7C9%7CMCAAMB-1580428144%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%7CMCOPTOUT-1579830544s%7CNONE%7CvVersion%7C4.3.0; KP_SESSION_REGION=NAT; s_cc=true; WT_FPC=id=dfd443f4-6da5-49a3-a0dd-d33ceebc9ad4:lv=1579823797858:ss=1579823345898; dtSa=-; mbox=session#c4426a2aff6c4489bc25e3ed6832f005#1579825821|PC#c4426a2aff6c4489bc25e3ed6832f005.28_0#1643068146; dtPC=30$23960589_636h-vFMCJBCGKBMFDICODBULCANJDEODFEXMB; dtCookie=30$4950905A585113C48D913AE367203F43|114cf834d5fbf36b|1|de3cc81e9e0783a6|1; rxvt=1579825783299|1579823344030; dtLatC=1' --compressed
-curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
-curl --silent --location https://rpm.nodesource.com/setup_12.x | sudo -E bash -
-curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo -E bash -
 dme
 dmesg
 dmesg 
@@ -953,3 +921,80 @@ ll /boot/vmlinuz-5.5.0+
 ll /boot/
 ll /boot/ | grep Feb
 sudo reboot
+cat >> README.md 
+vim README.md
+git diff
+git status
+git add README.md 
+git commit -sm 'README: Suspend to RAM fault'
+git push
+cd linux-combined/
+git grep do_idle
+git grep do_idle arch/x86
+git grep ktime_get
+git grep tick_nohz_idle_enter
+vim kernel/rcu/tree.c
+vim kernel/time/timekeeping.c
+git grep do_idle arch/x86
+git grep do_idle kernel/
+vim kernel/sched/idle.c
+ll
+history | grep -i console
+git grep console
+dmesg 
+cd linux-combined/
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules && RELOAD=1 ~/run.sh && sudo journalctl --dmesg -f
+vim arch/x86/kvm/x86.c
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules && RELOAD=1 ~/run.sh && sudo journalctl --dmesg -f
+vim arch/x86/kvm/x86.c
+make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules && RELOAD=1 ~/run.sh && sudo journalctl --dmesg -f
+tmux
+cd linux-combined/
+~/run.sh
+git status
+git diff
+git reset --hard HEAD
+cd ..
+git log
+git log -p | grep -i cover
+vim git-send-email-cover 
+cd linux-combined/
+git log --walk-reflogs
+cd ..
+ll
+git status
+sudo cp chroot/usr/bin/hibernate chroot/usr/bin/susram
+sudo vim chroot/usr/bin/susram
+sudo chmod 755 chroot/usr/bin/susram
+git add -f chroot/usr/bin/susram
+git status
+git add -A
+git status
+git c 'update to kvm weird branch'
+git push
+~/run.sh
+cd linux-combined/
+git grep suspend
+~/run.sh
+git branch
+git checkout hc_harden_prep_v2
+git diff
+git stash
+git checkout hc_harden_prep_v2
+git log origin/hc_harden_prep_v2
+git log
+git push -f
+git stash pop
+git status
+git diff
+git c 'log on volation'
+git push
+time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install && sudo reboot
+make olddefconfig
+vim Makefile 
+sudo grubby --set-default /boot/vmlinuz-5.5.0-cr5+
+ll /boot/vmlinuz-5.5.0-cr5+
+ll /boot/
+ll /boot/vmlinuz-5.5.0-rc5+
+sudo grubby --set-default /boot/vmlinuz-5.5.0-rc5+
+time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install && sudo reboot

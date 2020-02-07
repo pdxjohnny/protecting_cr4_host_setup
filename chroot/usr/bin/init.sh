@@ -41,5 +41,8 @@ do_reboot() {
   done
 }
 
-# do_guest
-do_bash
+if [ -f "/do" ]; then
+  source "/do"
+else
+  do_bash
+fi
