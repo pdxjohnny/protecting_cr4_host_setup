@@ -6,7 +6,9 @@ export PATH="/usr/sbin:/usr/bin:${PATH}"
 
 mkdir -p /sys
 mount -t sysfs sysfs /sys -n
-mount -t efivarfs efivarfs /sys/firmware/efi/efivars
+if [ -d /sys/firmware/efi/efivars ]; then
+  mount -t efivarfs efivarfs /sys/firmware/efi/efivars
+fi
 mkdir -p /proc
 mount -t proc proc /proc -n
 mkdir -p /run

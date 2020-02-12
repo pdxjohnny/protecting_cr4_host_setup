@@ -1,3 +1,8 @@
+TODO
+- Only restore SMM values if pinning is enabled
+- Make this the default if kexec is not compiled in
+- Figure out whats up with suspend to RAM
+
 Paravirtualized Control Register pinning is a strengthened version of
 existing protections on the Write Protect, Supervisor Mode Execution /
 Access Protection, and User-Mode Instruction Prevention bits. The

@@ -1,16 +1,3 @@
-dme
-dmesg
-dmesg 
-dmesg | grep dead
-dmesg | grep -E 'Ya dead|kvm:'
-dmesg | grep 'Ya dead'
-echo $?
-echo $PATH
-echo tags >> .git/.gitignore 
-echo tags >> .git/gitignore 
-echo tags >> .git/ignore 
-env
-env | grep SHELL
 . /etc/environment 
 find . -name msr.h
 gdb ./vmlinux 
@@ -998,3 +985,16 @@ ll /boot/
 ll /boot/vmlinuz-5.5.0-rc5+
 sudo grubby --set-default /boot/vmlinuz-5.5.0-rc5+
 time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install && sudo reboot
+sudo journalctl --dmesg -f
+cd ~/seabios/
+ll
+git grep -i rtc
+git grep -i rtcwake
+git grep -i rtcw
+git grep -i rtc
+git grep resume
+vim src/resume.c
+ctags -R *
+vim src/resume.c
+ctags -R *
+vim src/resume.c

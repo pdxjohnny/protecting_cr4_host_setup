@@ -91,12 +91,21 @@ sudo qemu-nbd --disconnect /dev/nbd0
 
 trap mount_image EXIT
 
+rm -f /tmp/qemudebugpipe
+mkfifo /tmp/qemudebugpipe
+
+# "${HOME}/OVMF.fd" \
+
 sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" "$@" \
   -smp 1,maxcpus=2 \
   -m 8192M \
   -enable-kvm \
   -bios \
-    "${HOME}/OVMF.fd" \
+    "${HOME}/seabios/out/bios.bin" \
+  -chardev \
+    pipe,path=/tmp/qemudebugpipe,id=seabios \
+  -device \
+    isa-debugcon,iobase=0x402,chardev=seabios \
   -nographic \
   -cpu \
     host \
