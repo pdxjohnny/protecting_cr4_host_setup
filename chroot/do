@@ -1,1 +1,4 @@
-rtcwake -s 1 -m mem
+hibernate
+while test 1; do
+  sleep 10
+done

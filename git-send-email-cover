@@ -1,8 +1,3 @@
-TODO
-- Only restore SMM values if pinning is enabled
-- Make this the default if kexec is not compiled in
-- Figure out whats up with suspend to RAM
-
 Paravirtualized Control Register pinning is a strengthened version of
 existing protections on the Write Protect, Supervisor Mode Execution /
 Access Protection, and User-Mode Instruction Prevention bits. The
@@ -27,13 +22,13 @@ effective.
 https://www.abatchy.com/2018/01/kernel-exploitation-4
 
 We add a CR pin feature bit to the KVM cpuid, read only MSRs which
-guests use to identify which bits they may request be pinned, and
-CR pinned MSRs which contain the pinned bits. Guests can request that
-KVM pin bits within control register 0 or 4 via the CR pinned MSRs.
-Writes to the MSRs fail if they include bits that aren't allowed to be
-pinned. Host userspace may clear or modify pinned bits at any time.
-Once pinned bits are set, the guest may pin more allowed bits, but may
-never clear pinned bits.
+guests use to identify which bits they may request be pinned, and CR
+pinned MSRs which contain the pinned bits. Guests can request that KVM
+pin bits within control register 0 or 4 via the CR pinned MSRs.  Writes
+to the MSRs fail if they include bits that aren't allowed to be pinned.
+Host userspace may clear or modify pinned bits at any time.  Once
+pinned bits are set, the guest may pin more allowed bits, but may never
+clear pinned bits.
 
 In the event that the guest vCPU attempts to disable any of the pinned
 bits, the vCPU that issued the write is sent a general protection
@@ -42,24 +37,41 @@ fault, and the register is left unchanged.
 Pinning is not active when running in SMM. Entering SMM disables pinned
 bits, writes to control registers within SMM would therefore trigger
 general protection faults if pinning was enforced. Upon exit from SMM,
-SMRAM is modified to ensure the values of CR0/4 that will be restored contain
-the correct values for pinned bits.
+SMRAM is modified to ensure the values of CR0/4 that will be restored
+contain the correct values for pinned bits. CR0/4 values are then
+restored from SMRAM.
 
-The guest may never read pinned bits. If an attacker were to read the
-CR pinned MSRs, they might decide to preform another attack which would
-not cause a general protection fault.
-
-Should userspace expose the CR pining CPUID feature bit, it must zero CR
-pinned MSRs on reboot. If it does not, it runs the risk of having the
-guest enable pinning and subsequently cause general protection faults on
-next boot due to early boot code setting control registers to values
-which do not contain the pinned bits.
+Should userspace expose the CR pining CPUID feature bit, it must zero
+CR pinned MSRs on reboot. If it does not, it runs the risk of having
+the guest enable pinning and subsequently cause general protection
+faults on next boot due to early boot code setting control registers to
+values which do not contain the pinned bits.
 
 When running with KVM guest support and paravirtualized CR pinning
 enabled, paravirtualized and existing pinning are setup at the same
 point on the boot CPU. Non-boot CPUs setup pinning upon identification.
 
-Hibernation 
+Suspend to disk and suspend to RAM are supported. identify_cpu was
+updated to ensure SMEP/SMAP/UMIP are present in mmu_cr4_features. This
+is necessary to ensure protections stay active during hibernation image
+restoration.
+
+setup_arch updates mmu_cr4_features to save what identified features are
+supported for later use in hibernation asm when cr4 needs to be modified
+to toggle PGE. cr4 writes happen in restore_image and restore_registers.
+setup_arch occurs before identify_cpu, this lead to mmu_cr4_features
+not containing some of the cr4 features (namely SMEP/SMAP/UMIP so far
+as this patchset is concenred) which were enabled via identify_cpu when
+hibernation asm is executed.
+
+On CPU bringup when cr4_set_bits_and_update_boot is called
+mmu_cr4_features will now be written to. For the boot CPU,
+the __ro_after_init on mmu_cr4_features does not cause a fault. However,
+__ro_after_init was removed due to it triggering faults on non-boot
+CPUs.
+
+
+
 
 Guests using the kexec system call currently do not support
 paravirtualized control register pinning. This is due to early boot
@@ -69,9 +81,9 @@ identification being done at a later time, when the kernel properly
 checks if it can enable protections.
 
 Most distributions enable kexec. However, kexec could be made boot time
-disableable. In this case if a user has disabled kexec at boot time
-the guest will request that paravirtualized control register pinning
-be enabled. This would expand the userbase to users of major
+disableable. In this case if a user has disabled kexec at boot time the
+guest will request that paravirtualized control register pinning be
+enabled. This would expand the userbase to users of major
 distributions.
 
 Paravirtualized CR pinning will likely be incompatible with kexec for
@@ -81,8 +93,8 @@ pinned can't know if the kernel it's kexecing has been updated to not
 clear protected bits. This would result in the kernel being kexec'd
 almost immediately receiving a general protection fault.
 
-Security conscious kernel configurations disable kexec already, per KSPP
-guidelines. Projects such as Kata Containers, AWS Lambda, ChromeOS
+Security conscious kernel configurations disable kexec already, per
+KSPP guidelines. Projects such as Kata Containers, AWS Lambda, ChromeOS
 Termina, and others using KVM to virtualize Linux will benefit from
 this protection.
 
@@ -105,3 +117,51 @@ bits are WP in CR0, and SMEP, SMAP, and UMIP in CR4.
 Future patches could implement similar MSR and hypercall combinations
 to protect bits in MSRs. The NXE bit of the EFER MSR is a prime
 candidate.
+
+
+
+
+
+
+
+Strengthen existing control register pinning when running
+paravirtualized under KVM. Check which bits KVM supports pinning for
+each control register and only pin supported bits which are already
+pinned via the existing native protection. Write to KVM CR0/4 pinned
+MSRs to enable pinning.
+
+Initiate KVM assisted pinning directly following the setup of native
+pinning on boot CPU. For non-boot CPUs initiate paravirtualized pinning
+on CPU identification.
+
+Identification of non-boot CPUs takes place after the boot CPU has
+setup native CR pinning. Therefore, non-boot CPUs access pinned bits
+setup by the boot CPU and request that those be pinned. All CPUs
+request paravirtualized pinning of the same bits which are already
+pinned natively.
+
+Guests using the kexec system call currently do not support
+paravirtualized control register pinning. This is due to early boot
+code writing known good values to control registers, these values do
+not contain the protected bits. This is due to CPU feature
+identification being done at a later time, when the kernel properly
+checks if it can enable protections. As such, the pv_cr_pin command
+line option has been added which instructs the kernel to disable kexec
+in favor of enabling paravirtualized control register pinning.
+crashkernel is also disabled when the pv_cr_pin parameter is specified
+due to its reliance on kexec.
+
+When we fix kexec, we will still need a way for a kernel with support
+to know if the kernel it is attempting to load has support. If a kernel
+with this enabled attempts to kexec a kernel where this is not
+supported, it would trigger a fault almost immediately.
+
+Liran suggested adding a section to the built image acting as a flag to
+signify support for being kexec'd by a kernel with pinning enabled.
+Should that approach be implemented, it is likely that the command line
+flag (pv_cr_pin) would still be desired for some deprecation period. We
+wouldn't want the default behavior to change from being able to kexec
+older kernels to not being able to, as this might break some users
+workflows. Since we require that the user opt-in to break kexec we've
+held off on attempting to fix kexec in this patchset. This way no one
+sees any behavior they are not explicitly opting in to.
