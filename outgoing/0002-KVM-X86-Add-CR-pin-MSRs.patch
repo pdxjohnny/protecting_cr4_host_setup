@@ -1,4 +1,4 @@
-From 0ae106e3a7ec8028b62d8f8b7af74811ef20da47 Mon Sep 17 00:00:00 2001
+From 416455926cf54ac2c736ad44a2ed280768a5ff3d Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/4] KVM: X86: Add CR pin MSRs
@@ -60,21 +60,22 @@ https://github.com/qemu/qemu/commit/7e8c770c91616ae8d2d6b15bcc2865be594c8852
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/msr.txt       |  38 ++++++++
+ Documentation/virt/kvm/msr.rst       |  38 ++++++++
  arch/x86/include/asm/kvm_host.h      |   2 +
  arch/x86/include/uapi/asm/kvm_para.h |   5 ++
  arch/x86/kvm/cpuid.c                 |   3 +-
  arch/x86/kvm/x86.c                   | 130 ++++++++++++++++++++++++++-
  5 files changed, 176 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/virt/kvm/msr.txt b/Documentation/virt/kvm/msr.txt
-index df1f4338b3ca..c78efd5bcfc1 100644
---- a/Documentation/virt/kvm/msr.txt
-+++ b/Documentation/virt/kvm/msr.txt
-@@ -282,3 +282,41 @@ MSR_KVM_POLL_CONTROL: 0x4b564d05
+diff --git a/Documentation/virt/kvm/msr.rst b/Documentation/virt/kvm/msr.rst
+index 33892036672d..075e15a2c246 100644
+--- a/Documentation/virt/kvm/msr.rst
++++ b/Documentation/virt/kvm/msr.rst
+@@ -319,3 +319,41 @@ data:
+ 
  	KVM guests can request the host not to poll on HLT, for example if
  	they are performing polling themselves.
- 
++
 +MSR_KVM_CR0_PIN_ALLOWED: 0x4b564d06
 +MSR_KVM_CR4_PIN_ALLOWED: 0x4b564d07
 +	Read only registers informing the guest which bits may be pinned for
@@ -112,12 +113,11 @@ index df1f4338b3ca..c78efd5bcfc1 100644
 +	when the guest is not in SMM. If the guest attempts to write values to
 +	cr* where bits differ from pinned bits, the write will fail and the
 +	guest will be sent a general protection fault.
-+
 diff --git a/arch/x86/include/asm/kvm_host.h b/arch/x86/include/asm/kvm_host.h
-index 329d01c689b7..d4fc75d5da18 100644
+index 40a0c0fd95ca..69625a18aa88 100644
 --- a/arch/x86/include/asm/kvm_host.h
 +++ b/arch/x86/include/asm/kvm_host.h
-@@ -567,10 +567,12 @@ struct kvm_vcpu_arch {
+@@ -569,10 +569,12 @@ struct kvm_vcpu_arch {
  
  	unsigned long cr0;
  	unsigned long cr0_guest_owned_bits;
@@ -168,10 +168,10 @@ index b1c469446b07..94f0b2032524 100644
  		if (sched_info_on())
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 0b0b143f0ab6..f59317d26135 100644
+index fb5d64ebc35d..2ee0e9886a6e 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
-@@ -736,6 +736,9 @@ bool pdptrs_changed(struct kvm_vcpu *vcpu)
+@@ -733,6 +733,9 @@ bool pdptrs_changed(struct kvm_vcpu *vcpu)
  }
  EXPORT_SYMBOL_GPL(pdptrs_changed);
  
@@ -181,7 +181,7 @@ index 0b0b143f0ab6..f59317d26135 100644
  int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
  {
  	unsigned long old_cr0 = kvm_read_cr0(vcpu);
-@@ -756,6 +759,11 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+@@ -753,6 +756,11 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
  	if ((cr0 & X86_CR0_PG) && !(cr0 & X86_CR0_PE))
  		return 1;
  
@@ -193,7 +193,7 @@ index 0b0b143f0ab6..f59317d26135 100644
  	if (!is_paging(vcpu) && (cr0 & X86_CR0_PG)) {
  #ifdef CONFIG_X86_64
  		if ((vcpu->arch.efer & EFER_LME)) {
-@@ -933,6 +941,11 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
+@@ -932,6 +940,11 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
  	if (kvm_valid_cr4(vcpu, cr4))
  		return 1;
  
@@ -205,7 +205,7 @@ index 0b0b143f0ab6..f59317d26135 100644
  	if (is_long_mode(vcpu)) {
  		if (!(cr4 & X86_CR4_PAE))
  			return 1;
-@@ -1256,6 +1269,10 @@ static const u32 emulated_msrs_all[] = {
+@@ -1255,6 +1268,10 @@ static const u32 emulated_msrs_all[] = {
  
  	MSR_K7_HWCR,
  	MSR_KVM_POLL_CONTROL,
@@ -216,7 +216,7 @@ index 0b0b143f0ab6..f59317d26135 100644
  };
  
  static u32 emulated_msrs[ARRAY_SIZE(emulated_msrs_all)];
-@@ -2876,6 +2893,28 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -2878,6 +2895,28 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  		vcpu->arch.msr_kvm_poll_control = data;
  		break;
  
@@ -245,7 +245,7 @@ index 0b0b143f0ab6..f59317d26135 100644
  	case MSR_IA32_MCG_CTL:
  	case MSR_IA32_MCG_STATUS:
  	case MSR_IA32_MC0_CTL ... MSR_IA32_MCx_CTL(KVM_MAX_MCE_BANKS) - 1:
-@@ -3122,6 +3161,18 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -3124,6 +3163,18 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  	case MSR_KVM_POLL_CONTROL:
  		msr_info->data = vcpu->arch.msr_kvm_poll_control;
  		break;
@@ -264,7 +264,7 @@ index 0b0b143f0ab6..f59317d26135 100644
  	case MSR_IA32_P5_MC_ADDR:
  	case MSR_IA32_P5_MC_TYPE:
  	case MSR_IA32_MCG_CAP:
-@@ -6299,10 +6350,84 @@ static void emulator_set_hflags(struct x86_emulate_ctxt *ctxt, unsigned emul_fla
+@@ -6316,10 +6367,84 @@ static void emulator_set_hflags(struct x86_emulate_ctxt *ctxt, unsigned emul_fla
  	emul_to_vcpu(ctxt)->arch.hflags = emul_flags;
  }
  
@@ -350,7 +350,7 @@ index 0b0b143f0ab6..f59317d26135 100644
  }
  
  static void emulator_post_leave_smm(struct x86_emulate_ctxt *ctxt)
-@@ -9426,6 +9551,9 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
+@@ -9490,6 +9615,9 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
  
  	vcpu->arch.ia32_xss = 0;
  

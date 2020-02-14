@@ -1,3 +1,110 @@
+Many thanks to everyone who reviewed v1. Here are some notes on the
+delta and feedback that was given. Thank you all for taking the time to
+review and provide suggestions. I attempted to capture everything I
+heard, please let me know if anything was missed. kexec support is
+still pending, due to what follows about command line parameters, opt
+in, and being that those changes wouldn't be localized to KVM (and this
+is on top of kvm/next).
+
+- Hibernation and suspend-to-RAM are supported.
+
+- As Paolo requested, a patch will be sent immediately following this
+  patchset to kvm-unit-tests with the unit tests for general
+  functionality. selftests are included for SMM specific functionality.
+
+- Liran's catch of ensuring bits stay pinned after returning from SMM
+  is now present. As a side note, CR values per AMD and Intel SDMs
+  should be read-only within SMRAM. I attempted a patch to keep a copy
+  of smstate in vcpu->arch which would later be used as the source of
+  the read-only values. However, I ran into issues with VM/save load
+  within the selftests. If someone has a better solution or knows where
+  might be a good place to persist that across save/load please let me
+  know.
+
+- Andy's suggestion of a boot option has been incorporated as the
+  pv_cr_pin command line option. Boris's comment on short-term
+  solutions is still applicable. Liran's proposed solution of a flag
+  within the ELF would allow us to identify which kernels have
+  support.
+
+  We then have the following cases (without the addition of pv_cr_pin):
+
+
+  - Kernel running without pinning enabled kexecs kernel with pinning.
+
+    - Loaded kernel has kexec
+
+      - Do not enable pinning
+
+    - Loaded kernel lacks kexec
+
+      - Enable pinning
+
+  - Kernel running with pinning enabled kexecs kernel with pinning (as
+    identified by ELF addition).
+
+    - Okay
+
+  - Kernel running with pinning enabled kexecs kernel without pinning
+    (as identified by lack of ELF addition).
+
+    - User is presented with an error saying that they may not kexec
+      a kernel without pinning support.
+
+
+  With the addition of pv_cr_pin we have the following situations:
+
+
+  - Kernel running without pinning enabled kexecs kernel with pinning.
+
+    - Loaded kernel has kexec
+
+      - pv_cr_pin command line parameter present
+
+        - Enable pinning
+
+      - pv_cr_pin command line parameter not present
+
+        - Do not enable pinning
+
+    - Loaded kernel lacks kexec
+
+      - Enable pinning
+
+  - Kernel running with pinning enabled kexecs kernel with pinning (as
+    identified by ELF addition).
+
+    - Okay
+
+  - Kernel running with pinning enabled kexecs kernel without pinning
+    (as identified by lack of ELF addition).
+
+    - pv_cr_pin command line parameter present
+
+      - User is presented with an error saying that they have opted
+	into pinning support and may not kexec a kernel without pinning
+        support.
+
+    - pv_cr_pin command line parameter not present
+
+      - Pinning not enabled (not opted into), kexec succeeds
+
+
+  Without the command line parameter I'm not sure how we could preserve
+  users workflows which might rely on kexecing older kernels (ones
+  which wouldn't have support). I see the benefit here being that users
+  have to opt-in to the possibility of breaking their workflow, via
+  their addition of the pv_cr_pin command line flag. Which could of
+  course also be called nokexec. A deprecation period could then be
+  chosen where eventually pinning takes preference over kexec and users
+  are presented with the error if they try to kexec an older kernel.
+  Input on this would be much appreciated, as well as if this is the
+  best way to handle things or if there's another way that would be
+  preferred. This is just what we were able to come up with to ensure
+  users didn't get anything broken they didn't agree to have broken.
+
+
+
 Paravirtualized Control Register pinning is a strengthened version of
 existing protections on the Write Protect, Supervisor Mode Execution /
 Access Protection, and User-Mode Instruction Prevention bits. The

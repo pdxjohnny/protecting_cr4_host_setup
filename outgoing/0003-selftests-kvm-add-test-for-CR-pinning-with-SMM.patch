@@ -1,4 +1,4 @@
-From beb7d9f768b15c61a2fd2021f48cdb269f18325c Mon Sep 17 00:00:00 2001
+From dca748e64a90ac5cf680b226bdb236af5adc2886 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 27 Jan 2020 16:32:19 -0800
 Subject: [PATCH 3/4] selftests: kvm: add test for CR pinning with SMM
@@ -28,7 +28,7 @@ index 30072c3f52fb..08e18ae1b80f 100644
  /x86_64/sync_regs_test
  /x86_64/vmx_close_while_nested_test
 diff --git a/tools/testing/selftests/kvm/Makefile b/tools/testing/selftests/kvm/Makefile
-index 3138a916574a..3b5f99e068d9 100644
+index d91c53b726e6..f3fdac72fc74 100644
 --- a/tools/testing/selftests/kvm/Makefile
 +++ b/tools/testing/selftests/kvm/Makefile
 @@ -19,6 +19,7 @@ TEST_GEN_PROGS_x86_64 += x86_64/mmio_warning_test
@@ -40,10 +40,10 @@ index 3138a916574a..3b5f99e068d9 100644
  TEST_GEN_PROGS_x86_64 += x86_64/sync_regs_test
  TEST_GEN_PROGS_x86_64 += x86_64/vmx_close_while_nested_test
 diff --git a/tools/testing/selftests/kvm/include/x86_64/processor.h b/tools/testing/selftests/kvm/include/x86_64/processor.h
-index 635ee6c33ad2..05de61abda74 100644
+index 7428513a4c68..70394d2ffa5d 100644
 --- a/tools/testing/selftests/kvm/include/x86_64/processor.h
 +++ b/tools/testing/selftests/kvm/include/x86_64/processor.h
-@@ -195,6 +195,11 @@ static inline uint64_t get_cr0(void)
+@@ -197,6 +197,11 @@ static inline uint64_t get_cr0(void)
  	return cr0;
  }
  
@@ -55,9 +55,9 @@ index 635ee6c33ad2..05de61abda74 100644
  static inline uint64_t get_cr3(void)
  {
  	uint64_t cr3;
-@@ -1100,4 +1105,8 @@ void kvm_get_cpu_address_width(unsigned int *pa_bits, unsigned int *va_bits);
- #define MSR_VM_IGNNE                    0xc0010115
- #define MSR_VM_HSAVE_PA                 0xc0010117
+@@ -380,4 +385,8 @@ void kvm_get_cpu_address_width(unsigned int *pa_bits, unsigned int *va_bits);
+ /* VMX_EPT_VPID_CAP bits */
+ #define VMX_EPT_VPID_CAP_AD_BITS       (1ULL << 21)
  
 +/* KVM MSRs */
 +#define MSR_KVM_CR0_PINNED	0x4b564d08
