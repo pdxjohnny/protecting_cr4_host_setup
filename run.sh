@@ -96,7 +96,7 @@ mkfifo /tmp/qemudebugpipe
 
 
 sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" "$@" \
-  -smp 1,maxcpus=2 \
+  -smp cpus=2 \
   -m 8192M \
   -enable-kvm \
   -bios \

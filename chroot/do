@@ -1,4 +1,6 @@
-hibernate
-while test 1; do
-  sleep 10
-done
+# hibernate
+# while test 1; do
+#   sleep 10
+# done
+
+bash

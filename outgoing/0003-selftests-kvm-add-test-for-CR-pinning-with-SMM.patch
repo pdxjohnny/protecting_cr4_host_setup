@@ -1,21 +1,18 @@
-From 38bc6427ed4d5d2fb7b68f23373c353c758a1101 Mon Sep 17 00:00:00 2001
+From beb7d9f768b15c61a2fd2021f48cdb269f18325c Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 27 Jan 2020 16:32:19 -0800
-Subject: [PATCH 4/4] selftests: kvm: add test for CR pinning with SMM
+Subject: [PATCH 3/4] selftests: kvm: add test for CR pinning with SMM
 
-Check that modifications to CR values from accesses by nested guests are logged according to the
-L1 physical addresses rather than L2.
-
-Most of the patch is really adding EPT support to the testing
-framework.
+Check that paravirtualized control register pinning blocks modifications
+of pinned CR values stored in SMRAM on exit from SMM.
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
  tools/testing/selftests/kvm/.gitignore        |   1 +
  tools/testing/selftests/kvm/Makefile          |   1 +
  .../selftests/kvm/include/x86_64/processor.h  |   9 +
- .../selftests/kvm/x86_64/smm_cr_pin_test.c    | 177 ++++++++++++++++++
- 4 files changed, 188 insertions(+)
+ .../selftests/kvm/x86_64/smm_cr_pin_test.c    | 180 ++++++++++++++++++
+ 4 files changed, 191 insertions(+)
  create mode 100644 tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 
 diff --git a/tools/testing/selftests/kvm/.gitignore b/tools/testing/selftests/kvm/.gitignore
@@ -31,7 +28,7 @@ index 30072c3f52fb..08e18ae1b80f 100644
  /x86_64/sync_regs_test
  /x86_64/vmx_close_while_nested_test
 diff --git a/tools/testing/selftests/kvm/Makefile b/tools/testing/selftests/kvm/Makefile
-index 67abc1dd50ee..f6d43bed349d 100644
+index 3138a916574a..3b5f99e068d9 100644
 --- a/tools/testing/selftests/kvm/Makefile
 +++ b/tools/testing/selftests/kvm/Makefile
 @@ -19,6 +19,7 @@ TEST_GEN_PROGS_x86_64 += x86_64/mmio_warning_test
@@ -43,10 +40,10 @@ index 67abc1dd50ee..f6d43bed349d 100644
  TEST_GEN_PROGS_x86_64 += x86_64/sync_regs_test
  TEST_GEN_PROGS_x86_64 += x86_64/vmx_close_while_nested_test
 diff --git a/tools/testing/selftests/kvm/include/x86_64/processor.h b/tools/testing/selftests/kvm/include/x86_64/processor.h
-index aa6451b3f740..32bfd1fd38c0 100644
+index 635ee6c33ad2..05de61abda74 100644
 --- a/tools/testing/selftests/kvm/include/x86_64/processor.h
 +++ b/tools/testing/selftests/kvm/include/x86_64/processor.h
-@@ -197,6 +197,11 @@ static inline uint64_t get_cr0(void)
+@@ -195,6 +195,11 @@ static inline uint64_t get_cr0(void)
  	return cr0;
  }
  
@@ -58,9 +55,9 @@ index aa6451b3f740..32bfd1fd38c0 100644
  static inline uint64_t get_cr3(void)
  {
  	uint64_t cr3;
-@@ -380,4 +385,8 @@ void kvm_get_cpu_address_width(unsigned int *pa_bits, unsigned int *va_bits);
- /* VMX_EPT_VPID_CAP bits */
- #define VMX_EPT_VPID_CAP_AD_BITS       (1ULL << 21)
+@@ -1100,4 +1105,8 @@ void kvm_get_cpu_address_width(unsigned int *pa_bits, unsigned int *va_bits);
+ #define MSR_VM_IGNNE                    0xc0010115
+ #define MSR_VM_HSAVE_PA                 0xc0010117
  
 +/* KVM MSRs */
 +#define MSR_KVM_CR0_PINNED	0x4b564d08
@@ -69,15 +66,13 @@ index aa6451b3f740..32bfd1fd38c0 100644
  #endif /* SELFTEST_KVM_PROCESSOR_H */
 diff --git a/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c b/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 new file mode 100644
-index 000000000000..7371d75b3aa7
+index 000000000000..013983bb4ba4
 --- /dev/null
 +++ b/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
-@@ -0,0 +1,177 @@
+@@ -0,0 +1,180 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * Copyright (C) 2018, Red Hat, Inc.
-+ *
-+ * Tests for SMM.
++ * Tests for control register pinning not being affected by SMRAM writes.
 + */
 +#define _GNU_SOURCE /* for program_invocation_short_name */
 +#include <fcntl.h>
@@ -110,7 +105,8 @@ index 000000000000..7371d75b3aa7
 +#define DONE 0xff
 +
 +#define CR0_PINNED X86_CR0_WP
-+#define CR4_PINNED (X86_CR4_SMAP | X86_CR4_SMEP | X86_CR4_UMIP)
++#define CR4_PINNED (X86_CR4_SMAP | X86_CR4_UMIP)
++#define CR4_ALL (CR4_PINNED | X86_CR4_SMEP)
 +
 +/*
 + * This is compiled as normal 64-bit code, however, SMI handler is executed
@@ -158,6 +154,7 @@ index 000000000000..7371d75b3aa7
 +
 +	sync_with_host(4);
 +
++	/* Pin SMEP low */
 +	wrmsr(MSR_KVM_CR4_PINNED, CR4_PINNED);
 +
 +	sync_with_host(5);
@@ -217,9 +214,10 @@ index 000000000000..7371d75b3aa7
 +			TEST_ASSERT((sregs.cr0 & CR0_PINNED) == CR0_PINNED,
 +				    "Unexpected cr0. Bits missing: %llx",
 +				    sregs.cr0 ^ (CR0_PINNED | sregs.cr0));
-+			TEST_ASSERT((sregs.cr4 & CR4_PINNED) == CR4_PINNED,
-+				    "Unexpected cr4. Bits missing: %llx",
-+				    sregs.cr4 ^ (CR4_PINNED | sregs.cr4));
++			TEST_ASSERT((sregs.cr4 & CR4_ALL) == CR4_PINNED,
++				    "Unexpected cr4. Bits missing: %llx, cr4: %llx",
++				    sregs.cr4 ^ (CR4_ALL | sregs.cr4),
++				    sregs.cr4);
 +			goto done;
 +		}
 +
@@ -234,7 +232,9 @@ index 000000000000..7371d75b3aa7
 +			*cr &= ~CR0_PINNED;
 +
 +			cr = (u64 *)(addr_gpa2hva(vm, SMRAM_GPA + 0x8000 + 0x7f48));
++			/* Unset pinned, set one that was pinned low */
 +			*cr &= ~CR4_PINNED;
++			*cr |= X86_CR4_SMEP;
 +		}
 +
 +		state = vcpu_save_state(vm, VCPU_ID);

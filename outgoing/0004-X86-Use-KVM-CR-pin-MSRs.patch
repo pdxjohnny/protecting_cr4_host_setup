@@ -1,14 +1,13 @@
-From 655f991f5cb44b92db3412a8986ca46c62df1946 Mon Sep 17 00:00:00 2001
+From c48d5b591f306a6d2976050e58fbfa6261d9380a Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
-Subject: [PATCH 3/4] X86: Use KVM CR pin MSRs
+Subject: [PATCH 4/4] X86: Use KVM CR pin MSRs
 
 Strengthen existing control register pinning when running
-paravirtualized under KVM. Add a command line flag (pv_cr_pin) to
-request enabling. Check which bits KVM supports pinning for each control
-register and only pin supported bits which are already pinned via the
-existing native protection. Write to KVM CR0 and CR4 pinned MSRs to
-enable pinning.
+paravirtualized under KVM. Check which bits KVM supports pinning for
+each control register and only pin supported bits which are already
+pinned via the existing native protection. Write to KVM CR0/4 pinned
+MSRs to enable pinning.
 
 Initiate KVM assisted pinning directly following the setup of native
 pinning on boot CPU. For non-boot CPUs initiate paravirtualized pinning
@@ -25,38 +24,40 @@ paravirtualized control register pinning. This is due to early boot
 code writing known good values to control registers, these values do
 not contain the protected bits. This is due to CPU feature
 identification being done at a later time, when the kernel properly
-checks if it can enable protections. As such, specifying the pv_cr_pin
-option on the kernel command line will disable kexec (as well as
-crashkernel which uses kexec).
+checks if it can enable protections. As such, the pv_cr_pin command line
+option has been added which instructs the kernel to disable kexec in
+favor of enabling paravirtualized control register pinning. crashkernel
+is also disabled when the pv_cr_pin parameter is specified due to its
+reliance on kexec.
 
-When we fix kexec, we still need a way for patched kernels to know if
-the kernel they are loading has been patched. If a patched kernel
-attempted to kexec a kernel which was not patched, it would trigger a
-fault almost immediately. Liran suggested adding a section to the built
-image acting as a flag to signify support for being kexec'd by a kernel
-with pinning enabled. Should that approach be implemented, it is likely
-that the command line flag (pv_cr_pin) would still be desired for some
-deprecation period. We wouldn't want the default behavior to change from
-being able to kexec older kernels to not being able to, as this might
-break some users workflows. Since we require that the user opt-in to
-break kexec we've held off on attempting to fix kexec in this patchset.
-This way no one sees any behavior they are not explicitly opting in to.
+When we fix kexec, we will still need a way for a kernel with support to
+know if the kernel it is attempting to load has support. If a kernel
+with this enabled attempts to kexec a kernel where this is not
+supported, it would trigger a fault almost immediately.
+
+Liran suggested adding a section to the built image acting as a flag to
+signify support for being kexec'd by a kernel with pinning enabled.
+Should that approach be implemented, it is likely that the command line
+flag (pv_cr_pin) would still be desired for some deprecation period. We
+wouldn't want the default behavior to change from being able to kexec
+older kernels to not being able to, as this might break some users
+workflows.
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- .../admin-guide/kernel-parameters.txt         |  7 ++++
+ .../admin-guide/kernel-parameters.txt         | 11 ++++++
  arch/x86/Kconfig                              | 10 +++++
- arch/x86/include/asm/kvm_para.h               | 16 ++++++++
+ arch/x86/include/asm/kvm_para.h               | 17 ++++++++
  arch/x86/kernel/cpu/common.c                  |  5 +++
  arch/x86/kernel/kvm.c                         | 39 +++++++++++++++++++
- arch/x86/kernel/setup.c                       |  7 ++++
- 6 files changed, 84 insertions(+)
+ arch/x86/kernel/setup.c                       |  6 +++
+ 6 files changed, 88 insertions(+)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index ec92120a7952..0939541290b6 100644
+index ade4e6ec23e0..24119d1d5c7e 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -3818,6 +3818,13 @@
+@@ -3791,6 +3791,17 @@
  			[KNL] Number of legacy pty's. Overwrites compiled-in
  			default number.
  
@@ -65,16 +66,20 @@ index ec92120a7952..0939541290b6 100644
 +			running paravirutalized under KVM, request that KVM not
 +			allow the guest to disable kernel protection features
 +			set in CPU control registers. Specifying this option
-+			will disable kexec (and crashkernel).
++			will disable kexec (and crashkernel). If kexec support
++			has not been compiled into the kernel and host KVM
++			supports paravirtualized control register pinning, it
++			will be active by default without the need to specify
++			this parameter.
 +
  	quiet		[KNL] Disable most log messages
  
  	r128=		[HW,DRM]
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 90288ab1b99e..8ae50eec60a5 100644
+index 5e8949953660..2660e7afb7e8 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -799,6 +799,7 @@ config KVM_GUEST
+@@ -796,6 +796,7 @@ config KVM_GUEST
  	bool "KVM Guest support (including kvmclock)"
  	depends on PARAVIRT
  	select PARAVIRT_CLOCK
@@ -82,7 +87,7 @@ index 90288ab1b99e..8ae50eec60a5 100644
  	select ARCH_CPUIDLE_HALTPOLL
  	default y
  	---help---
-@@ -842,6 +843,15 @@ config PARAVIRT_TIME_ACCOUNTING
+@@ -839,6 +840,15 @@ config PARAVIRT_TIME_ACCOUNTING
  config PARAVIRT_CLOCK
  	bool
  
@@ -99,10 +104,10 @@ index 90288ab1b99e..8ae50eec60a5 100644
  	bool "Jailhouse non-root cell support"
  	depends on X86_64 && PCI
 diff --git a/arch/x86/include/asm/kvm_para.h b/arch/x86/include/asm/kvm_para.h
-index 9b4df6eaa11a..b47b70f0e2f7 100644
+index 9b4df6eaa11a..342b475e7adf 100644
 --- a/arch/x86/include/asm/kvm_para.h
 +++ b/arch/x86/include/asm/kvm_para.h
-@@ -102,6 +102,22 @@ static inline void kvm_spinlock_init(void)
+@@ -102,6 +102,23 @@ static inline void kvm_spinlock_init(void)
  }
  #endif /* CONFIG_PARAVIRT_SPINLOCKS */
  
@@ -115,6 +120,7 @@ index 9b4df6eaa11a..b47b70f0e2f7 100644
 +{
 +	return;
 +}
++
 +static inline void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
 +						 unsigned long cr4_pinned_bits)
 +{
@@ -126,10 +132,10 @@ index 9b4df6eaa11a..b47b70f0e2f7 100644
  #define kvm_async_pf_task_wait(T, I) do {} while(0)
  #define kvm_async_pf_task_wake(T) do {} while(0)
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 08682757e547..bbf1de0cb253 100644
+index 8d2448710762..e36aaad80b98 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
-@@ -21,6 +21,7 @@
+@@ -20,6 +20,7 @@
  #include <linux/smp.h>
  #include <linux/io.h>
  #include <linux/syscore_ops.h>
@@ -137,7 +143,7 @@ index 08682757e547..bbf1de0cb253 100644
  
  #include <asm/stackprotector.h>
  #include <asm/perf_event.h>
-@@ -416,6 +417,8 @@ static void __init setup_cr_pinning(void)
+@@ -433,6 +434,8 @@ static void __init setup_cr_pinning(void)
  	mask = (X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP);
  	cr4_pinned_bits = this_cpu_read(cpu_tlbstate.cr4) & mask;
  	static_key_enable(&cr_pinning.key);
@@ -146,7 +152,7 @@ index 08682757e547..bbf1de0cb253 100644
  }
  
  /*
-@@ -1589,6 +1592,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
+@@ -1596,6 +1599,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
  	mtrr_ap_init();
  	validate_apic_and_package_id(c);
  	x86_spec_ctrl_setup_ap();
@@ -156,7 +162,7 @@ index 08682757e547..bbf1de0cb253 100644
  
  static __init int setup_noclflush(char *arg)
 diff --git a/arch/x86/kernel/kvm.c b/arch/x86/kernel/kvm.c
-index d817f255aed8..04ceeb90df1f 100644
+index 32ef1ee733b7..73a3d4b48eb1 100644
 --- a/arch/x86/kernel/kvm.c
 +++ b/arch/x86/kernel/kvm.c
 @@ -24,6 +24,8 @@
@@ -176,7 +182,7 @@ index d817f255aed8..04ceeb90df1f 100644
  
  static int kvmapf = 1;
  
-@@ -708,6 +711,7 @@ static void __init kvm_apic_init(void)
+@@ -712,6 +715,7 @@ static void __init kvm_apic_init(void)
  static void __init kvm_init_platform(void)
  {
  	kvmclock_init();
@@ -184,7 +190,7 @@ index d817f255aed8..04ceeb90df1f 100644
  	x86_platform.apic_post_init = kvm_apic_init;
  }
  
-@@ -857,6 +861,41 @@ void __init kvm_spinlock_init(void)
+@@ -858,6 +862,41 @@ void __init kvm_spinlock_init(void)
  
  #endif	/* CONFIG_PARAVIRT_SPINLOCKS */
  
@@ -193,15 +199,15 @@ index d817f255aed8..04ceeb90df1f 100644
 +
 +void __init kvm_paravirt_cr_pinning_init()
 +{
++#ifdef CONFIG_KEXEC_CORE
 +	if (!cmdline_find_option_bool(boot_command_line, "pv_cr_pin"))
 +		return;
 +
-+	kvm_paravirt_cr_pinning_enabled = 1;
-+
-+#ifdef CONFIG_KEXEC_CORE
 +	/* Paravirtualized CR pinning is currently incompatible with kexec */
 +	kexec_load_disabled = 1;
 +#endif
++
++	kvm_paravirt_cr_pinning_enabled = 1;
 +}
 +
 +void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
@@ -227,19 +233,18 @@ index d817f255aed8..04ceeb90df1f 100644
  
  static void kvm_disable_host_haltpoll(void *i)
 diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 9e71d6f6e564..84e4579a3b5a 100644
+index 9d3de7a813db..0fb5a723ee44 100644
 --- a/arch/x86/kernel/setup.c
 +++ b/arch/x86/kernel/setup.c
-@@ -26,6 +26,8 @@
- #include <asm/apic.h>
- #include <asm/bios_ebda.h>
+@@ -95,6 +95,7 @@
+ #include <asm/processor.h>
  #include <asm/bugs.h>
+ #include <asm/kasan.h>
 +#include <asm/cmdline.h>
-+
+ 
+ #include <asm/vsyscall.h>
  #include <asm/cpu.h>
- #include <asm/efi.h>
- #include <asm/gart.h>
-@@ -496,6 +498,11 @@ static void __init reserve_crashkernel(void)
+@@ -563,6 +564,11 @@ static void __init reserve_crashkernel(void)
  		return;
  	}
  
