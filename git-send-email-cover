@@ -4,7 +4,7 @@ review and provide suggestions. I attempted to capture everything I
 heard, please let me know if anything was missed. kexec support is
 still pending, due to what follows about command line parameters, opt
 in, and being that those changes wouldn't be localized to KVM (and this
-is on top of kvm/next).
+patchset is on top of kvm/next).
 
 - Hibernation and suspend-to-RAM are supported.
 
@@ -22,10 +22,13 @@ is on top of kvm/next).
   know.
 
 - Andy's suggestion of a boot option has been incorporated as the
-  pv_cr_pin command line option. Boris's comment on short-term
-  solutions is still applicable. Liran's proposed solution of a flag
-  within the ELF would allow us to identify which kernels have
-  support.
+  pv_cr_pin command line option. Boris mentioned that short-term
+  solutions become immutable. However, for the reasons outlined below
+  we need a way for the user to opt-in to pinning over kexec if both
+  are compiled in, and the command line parameter seems to be a good
+  way to do that. Liran's proposed solution of a flag within the ELF
+  would allow us to identify which kernels have support is assumed to
+  be implemented in the following scenarios.
 
   We then have the following cases (without the addition of pv_cr_pin):
 
@@ -203,6 +206,5 @@ protected against the use of ROP to disable CR bits. The same bits that
 are being pinned natively may be pinned via the CR pinned MSRs. These
 bits are WP in CR0, and SMEP, SMAP, and UMIP in CR4.
 
-Future patches could implement similar MSR and hypercall combinations
-to protect bits in MSRs. The NXE bit of the EFER MSR is a prime
-candidate.
+Future patches could implement similar MSRs to protect bits in MSRs.
+The NXE bit of the EFER MSR is a prime candidate.
