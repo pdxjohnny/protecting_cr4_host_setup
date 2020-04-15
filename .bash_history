@@ -1,88 +1,3 @@
-cat .bash_history
-git checkout -- .bash_history
-git status
-vim .bash_history 
-git checkout -- .bash_history
-cd linux-combined/
-ll
-git log
-git log -p
-git status
-git diff
-vim arch/x86/kvm/x86.c
-git diff
-git checkout -- arch/x86/kvm/x86.c
-git status
-gti diff
-git diff
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-vim ~/.bash_profile
-vim ~/.bashrc
-vim arch/x86/kvm/emulate.c
-vim arch/x86/kvm/x86.c
-vim arch/x86/kvm/emulate.c
-git status
-git diff
-git log
-git c 'ro_smram is non memcpyd correctly'
-git push
-vim arch/x86/kvm/emulate.c
-git log -p
-(cd tools/testing/selftests/kvm/ && nodemon -e c,h --exec 'clear; cd ~/linux-combined && make TARGETS="kvm" summary=1 kselftest && cd tools/testing/selftests/kvm/ && ./x86_64/smm_ro_smram_test; test 1')
-sudo journalctl --dmesg -f
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules && RELOAD=1 ~/run.sh && sudo journalctl --dmesg -f
-cd linux-combined/
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules && RELOAD=1 ~/run.sh && sudo journalctl --dmesg -f
-git status
-git idff
-git diff .bash_history
-git add .bash_history
-git commit -sm 'add to bash history'
-git push
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules && RELOAD=1 ~/run.sh && sudo journalctl --dmesg -f
-cd ~/linux-combined/
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules && RELOAD=1 ~/run.sh && sudo journalctl --dmesg -f
-cd ..
-git status
-~/run.sh
-git status
-git add -f outgoing/
-git status
-git c 'add selftest
-git c 'add selftest'
-git push
-vim outgoing/0004-selftests-kvm-SMM-CR-pin-test.patch
-cp outgoing/0004-selftests-kvm-SMM-CR-pin-test.patch outgoing/0004-selftests-kvm-SMM-CR-pin-test.patch
-cp outgoing/0004-selftests-kvm-SMM-CR-pin-test.patch outgoing/0005.patch
-vim outgoing/0004-selftests-kvm-SMM-CR-pin-test.patch
-vim outgoing/0005.patch
-git status
-ll outgoing/
-git add outgoing/*.patch
-git add -f outgoing/*.patch
-git status
-git rm -rf outgoing/
-git status
-git add -f outgoing/*
-git status
-git c 'prep for v2 rebase'
-git push
-git status
-cd linux-combined/
-time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install && sudo reboot
-cd linux-combined/
-vim arch/x86/kvm/emulate.c
-vim arch/x86/kvm/x86.c
-vim arch/x86/kvm/emulate.c
-vim arch/x86/kvm/x86.c
-git status
-git diff
-git c 'ro_smram is being reallocated'
-git push
-vim arch/x86/kvm/x86.c
-git status
-git checkout -b ro_smram
-git push -u pdxjohnny
 git push -u origin
 git push -u origin ro_smram
 git commit --amend
@@ -998,3 +913,88 @@ cat >> ~/README.md
 vim ~/README.md
 git status
 git push -f
+cat ~/kvm-unit-tests/COPYRIGHT 
+cat ~/kvm-unit-tests/MAINTAINERS 
+vim ~/README.md
+git status
+git push -f
+~/run.sh
+git status
+cd linux-combined/
+git status
+rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
+cd ../
+git status
+git diff
+vim git-send-email-cover 
+git status
+git add -A
+git c 'RFCv2'
+git push
+cd linux-combined/
+git status
+rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
+cd ..
+git status
+head README.md 
+cd linux-combined/
+git status
+git send-email --subject-prefix="RFC v2" --annotate --cover-letter --to tglx@linutronix.de --to mingo@redhat.com --to bp@alien8.de --to x86@kernel.org --to pbonzini@redhat.com --cc hpa@zytor.com --cc sean.j.christopherson@intel.com --cc vkuznets@redhat.com --cc wanpengli@tencent.com --cc jmattson@google.com --cc joro@8bytes.org --cc linux-kernel@vger.kernel.org --cc kvm@vger.kernel.org HEAD~4
+git send-email --subject-prefix="RFC v2" --annotate --cover-letter --to tglx@linutronix.de --to mingo@redhat.com --to bp@alien8.de --to x86@kernel.org --to pbonzini@redhat.com --cc hpa@zytor.com --cc sean.j.christopherson@intel.com --cc vkuznets@redhat.com --cc wanpengli@tencent.com --cc jmattson@google.com --cc liran.alon@oracle.com --cc luto@kernel.org --cc joro@8bytes.org --cc rick.p.edgecombe@intel.com --cc kristen@linux.intel.com --cc arjan@linux.intel.com --cc linux-kernel@vger.kernel.org --cc kvm@vger.kernel.org HEAD~4
+vim README 
+vim ../README.md 
+cd ..
+git status
+git add -A
+git status
+git diff
+git diff --staged
+git c 'ready for rfcv2'
+git push
+git send-email --subject-prefix="RFC v2" --annotate --cover-letter --to tglx@linutronix.de --to mingo@redhat.com --to bp@alien8.de --to x86@kernel.org --to pbonzini@redhat.com --cc hpa@zytor.com --cc sean.j.christopherson@intel.com --cc vkuznets@redhat.com --cc wanpengli@tencent.com --cc jmattson@google.com --cc liran.alon@oracle.com --cc luto@kernel.org --cc joro@8bytes.org --cc rick.p.edgecombe@intel.com --cc kristen@linux.intel.com --cc arjan@linux.intel.com --cc linux-kernel@vger.kernel.org --cc kvm@vger.kernel.org HEAD~4
+cd linux-combined/
+git status
+cd ..
+git status
+cd linux-combined/
+git fetch kvm
+git log kvm/next
+git rebase kvm/next
+git log
+cd ..
+git status
+git send-email --subject-prefix="RFC v2" --annotate --cover-letter --to tglx@linutronix.de --to mingo@redhat.com --to bp@alien8.de --to x86@kernel.org --to pbonzini@redhat.com --cc hpa@zytor.com --cc sean.j.christopherson@intel.com --cc vkuznets@redhat.com --cc wanpengli@tencent.com --cc jmattson@google.com --cc liran.alon@oracle.com --cc luto@kernel.org --cc joro@8bytes.org --cc rick.p.edgecombe@intel.com --cc kristen@linux.intel.com --cc arjan@linux.intel.com --cc linux-kernel@vger.kernel.org --cc kvm@vger.kernel.org HEAD~4
+vim git-send-email-cover 
+git diff
+git c 'updates to wording of cover letter'
+git push
+cd linux-combined/
+git send-email --subject-prefix="RFC v2" --annotate --cover-letter --to tglx@linutronix.de --to mingo@redhat.com --to bp@alien8.de --to x86@kernel.org --to pbonzini@redhat.com --cc hpa@zytor.com --cc sean.j.christopherson@intel.com --cc vkuznets@redhat.com --cc wanpengli@tencent.com --cc jmattson@google.com --cc liran.alon@oracle.com --cc luto@kernel.org --cc joro@8bytes.org --cc rick.p.edgecombe@intel.com --cc kristen@linux.intel.com --cc arjan@linux.intel.com --cc linux-kernel@vger.kernel.org --cc kvm@vger.kernel.org HEAD~4
+cd ~/kvm-unit-tests/
+ll
+cat MAINTAINERS 
+git send-email --subject-prefix="RFC v2" --annotate --cover-letter --to tglx@linutronix.de --to mingo@redhat.com --to bp@alien8.de --to x86@kernel.org --to pbonzini@redhat.com --cc hpa@zytor.com --cc sean.j.christopherson@intel.com --cc vkuznets@redhat.com --cc wanpengli@tencent.com --cc jmattson@google.com --cc liran.alon@oracle.com --cc luto@kernel.org --cc joro@8bytes.org --cc rick.p.edgecombe@intel.com --cc kristen@linux.intel.com --cc arjan@linux.intel.com --cc linux-kernel@vger.kernel.org --cc kvm@vger.kernel.org HEAD~4
+git send-email --subject-prefix="PATCH" --annotate --cover-letter --to pbonzini@redhat.com --to kvm@vger.kernel.org HEAD~4
+git send-email --subject-prefix="PATCH" --annotate --cover-letter --to pbonzini@redhat.com --to kvm@vger.kernel.org HEAD~1
+cd kvm-unit-tests/
+git pull
+git fetch --all
+git log
+cd ..
+git diff
+ll .git
+ll .git/COMMIT_EDITMSG 
+cat .git/COMMIT_EDITMSG
+cat .git/objects/
+cd linux-combined/
+tmux attach
+tmux attach
+tmux attach
+tmux
+vim ~/chroot/usr/bin/hibernate 
+tmux attach
+tmux
+tmux attach
+tim 
+vim
+tmux attach
