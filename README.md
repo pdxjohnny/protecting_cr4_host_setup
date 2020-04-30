@@ -36,6 +36,18 @@ sudo grubby --set-default /boot/vmlinuz-5.6.0-rc1+
 
 CMDLINE="resume=/dev/sda resumewait" INIT=/usr/bin/init.sh ~/run.sh -no-reboot 2>&1 | tee /tmp/run.log
 
+For seeing function calls in vim:
+
+```console
+$ make ARCH=x86_64 COMPILED_SOURCE=1 cscope tags
+$ git clone https://github.com/joe-skb7/cscope-maps.git ~/.vim/bundle/cscope-maps
+```
+
+- Ctrl-\ + c
+  - All function calls
+- Ctrl-]
+  - Function definition
+
 See https://gist.github.com/pdxjohnny/aed9d495e606a816f4dfa51db6c2ebd4 for kernel hacking notes
 
 Suspend-to-RAM is causing a CR4 fault.
