@@ -1,100 +1,3 @@
-git push -u origin
-git push -u origin ro_smram
-git commit --amend
-git push -f
-git checkout hc_harden
-git status
-rm ../outgoing/0004.patch ../outgoing/0005.patch
-rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
-git log
-git rebase -i HEAD~5
-rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
-vim ../outgoing/0004-ssm-cr-pin-test-got-cr4-from-smm-sram.patch 
-git reset --hard HEAD~1
-git apply ../outgoing/0004-ssm-cr-pin-test-got-cr4-from-smm-sram.patch
-git log
-git status
-git reset --hard HEAD
-git status
-rm tools/testing/selftests/kvm/x86_64/smm_ro_smram_tes*
-git am ../outgoing/0004-ssm-cr-pin-test-got-cr4-from-smm-sram.patch
-git status
-git push -f
-make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-vim arch/x86/kvm/emulate.c
-vim arch/x86/kvm/x86.c
-vim arch/x86/kvm/emulate.c
-vim arch/x86/kvm/x86.c
-vim arch/x86/kvm/emulate.c
-vim arch/x86/kvm/x86.c
-vim arch/x86/kvm/emulate.c
-vim arch/x86/kvm/x86.c
-git status
-git idff
-git add -A
-git status
-git c 'restore pinned bits'
-rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
-git rebase -i HEAD~4
-git stsaus
-git status
-git add -A
-git commit --amend
-git push -f
-git add -A
-git status
-git commit --amend
-git puhs -f
-git push -f
-git status
-git diff
-rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
-git reset --hard HEAD~1
-git apply ../outgoing/0004-selftests-kvm-SMM-CR-pin-test.patch
-vim ../outgoing/0004-selftests-kvm-SMM-CR-pin-test.patch
-git log
-git status
-git diff
-git status
-git add arch/x86/
-git status
-git commit --amend
-git status
-git reset --hard HEAD~3
-git log
-git apply ../outgoing/0001-X86-Update-mmu_cr4_features-during-feature-identific.patch
-git apply ../outgoing/0002-KVM-X86-Add-CR-pin-MSRs.patch
-git apply ../outgoing/0004-selftests-kvm-SMM-CR-pin-test.patch
-git apply ../outgoing/0003-X86-Use-KVM-CR-pin-MSRs.patch
-git apply ../outgoing/0005.patch
-git rebase -i HEAD~4
-git status
-git reset --hard HEAD
-git am ../outgoing/0001-X86-Update-mmu_cr4_features-during-feature-identific.patch
-git am ../outgoing/0002-KVM-X86-Add-CR-pin-MSRs.patch
-git am ../outgoing/0004-selftests-kvm-SMM-CR-pin-test.patch
-git am ../outgoing/0003-X86-Use-KVM-CR-pin-MSRs.patch
-git am ../outgoing/0005.patch
-git status
-rm tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
-git am ../outgoing/0005.patch
-git am --abort
-git am ../outgoing/0005.patch
-git status
-git log
-git log -p
-git rebase -i HEAD~4
-vim arch/x86/kvm/x86.c
-git status
-git add arch/
-git status
-git rebase --continue
-git rebase -i HEAD~4
-git log -p
-git status
-git push -f
-rm -rf ../outgoing/ && git format-patch -M kvm/next -o ../outgoing/
-git fetch kvm
 git reset --hard kvm/next
 git log
 git am ../outgoing/
@@ -998,3 +901,100 @@ tmux attach
 tim 
 vim
 tmux attach
+git grep identify_boot_cpu
+cd linux-combined/
+git grep identify_boot_cpu
+vim arch/x86/kernel/cpu/bugs.c
+git grep check_bugs
+git grep check_bugs arch/x86
+git grep check_bugs
+vim init/main.c
+cat /etc/passwd
+source /etc/profile
+ll
+vim .vimrc 
+cat >> .vimrc
+vim .vimrc
+mkdir -p ~/.vim/autoload ~/.vim/bundle && curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
+vim ~/.vim/autoload/pathogen.vim 
+vim ~/.vimrc 
+git clone https://github.com/joe-skb7/cscope-maps.git ~/.vim/bundle/cscope-maps
+vim .vimrc 
+vim init/main.c
+vim .vimrc 
+vim .bashr
+vim .bashrc
+vim .prog
+vim .prof
+vim ~/.bash_profile 
+bash
+/bin/bash
+git status
+git diff
+git c 'kernel config updated'
+git push
+vim linux-combined/.config
+git log -p linux-combined/.config
+git checkout HEAD~1 -- linux-combined/.config
+git status
+git commit --amend
+git status
+git push -f
+cd linux-combined/
+git log --oneline
+find . -name mmu.txt
+find . -name mmu.rst
+vim Documentation/virt/kvm/mmu.rst 
+find . -name mmu.rst
+git log --oneline | head -n 10
+git log --oneline
+git rebase -i HEAD~3
+git log -p
+git diff
+make ARCH=x86_64 COMPILED_SOURCE=1 cscope tags
+sudo apt-get install cscope
+sudo dnf -y install cscope
+sudo apt-get install cscope
+make ARCH=x86_64 COMPILED_SOURCE=1 cscope tags
+sudo dnf install -y mosh
+tmux attach
+ps aux | grep git
+kill -9 493 447 472
+tmux attach
+vim ~/README.md 
+tmux attach
+vim ~/README.md 
+im ~/.vim/autoload/pathogen.vim 
+vim ~/README.md 
+git add ~/README.md
+git status
+git commit -sm 'README: cscope'
+git push
+ps aux | grep git
+kill -9 4656
+vim README.md 
+git status
+cd linux-combined/
+git status
+git diff
+git rebase --continue
+git status
+git push -f
+git log -p
+vim tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
+vim tools/testing/selftests/kvm/lib/x86_64/processor.c 
+git add tools/testing/selftests/kvm/lib/x86_64/processor.c
+git status
+git diff --staged
+git commit -s
+vim tools/testing/selftests/kvm/lib/x86_64/processor.c 
+git status
+git reset HEAD status
+git status
+git reset HEAD tools/testing/selftests/kvm/lib/x86_64/processor.c 
+git status
+git diff tools/testing/
+git checkout -- tools/testing/selftests/kvm/lib/x86_64/processor.c 
+git status
+gitdiff
+gi tdiff
