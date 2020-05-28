@@ -10,6 +10,12 @@ full kernel compile
 make olddefconfig && time sudo make -j $(($(nproc)*4)) && sudo make -j $(($(nproc)*4)) modules_install && sudo make install
 ```
 
+kvm compile and reload
+
+```console
+(cd ~/linux-combined && make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules && RELOAD=1 ~/run.sh)
+```
+
 kvm compile with module reload and dmesg log streaming
 
 ```console
