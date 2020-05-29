@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -xe
 
+KERNEL=${KERNEL:-'/boot/bzImage'}
 INIT=${INIT:-'/usr/lib/systemd/systemd'}
 
 INIT='/usr/bin/rebooter'
@@ -12,7 +13,7 @@ sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -bios \
     "${HOME}/seabios/out/bios.bin" \
   -kernel \
-    "/boot/bzImage" \
+    "${KERNEL}" \
   -nographic \
   -cpu \
     host \
@@ -21,7 +22,7 @@ sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -net \
     user,hostfwd=tcp::2222-:22 \
   -append \
-    "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.L ro nokaslr init=${INIT}" \
+    "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.L ro nokaslr pv_cr_pin init=${INIT}" \
   -fsdev \
     local,id=fsdev-root,path=/,security_model=passthrough,readonly \
   -device \
