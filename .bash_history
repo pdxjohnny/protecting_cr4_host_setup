@@ -1,4 +1,3 @@
-tmux
 vim ~/chroot/usr/bin/hibernate 
 tmux attach
 tmux
@@ -998,3 +997,4 @@ git push -f
 ll x86
 git satus
 git status
+tmux attach
