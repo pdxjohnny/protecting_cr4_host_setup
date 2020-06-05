@@ -1,4 +1,4 @@
-From 98010dd1964fc1b9885aac6d7af5b78d20c56ca0 Mon Sep 17 00:00:00 2001
+From 7b1a5870b9182249fd6c29b18cb752d8c3ac54e0 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 4/4] X86: Use KVM CR pin MSRs
@@ -47,11 +47,11 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
  .../admin-guide/kernel-parameters.txt         | 11 ++++++
  arch/x86/Kconfig                              | 10 +++++
- arch/x86/include/asm/kvm_para.h               | 17 ++++++++
+ arch/x86/include/asm/kvm_para.h               | 28 +++++++++++++
  arch/x86/kernel/cpu/common.c                  |  5 +++
  arch/x86/kernel/kvm.c                         | 39 +++++++++++++++++++
  arch/x86/kernel/setup.c                       |  8 ++++
- 6 files changed, 90 insertions(+)
+ 6 files changed, 101 insertions(+)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
 index dbc22d684627..8552501a1579 100644
@@ -104,7 +104,7 @@ index beea77046f9b..d47b09ae23bd 100644
  	bool "Jailhouse non-root cell support"
  	depends on X86_64 && PCI
 diff --git a/arch/x86/include/asm/kvm_para.h b/arch/x86/include/asm/kvm_para.h
-index 9b4df6eaa11a..342b475e7adf 100644
+index 9b4df6eaa11a..c5a7bd1aba08 100644
 --- a/arch/x86/include/asm/kvm_para.h
 +++ b/arch/x86/include/asm/kvm_para.h
 @@ -102,6 +102,23 @@ static inline void kvm_spinlock_init(void)
@@ -131,6 +131,24 @@ index 9b4df6eaa11a..342b475e7adf 100644
  #else /* CONFIG_KVM_GUEST */
  #define kvm_async_pf_task_wait(T, I) do {} while(0)
  #define kvm_async_pf_task_wake(T) do {} while(0)
+@@ -130,6 +147,17 @@ static inline void kvm_disable_steal_time(void)
+ {
+ 	return;
+ }
++
++static inline void kvm_paravirt_cr_pinning_init(void)
++{
++	return;
++}
++
++static inline void kvm_setup_paravirt_cr_pinning(unsigned long cr0_pinned_bits,
++						 unsigned long cr4_pinned_bits)
++{
++	return;
++}
+ #endif
+ 
+ #endif /* _ASM_X86_KVM_PARA_H */
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
 index 08682757e547..bbf1de0cb253 100644
 --- a/arch/x86/kernel/cpu/common.c
@@ -162,7 +180,7 @@ index 08682757e547..bbf1de0cb253 100644
  
  static __init int setup_noclflush(char *arg)
 diff --git a/arch/x86/kernel/kvm.c b/arch/x86/kernel/kvm.c
-index d817f255aed8..f6c159229e35 100644
+index d817f255aed8..afeca2626e54 100644
 --- a/arch/x86/kernel/kvm.c
 +++ b/arch/x86/kernel/kvm.c
 @@ -24,6 +24,8 @@
@@ -197,7 +215,7 @@ index d817f255aed8..f6c159229e35 100644
 +#ifdef CONFIG_PARAVIRT_CR_PIN
 +static int kvm_paravirt_cr_pinning_enabled __ro_after_init = 0;
 +
-+void __init kvm_paravirt_cr_pinning_init()
++void __init kvm_paravirt_cr_pinning_init(void)
 +{
 +#ifdef CONFIG_KEXEC_CORE
 +	if (!cmdline_find_option_bool(boot_command_line, "pv_cr_pin"))
@@ -222,10 +240,10 @@ index d817f255aed8..f6c159229e35 100644
 +		return;
 +
 +	rdmsrl(MSR_KVM_CR0_PIN_ALLOWED, mask);
-+	wrmsrl(MSR_KVM_CR0_PINNED, cr0_pinned_bits & mask);
++	wrmsrl(MSR_KVM_CR0_PINNED_HIGH, cr0_pinned_bits & mask);
 +
 +	rdmsrl(MSR_KVM_CR4_PIN_ALLOWED, mask);
-+	wrmsrl(MSR_KVM_CR4_PINNED, cr4_pinned_bits & mask);
++	wrmsrl(MSR_KVM_CR4_PINNED_HIGH, cr4_pinned_bits & mask);
 +}
 +#endif
 +
