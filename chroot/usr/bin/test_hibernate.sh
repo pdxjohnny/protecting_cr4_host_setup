@@ -1,0 +1,9 @@
+echo "TEST HIBERNATE BEGIN HIBERNATION"
+hibernate
+echo "TEST HIBERNATE END HIBERNATION"
+
+while test 1; do
+  echo "TEST HIBERNATE BEGIN SLEEP"
+  sleep 10
+  echo "TEST HIBERNATE END SLEEP"
+done
