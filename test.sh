@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -xe
 
-LOG=$(mktemp -d cr-pin-test-XXXXXXXXXX)
+LOG=$(mktemp -d /tmp/cr-pin-test-XXXXXXXXXX)
+
+trap "cat /tmp/${LOG}/results" EXIT
 
 CHROOT=${CHROOT:-"${HOME}/chroot"}
 
@@ -30,16 +32,19 @@ mount_image
 
 sudo tee "${CHROOT}/do" <<<"rebooter"
 
-export LEADING="timeout 10s"
+export LEADING="timeout --verbose --foreground 10s"
 
 TRAILING="-no-reboot" "${HOME}/run.sh"
+echo "PASS: precheck" | tee "/tmp/${LOG}/results"
+
+set +e
 
 # Hibernate
 sudo tee "${CHROOT}/do" <<<"test_hibernate.sh"
 "${HOME}/run.sh" 2>&1 | tee "/tmp/${LOG}/hibernate_begin"
-if [[ grep -q "reboot: Power down" ]]; then
-  "${HOME}/run.sh" 2>&1 | tee "/tmp/${LOG}/hibernate_end"
-  if [[ grep -q "TEST HIBERNATE END SLEEP" ]]; then
+if grep -q "reboot: Power down" "/tmp/${LOG}/hibernate_begin"; then
+  TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "/tmp/${LOG}/hibernate_end"
+  if grep -q "TEST HIBERNATE END HIBERNATE" "/tmp/${LOG}/hibernate_end"; then
     echo "PASS: hibernate" | tee -a "/tmp/${LOG}/results"
   else
     echo "FAIL: hibernate" | tee -a "/tmp/${LOG}/results"
