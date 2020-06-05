@@ -216,3 +216,15 @@ index 683d3bdb8f6a..de851ea31f96 100644
          TEST_ASSERT(r == 0, "Unexpected result from KVM_SET_MP_STATE, r: %i",
                  r);
 ```
+
+### Debug violation code
+
+```c
+		pr_info("---- BEGIN CR0 VIOLATION ----\n");
+		pr_info("is_smm: %d\n", is_smm(vcpu));
+		pr_info("is_guest_mode: %d\n", is_guest_mode(vcpu));
+		pr_info("cr0: %lx\n", cr0);
+		pr_info("vcpu->arch.cr0_pinned.high: %lx\n", vcpu->arch.cr0_pinned.high);
+		pr_info("vcpu->arch.cr0_pinned.low: %lx\n", vcpu->arch.cr0_pinned.low);
+		pr_info("----  END  CR0 VIOLATION ----\n");
+```
