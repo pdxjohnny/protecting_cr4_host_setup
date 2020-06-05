@@ -28,15 +28,17 @@ RELOAD=1 "${HOME}/run.sh"
 # Dry run
 mount_image
 
-sudo tee "${CHROOT}/do" <<<"dry_run.sh"
+sudo tee "${CHROOT}/do" <<<"rebooter"
 
-timeout 5s "${HOME}/run.sh"
+export LEADING="timeout 10s"
+
+TRAILING="-no-reboot" "${HOME}/run.sh"
 
 # Hibernate
 sudo tee "${CHROOT}/do" <<<"test_hibernate.sh"
-timeout 5s "${HOME}/run.sh" 2>&1 | tee "/tmp/${LOG}/hibernate_begin"
+"${HOME}/run.sh" 2>&1 | tee "/tmp/${LOG}/hibernate_begin"
 if [[ grep -q "reboot: Power down" ]]; then
-  timeout 5s "${HOME}/run.sh" 2>&1 | tee "/tmp/${LOG}/hibernate_end"
+  "${HOME}/run.sh" 2>&1 | tee "/tmp/${LOG}/hibernate_end"
   if [[ grep -q "TEST HIBERNATE END SLEEP" ]]; then
     echo "PASS: hibernate" | tee -a "/tmp/${LOG}/results"
   else

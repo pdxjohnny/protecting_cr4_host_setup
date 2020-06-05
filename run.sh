@@ -95,7 +95,7 @@ rm -f /tmp/qemudebugpipe
 mkfifo /tmp/qemudebugpipe
 
 
-sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" "$@" \
+sudo $LEADING "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" "$@" \
   -smp cpus=2 \
   -m 8192M \
   -enable-kvm \
@@ -104,4 +104,4 @@ sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" "$@" \
   -nographic \
   -cpu \
     host \
-  -drive file="${HOME}/image.qcow2",index=0,media=disk,format=qcow2
+  -drive file="${HOME}/image.qcow2",index=0,media=disk,format=qcow2 $TRAILING
