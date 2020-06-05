@@ -52,3 +52,12 @@ if grep -q "reboot: Power down" "${LOG}/hibernate_begin"; then
 else
   echo "FAIL: hibernate" | tee -a "${LOG}/results"
 fi
+
+# L2
+sudo tee "${CHROOT}/do" <<<"test_l2.sh"
+LEADING="timeout --verbose --foreground 15s" TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/l2"
+if [[ "$(grep "reboot: Power down" "${LOG}/l2" | wc -l)" -lt 2 ]]; then
+  echo "FAIL: L2" | tee -a "${LOG}/results"
+else
+  echo "PASS: L2" | tee -a "${LOG}/results"
+fi

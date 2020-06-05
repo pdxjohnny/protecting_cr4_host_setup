@@ -6,7 +6,7 @@ INIT=${INIT:-'/usr/lib/systemd/systemd'}
 
 INIT='/usr/bin/rebooter'
 
-sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
+sudo $LEADING "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -smp cpus=2 \
   -m 2048M \
   -enable-kvm \
@@ -26,4 +26,4 @@ sudo "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -fsdev \
     local,id=fsdev-root,path=/,security_model=passthrough,readonly \
   -device \
-    virtio-9p-pci,fsdev=fsdev-root,mount_tag=/dev/root
+    virtio-9p-pci,fsdev=fsdev-root,mount_tag=/dev/root $TRAILING
