@@ -3,7 +3,7 @@ set -xe
 
 LOG=$(mktemp -d /tmp/cr-pin-test-XXXXXXXXXX)
 
-trap "cat /tmp/${LOG}/results" EXIT
+trap "cat ${LOG}/results" EXIT
 
 CHROOT=${CHROOT:-"${HOME}/chroot"}
 
@@ -35,20 +35,20 @@ sudo tee "${CHROOT}/do" <<<"rebooter"
 export LEADING="timeout --verbose --foreground 10s"
 
 TRAILING="-no-reboot" "${HOME}/run.sh"
-echo "PASS: precheck" | tee "/tmp/${LOG}/results"
+echo "PASS: precheck" | tee "${LOG}/results"
 
 set +e
 
 # Hibernate
 sudo tee "${CHROOT}/do" <<<"test_hibernate.sh"
-"${HOME}/run.sh" 2>&1 | tee "/tmp/${LOG}/hibernate_begin"
-if grep -q "reboot: Power down" "/tmp/${LOG}/hibernate_begin"; then
-  TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "/tmp/${LOG}/hibernate_end"
-  if grep -q "TEST HIBERNATE END HIBERNATE" "/tmp/${LOG}/hibernate_end"; then
-    echo "PASS: hibernate" | tee -a "/tmp/${LOG}/results"
+"${HOME}/run.sh" 2>&1 | tee "${LOG}/hibernate_begin"
+if grep -q "reboot: Power down" "${LOG}/hibernate_begin"; then
+  TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/hibernate_end"
+  if grep -q "TEST HIBERNATE END HIBERNATION" "${LOG}/hibernate_end"; then
+    echo "PASS: hibernate" | tee -a "${LOG}/results"
   else
-    echo "FAIL: hibernate" | tee -a "/tmp/${LOG}/results"
+    echo "FAIL: hibernate" | tee -a "${LOG}/results"
   fi
 else
-  echo "FAIL: hibernate" | tee -a "/tmp/${LOG}/results"
+  echo "FAIL: hibernate" | tee -a "${LOG}/results"
 fi
