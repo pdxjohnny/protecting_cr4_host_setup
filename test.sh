@@ -40,24 +40,41 @@ echo "PASS: precheck" | tee "${LOG}/results"
 set +e
 
 # Hibernate
-sudo tee "${CHROOT}/do" <<<"test_hibernate.sh"
-"${HOME}/run.sh" 2>&1 | tee "${LOG}/hibernate_begin"
-if grep -q "reboot: Power down" "${LOG}/hibernate_begin"; then
-  TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/hibernate_end"
-  if grep -q "TEST HIBERNATE END HIBERNATION" "${LOG}/hibernate_end"; then
-    echo "PASS: hibernate" | tee -a "${LOG}/results"
+test_hibernate() {
+  sudo tee "${CHROOT}/do" <<<"test_hibernate.sh"
+  "${HOME}/run.sh" 2>&1 | tee "${LOG}/hibernate_begin"
+  if grep -q "reboot: Power down" "${LOG}/hibernate_begin"; then
+    TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/hibernate_end"
+    if grep -q "TEST HIBERNATE END HIBERNATION" "${LOG}/hibernate_end"; then
+      echo "PASS: hibernate" | tee -a "${LOG}/results"
+    else
+      echo "FAIL: hibernate" | tee -a "${LOG}/results"
+    fi
   else
     echo "FAIL: hibernate" | tee -a "${LOG}/results"
   fi
-else
-  echo "FAIL: hibernate" | tee -a "${LOG}/results"
-fi
+}
+
+# kexec
+test_kexec() {
+  sudo tee "${CHROOT}/do" <<<"test_kexec.sh"
+  LEADING="timeout --verbose --foreground 10s" "${HOME}/run.sh" 2>&1 | tee "${LOG}/kexec"
+  if grep "kexec_load failed: Operation not permitted" "${LOG}/kexec"; then
+    echo "PASS: KEXEC" | tee -a "${LOG}/results"
+  else
+    echo "FAIL: KEXEC" | tee -a "${LOG}/results"
+  fi
+}
 
 # L2
-sudo tee "${CHROOT}/do" <<<"test_l2.sh"
-LEADING="timeout --verbose --foreground 120s" "${HOME}/run.sh" 2>&1 | tee "${LOG}/l2"
-if [[ "$(grep "Run /usr/bin/rebooter as init process" "${LOG}/l2" | wc -l)" -lt 3 ]]; then
-  echo "FAIL: L2" | tee -a "${LOG}/results"
-else
-  echo "PASS: L2" | tee -a "${LOG}/results"
-fi
+test_l2() {
+  sudo tee "${CHROOT}/do" <<<"test_l2.sh"
+  LEADING="timeout --verbose --foreground 120s" "${HOME}/run.sh" 2>&1 | tee "${LOG}/l2"
+  if [[ "$(grep "Run /usr/bin/rebooter as init process" "${LOG}/l2" | wc -l)" -lt 3 ]]; then
+    echo "FAIL: L2" | tee -a "${LOG}/results"
+  else
+    echo "PASS: L2" | tee -a "${LOG}/results"
+  fi
+}
+
+test_kexec
