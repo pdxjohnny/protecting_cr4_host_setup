@@ -55,11 +55,22 @@ test_hibernate() {
   fi
 }
 
+# Suspend to RAM
+test_susram() {
+  sudo tee "${CHROOT}/do" <<<"test_susram.sh"
+  TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/susram"
+  if grep -q "TEST SUSRAM END SUSRAM" "${LOG}/susram"; then
+    echo "PASS: susram" | tee -a "${LOG}/results"
+  else
+    echo "FAIL: susram" | tee -a "${LOG}/results"
+  fi
+}
+
 # kexec
 test_kexec() {
   sudo tee "${CHROOT}/do" <<<"test_kexec.sh"
   LEADING="timeout --verbose --foreground 10s" "${HOME}/run.sh" 2>&1 | tee "${LOG}/kexec"
-  if grep "kexec_load failed: Operation not permitted" "${LOG}/kexec"; then
+  if grep -q "kexec_load failed: Operation not permitted" "${LOG}/kexec"; then
     echo "PASS: KEXEC" | tee -a "${LOG}/results"
   else
     echo "FAIL: KEXEC" | tee -a "${LOG}/results"
@@ -69,12 +80,15 @@ test_kexec() {
 # L2
 test_l2() {
   sudo tee "${CHROOT}/do" <<<"test_l2.sh"
-  LEADING="timeout --verbose --foreground 120s" "${HOME}/run.sh" 2>&1 | tee "${LOG}/l2"
-  if [[ "$(grep "Run /usr/bin/rebooter as init process" "${LOG}/l2" | wc -l)" -lt 3 ]]; then
-    echo "FAIL: L2" | tee -a "${LOG}/results"
-  else
+  LEADING="timeout --verbose --foreground 60" "${HOME}/run.sh" 2>&1 | tee "${LOG}/l2"
+  if [[ "$(grep "Run /usr/bin/rebooter as init process" "${LOG}/l2" | wc -l)0" -gt 20 ]]; then
     echo "PASS: L2" | tee -a "${LOG}/results"
+  else
+    echo "FAIL: L2" | tee -a "${LOG}/results"
   fi
 }
 
+test_hibernate
+test_susram
 test_kexec
+test_l2
