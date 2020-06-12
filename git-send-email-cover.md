@@ -41,6 +41,8 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
   mmu_cr4_features on feature identification of the boot CPU. As such,
   mmu_cr4_features is no longer read only after init.
 
+- CPU hotplug is supported.
+
 - Nested virtualization is supported. SVM calls kvm_set_cr0/4 (which is where
   pinning checks are implemented) so extra checks are not needed. VMX will
   restore pinned bits on VM-Exit if they had been unset in the host VMCS.
