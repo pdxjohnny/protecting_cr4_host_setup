@@ -33,7 +33,7 @@ selftests
 unit tests
 
 ```console
-make && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ./run_tests.sh cr_pin; cat logs/cr_pin.log
+mcr_pinake && QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ./run_tests.sh cr_pin_high cr_pin_low vmx_cr_pin_test; cat logs/{cr_pin_high,cr_pin_low,vmx_cr_pin_test}.log
 ```
 
 set boot kernel on host
