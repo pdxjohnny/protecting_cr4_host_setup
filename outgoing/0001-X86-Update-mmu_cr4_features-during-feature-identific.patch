@@ -1,4 +1,4 @@
-From b4340dca853639b5873ae2869e83cd87725fc939 Mon Sep 17 00:00:00 2001
+From 1f7ed843bd989f80eb1c3d015b59da4416ebb880 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 8 Jan 2020 13:14:30 -0800
 Subject: [PATCH 1/4] X86: Update mmu_cr4_features during feature
@@ -29,7 +29,7 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 52c9bfbbdb2a..08682757e547 100644
+index d07809286b95..921e67086a00 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
 @@ -297,7 +297,7 @@ __setup("nosmep", setup_disable_smep);
@@ -60,7 +60,7 @@ index 52c9bfbbdb2a..08682757e547 100644
  	pr_info_once("x86/cpu: User Mode Instruction Prevention (UMIP) activated\n");
  
 diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index a74262c71484..9e71d6f6e564 100644
+index a3767e74c758..d9c678b37a9b 100644
 --- a/arch/x86/kernel/setup.c
 +++ b/arch/x86/kernel/setup.c
 @@ -138,9 +138,9 @@ EXPORT_SYMBOL(boot_cpu_data);

@@ -1,4 +1,4 @@
-From 7b1a5870b9182249fd6c29b18cb752d8c3ac54e0 Mon Sep 17 00:00:00 2001
+From 81df84f80ea216a51403f1d659714cfa9bd520e9 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 4/4] X86: Use KVM CR pin MSRs
@@ -54,10 +54,10 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  6 files changed, 101 insertions(+)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index dbc22d684627..8552501a1579 100644
+index 89386f6f3ab6..54fb2b5ab8fc 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -3836,6 +3836,17 @@
+@@ -3926,6 +3926,17 @@
  			[KNL] Number of legacy pty's. Overwrites compiled-in
  			default number.
  
@@ -76,7 +76,7 @@ index dbc22d684627..8552501a1579 100644
  
  	r128=		[HW,DRM]
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index beea77046f9b..d47b09ae23bd 100644
+index 67f6a40b5e93..bc0b27483001 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
 @@ -800,6 +800,7 @@ config KVM_GUEST
@@ -87,7 +87,7 @@ index beea77046f9b..d47b09ae23bd 100644
  	select ARCH_CPUIDLE_HALTPOLL
  	default y
  	---help---
-@@ -843,6 +844,15 @@ config PARAVIRT_TIME_ACCOUNTING
+@@ -835,6 +836,15 @@ config PARAVIRT_TIME_ACCOUNTING
  config PARAVIRT_CLOCK
  	bool
  
@@ -104,10 +104,10 @@ index beea77046f9b..d47b09ae23bd 100644
  	bool "Jailhouse non-root cell support"
  	depends on X86_64 && PCI
 diff --git a/arch/x86/include/asm/kvm_para.h b/arch/x86/include/asm/kvm_para.h
-index 9b4df6eaa11a..c5a7bd1aba08 100644
+index 57fd1966c4ea..f021531e98dc 100644
 --- a/arch/x86/include/asm/kvm_para.h
 +++ b/arch/x86/include/asm/kvm_para.h
-@@ -102,6 +102,23 @@ static inline void kvm_spinlock_init(void)
+@@ -112,6 +112,23 @@ static inline void kvm_spinlock_init(void)
  }
  #endif /* CONFIG_PARAVIRT_SPINLOCKS */
  
@@ -129,11 +129,11 @@ index 9b4df6eaa11a..c5a7bd1aba08 100644
 +#endif /* CONFIG_PARAVIRT_CR_PIN */
 +
  #else /* CONFIG_KVM_GUEST */
- #define kvm_async_pf_task_wait(T, I) do {} while(0)
+ #define kvm_async_pf_task_wait_schedule(T) do {} while(0)
  #define kvm_async_pf_task_wake(T) do {} while(0)
-@@ -130,6 +147,17 @@ static inline void kvm_disable_steal_time(void)
+@@ -145,6 +162,17 @@ static inline bool kvm_handle_async_pf(struct pt_regs *regs, u32 token)
  {
- 	return;
+ 	return false;
  }
 +
 +static inline void kvm_paravirt_cr_pinning_init(void)
@@ -150,7 +150,7 @@ index 9b4df6eaa11a..c5a7bd1aba08 100644
  
  #endif /* _ASM_X86_KVM_PARA_H */
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 08682757e547..bbf1de0cb253 100644
+index 921e67086a00..ee17223b1fa8 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
 @@ -21,6 +21,7 @@
@@ -170,7 +170,7 @@ index 08682757e547..bbf1de0cb253 100644
  }
  
  /*
-@@ -1589,6 +1592,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
+@@ -1551,6 +1554,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
  	mtrr_ap_init();
  	validate_apic_and_package_id(c);
  	x86_spec_ctrl_setup_ap();
@@ -180,11 +180,11 @@ index 08682757e547..bbf1de0cb253 100644
  
  static __init int setup_noclflush(char *arg)
 diff --git a/arch/x86/kernel/kvm.c b/arch/x86/kernel/kvm.c
-index d817f255aed8..afeca2626e54 100644
+index 7e6403a8d861..7c932a01a310 100644
 --- a/arch/x86/kernel/kvm.c
 +++ b/arch/x86/kernel/kvm.c
-@@ -24,6 +24,8 @@
- #include <linux/debugfs.h>
+@@ -23,6 +23,8 @@
+ #include <linux/kprobes.h>
  #include <linux/nmi.h>
  #include <linux/swait.h>
 +#include <linux/init.h>
@@ -192,15 +192,15 @@ index d817f255aed8..afeca2626e54 100644
  #include <asm/timer.h>
  #include <asm/cpu.h>
  #include <asm/traps.h>
-@@ -34,6 +36,7 @@
+@@ -33,6 +35,7 @@
  #include <asm/hypervisor.h>
  #include <asm/tlb.h>
  #include <asm/cpuidle_haltpoll.h>
 +#include <asm/cmdline.h>
  
- static int kvmapf = 1;
+ DEFINE_STATIC_KEY_FALSE(kvm_async_pf_enabled);
  
-@@ -708,6 +711,7 @@ static void __init kvm_apic_init(void)
+@@ -723,6 +726,7 @@ static void __init kvm_apic_init(void)
  static void __init kvm_init_platform(void)
  {
  	kvmclock_init();
@@ -208,7 +208,7 @@ index d817f255aed8..afeca2626e54 100644
  	x86_platform.apic_post_init = kvm_apic_init;
  }
  
-@@ -857,6 +861,41 @@ void __init kvm_spinlock_init(void)
+@@ -877,6 +881,41 @@ void __init kvm_spinlock_init(void)
  
  #endif	/* CONFIG_PARAVIRT_SPINLOCKS */
  
@@ -251,10 +251,10 @@ index d817f255aed8..afeca2626e54 100644
  
  static void kvm_disable_host_haltpoll(void *i)
 diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 9e71d6f6e564..a75f9e730cc3 100644
+index d9c678b37a9b..ed3bcc85d40d 100644
 --- a/arch/x86/kernel/setup.c
 +++ b/arch/x86/kernel/setup.c
-@@ -26,6 +26,9 @@
+@@ -27,6 +27,9 @@
  #include <asm/apic.h>
  #include <asm/bios_ebda.h>
  #include <asm/bugs.h>
@@ -264,7 +264,7 @@ index 9e71d6f6e564..a75f9e730cc3 100644
  #include <asm/cpu.h>
  #include <asm/efi.h>
  #include <asm/gart.h>
-@@ -496,6 +499,11 @@ static void __init reserve_crashkernel(void)
+@@ -502,6 +505,11 @@ static void __init reserve_crashkernel(void)
  		return;
  	}
  

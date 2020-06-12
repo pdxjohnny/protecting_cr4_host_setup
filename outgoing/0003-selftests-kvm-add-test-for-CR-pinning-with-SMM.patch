@@ -1,4 +1,4 @@
-From bdbe3e26e5f1fa6604a9b5d6dd373fe73953adcc Mon Sep 17 00:00:00 2001
+From deb3e08e47194e273bb419d311bd4606b171c307 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 27 Jan 2020 16:32:19 -0800
 Subject: [PATCH 3/4] selftests: kvm: add test for CR pinning with SMM
@@ -16,34 +16,34 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  create mode 100644 tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 
 diff --git a/tools/testing/selftests/kvm/.gitignore b/tools/testing/selftests/kvm/.gitignore
-index 30072c3f52fb..08e18ae1b80f 100644
+index 452787152748..c0666c3efcbb 100644
 --- a/tools/testing/selftests/kvm/.gitignore
 +++ b/tools/testing/selftests/kvm/.gitignore
-@@ -7,6 +7,7 @@
+@@ -10,6 +10,7 @@
  /x86_64/platform_info_test
  /x86_64/set_sregs_test
  /x86_64/smm_test
 +/x86_64/smm_cr_pin_test
  /x86_64/state_test
- /x86_64/sync_regs_test
- /x86_64/vmx_close_while_nested_test
+ /x86_64/vmx_preemption_timer_test
+ /x86_64/svm_vmcall_test
 diff --git a/tools/testing/selftests/kvm/Makefile b/tools/testing/selftests/kvm/Makefile
-index d91c53b726e6..f3fdac72fc74 100644
+index 4a166588d99f..c5c205637f38 100644
 --- a/tools/testing/selftests/kvm/Makefile
 +++ b/tools/testing/selftests/kvm/Makefile
-@@ -19,6 +19,7 @@ TEST_GEN_PROGS_x86_64 += x86_64/mmio_warning_test
+@@ -45,6 +45,7 @@ TEST_GEN_PROGS_x86_64 += x86_64/mmio_warning_test
  TEST_GEN_PROGS_x86_64 += x86_64/platform_info_test
  TEST_GEN_PROGS_x86_64 += x86_64/set_sregs_test
  TEST_GEN_PROGS_x86_64 += x86_64/smm_test
 +TEST_GEN_PROGS_x86_64 += x86_64/smm_cr_pin_test
  TEST_GEN_PROGS_x86_64 += x86_64/state_test
- TEST_GEN_PROGS_x86_64 += x86_64/sync_regs_test
- TEST_GEN_PROGS_x86_64 += x86_64/vmx_close_while_nested_test
+ TEST_GEN_PROGS_x86_64 += x86_64/vmx_preemption_timer_test
+ TEST_GEN_PROGS_x86_64 += x86_64/svm_vmcall_test
 diff --git a/tools/testing/selftests/kvm/include/x86_64/processor.h b/tools/testing/selftests/kvm/include/x86_64/processor.h
-index 7428513a4c68..c8b9d02eedfa 100644
+index 82b7fe16a824..8a2da0449772 100644
 --- a/tools/testing/selftests/kvm/include/x86_64/processor.h
 +++ b/tools/testing/selftests/kvm/include/x86_64/processor.h
-@@ -197,6 +197,11 @@ static inline uint64_t get_cr0(void)
+@@ -200,6 +200,11 @@ static inline uint64_t get_cr0(void)
  	return cr0;
  }
  
@@ -55,17 +55,17 @@ index 7428513a4c68..c8b9d02eedfa 100644
  static inline uint64_t get_cr3(void)
  {
  	uint64_t cr3;
-@@ -380,4 +385,12 @@ void kvm_get_cpu_address_width(unsigned int *pa_bits, unsigned int *va_bits);
+@@ -383,4 +388,12 @@ void kvm_get_cpu_address_width(unsigned int *pa_bits, unsigned int *va_bits);
  /* VMX_EPT_VPID_CAP bits */
  #define VMX_EPT_VPID_CAP_AD_BITS       (1ULL << 21)
  
 +/* KVM MSRs */
-+#define MSR_KVM_CR0_PIN_ALLOWED	0x4b564d06
-+#define MSR_KVM_CR4_PIN_ALLOWED	0x4b564d07
-+#define MSR_KVM_CR0_PINNED_LOW	0x4b564d08
-+#define MSR_KVM_CR0_PINNED_HIGH	0x4b564d09
-+#define MSR_KVM_CR4_PINNED_LOW	0x4b564d0a
-+#define MSR_KVM_CR4_PINNED_HIGH	0x4b564d0b
++#define MSR_KVM_CR0_PIN_ALLOWED	0x4b564d08
++#define MSR_KVM_CR4_PIN_ALLOWED	0x4b564d09
++#define MSR_KVM_CR0_PINNED_LOW	0x4b564d0a
++#define MSR_KVM_CR0_PINNED_HIGH	0x4b564d0b
++#define MSR_KVM_CR4_PINNED_LOW	0x4b564d0c
++#define MSR_KVM_CR4_PINNED_HIGH	0x4b564d0d
 +
  #endif /* SELFTEST_KVM_PROCESSOR_H */
 diff --git a/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c b/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
