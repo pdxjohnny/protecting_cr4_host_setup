@@ -118,6 +118,9 @@ SMRAM is modified to ensure the values of CR0/4 that will be restored
 contain the correct values for pinned bits. CR0/4 values are then
 restored from SMRAM as usual.
 
+When running with nested virtualization, should pinned bits be cleared
+from host VMCS / VMCB on VM-Exit, they will be silently restored.
+
 Should userspace expose the CR pining CPUID feature bit, it must zero
 CR pinned MSRs on reboot. If it does not, it runs the risk of having
 the guest enable pinning and subsequently cause general protection
@@ -217,11 +220,11 @@ With the addition of pv_cr_pin we have the following situations:
 
   - Loaded kernel has kexec
 
-    - pv_cr_pin command line parameter present
+    - pv_cr_pin command line parameter present for new kernel
 
       - Enable pinning
 
-    - pv_cr_pin command line parameter not present
+    - pv_cr_pin command line parameter not present for new kernel
 
       - Do not enable pinning
 
@@ -234,18 +237,12 @@ With the addition of pv_cr_pin we have the following situations:
 
   - Okay
 
-- Kernel running with pinning enabled kexecs kernel without pinning
-  (as identified by lack of ELF addition).
+- Kernel running with kexec and pinning enabled (opt-in via pv_cr_pin)
+  kexecs kernel without pinning (as identified by lack of ELF addition).
 
-  - pv_cr_pin command line parameter present
-
-    - User is presented with an error saying that they have opted
-      into pinning support and may not kexec a kernel without pinning
-      support.
-
-  - pv_cr_pin command line parameter not present
-
-    - Pinning not enabled (not opted into), kexec succeeds
+  - User is presented with an error saying that they have opted
+    into pinning support and may not kexec a kernel without pinning
+    support.
 
 
 Without the command line parameter I'm not sure how we could preserve
@@ -260,7 +257,6 @@ Input on this would be much appreciated, as well as if this is the
 best way to handle things or if there's another way that would be
 preferred. This is just what we were able to come up with to ensure
 users didn't get anything broken they didn't agree to have broken.
-
 
 
 Thanks,
