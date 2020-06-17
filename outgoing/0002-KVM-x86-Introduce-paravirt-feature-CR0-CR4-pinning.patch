@@ -1,4 +1,4 @@
-From 43ee92b2e2e1a198a699e8a766cc68b9748821ed Mon Sep 17 00:00:00 2001
+From f88d182b303c133de34eb0c34d41648f0d98a929 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/4] KVM: x86: Introduce paravirt feature CR0/CR4 pinning
@@ -14,14 +14,19 @@ pinning on vCPU reset.
 
 In the event that the guest vCPU attempts to disable any of the pinned
 bits, send that vCPU a general protection fault, and leave the register
-unchanged. Entering SMM unconditionally clears various CR0/4 bits, some
-of which may be pinned by the OS. To avoid triggering a fault during
-SMIs, pinning isn't enforced when the vCPU is running in SMM. Upon
-exiting SMM CR0/4 values are restored from SMRAM. kvm_pre_leave_smm
-ensures CR0/4 values in SMRAM have pinned bits set appropriately before
-restoration. Clearing pinning on vCPU reset avoids faulting when
-non-boot CPUs are disabled and then re-enabled, which is done when
+unchanged. Clear pinning on vCPU reset to avoid faulting non-boot
+CPUs when they are disabled and then re-enabled, which is done when
 hibernating.
+
+Pinning is not active when running in SMM. Entering SMM disables pinned
+bits. Writes to control registers within SMM would therefore trigger
+general protection faults if pinning was enforced. Upon exit from SMM,
+SMRAM is modified to ensure the values of CR0/4 that will be restored
+contain the correct values for pinned bits. CR0/4 values are then
+restored from SMRAM as usual.
+
+When running with nested virtualization, should pinned bits be cleared
+from host VMCS / VMCB, on VM-Exit, they will be silently restored.
 
 Should userspace expose the CR pinning CPUID feature bit, it must zero
 CR pinned MSRs on reboot. If it does not, it runs the risk of having the
@@ -55,8 +60,8 @@ as MSRs. The NXE bit of the EFER MSR is a prime candidate.
 Changes for QEMU are required to expose the CR pin cpuid feature bit. As
 well as clear the MSRs on reboot and enable migration.
 
-https://github.com/qemu/qemu/commit/e7a0ff8a8dcde1ef2b83a9d93129614f512752ae
-https://github.com/qemu/qemu/commit/7e8c770c91616ae8d2d6b15bcc2865be594c8852
+https://github.com/qemu/qemu/commit/0698f310c7ed51e9e9d22aeb765b2bd26788eda3
+https://github.com/qemu/qemu/commit/a927e4825998f50444b2978d0ae4d1e504b0547b
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
@@ -64,10 +69,12 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  arch/x86/include/asm/kvm_host.h      |   7 ++
  arch/x86/include/uapi/asm/kvm_para.h |   7 ++
  arch/x86/kvm/cpuid.c                 |   3 +-
+ arch/x86/kvm/emulate.c               |   3 +-
  arch/x86/kvm/kvm_emulate.h           |   2 +-
+ arch/x86/kvm/svm/nested.c            |  11 ++-
  arch/x86/kvm/vmx/nested.c            |  10 ++-
  arch/x86/kvm/x86.c                   | 106 ++++++++++++++++++++++++++-
- 7 files changed, 182 insertions(+), 6 deletions(-)
+ 9 files changed, 193 insertions(+), 9 deletions(-)
 
 diff --git a/Documentation/virt/kvm/msr.rst b/Documentation/virt/kvm/msr.rst
 index e37a14c323d2..9fa43c4a5895 100644
@@ -198,6 +205,20 @@ index 8a294f9747aa..bb0ed645324d 100644
  
  		if (sched_info_on())
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
+diff --git a/arch/x86/kvm/emulate.c b/arch/x86/kvm/emulate.c
+index d0e2825ae617..95780422765b 100644
+--- a/arch/x86/kvm/emulate.c
++++ b/arch/x86/kvm/emulate.c
+@@ -2685,7 +2685,8 @@ static int em_rsm(struct x86_emulate_ctxt *ctxt)
+ 		return X86EMUL_UNHANDLEABLE;
+ 	}
+ 
+-	ctxt->ops->post_leave_smm(ctxt);
++	if (ctxt->ops->post_leave_smm(ctxt))
++		return X86EMUL_UNHANDLEABLE;
+ 
+ 	return X86EMUL_CONTINUE;
+ }
 diff --git a/arch/x86/kvm/kvm_emulate.h b/arch/x86/kvm/kvm_emulate.h
 index 43c93ffa76ed..e92dd7605e48 100644
 --- a/arch/x86/kvm/kvm_emulate.h
@@ -211,6 +232,28 @@ index 43c93ffa76ed..e92dd7605e48 100644
  	int (*set_xcr)(struct x86_emulate_ctxt *ctxt, u32 index, u64 xcr);
  };
  
+diff --git a/arch/x86/kvm/svm/nested.c b/arch/x86/kvm/svm/nested.c
+index 6bceafb19108..245bdff4b052 100644
+--- a/arch/x86/kvm/svm/nested.c
++++ b/arch/x86/kvm/svm/nested.c
+@@ -583,8 +583,15 @@ int nested_svm_vmexit(struct vcpu_svm *svm)
+ 	svm->vmcb->save.idtr = hsave->save.idtr;
+ 	kvm_set_rflags(&svm->vcpu, hsave->save.rflags);
+ 	svm_set_efer(&svm->vcpu, hsave->save.efer);
+-	svm_set_cr0(&svm->vcpu, hsave->save.cr0 | X86_CR0_PE);
+-	svm_set_cr4(&svm->vcpu, hsave->save.cr4);
++	svm_set_cr0(&svm->vcpu,
++		    (hsave->save.cr0 |
++		    X86_CR0_PE |
++		    svm->vcpu.arch.cr0_pinned.high) &
++		    ~svm->vcpu.arch.cr0_pinned.low);
++	svm_set_cr4(&svm->vcpu,
++		    (hsave->save.cr4 |
++		    svm->vcpu.arch.cr4_pinned.high) &
++		    ~svm->vcpu.arch.cr4_pinned.low);
+ 	if (npt_enabled) {
+ 		svm->vmcb->save.cr3 = hsave->save.cr3;
+ 		svm->vcpu.arch.cr3 = hsave->save.cr3;
 diff --git a/arch/x86/kvm/vmx/nested.c b/arch/x86/kvm/vmx/nested.c
 index adb11b504d5c..a12bac57b374 100644
 --- a/arch/x86/kvm/vmx/nested.c

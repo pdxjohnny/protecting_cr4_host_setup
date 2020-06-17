@@ -1,4 +1,4 @@
-From deb3e08e47194e273bb419d311bd4606b171c307 Mon Sep 17 00:00:00 2001
+From 77bac53f58d47f11069b83e684c21ab426da80a0 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 27 Jan 2020 16:32:19 -0800
 Subject: [PATCH 3/4] selftests: kvm: add test for CR pinning with SMM
@@ -11,8 +11,8 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  tools/testing/selftests/kvm/.gitignore        |   1 +
  tools/testing/selftests/kvm/Makefile          |   1 +
  .../selftests/kvm/include/x86_64/processor.h  |  13 ++
- .../selftests/kvm/x86_64/smm_cr_pin_test.c    | 204 ++++++++++++++++++
- 4 files changed, 219 insertions(+)
+ .../selftests/kvm/x86_64/smm_cr_pin_test.c    | 207 ++++++++++++++++++
+ 4 files changed, 222 insertions(+)
  create mode 100644 tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 
 diff --git a/tools/testing/selftests/kvm/.gitignore b/tools/testing/selftests/kvm/.gitignore
@@ -70,10 +70,10 @@ index 82b7fe16a824..8a2da0449772 100644
  #endif /* SELFTEST_KVM_PROCESSOR_H */
 diff --git a/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c b/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 new file mode 100644
-index 000000000000..6b5306687b88
+index 000000000000..f794df74ade4
 --- /dev/null
 +++ b/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
-@@ -0,0 +1,204 @@
+@@ -0,0 +1,207 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Tests for control register pinning not being affected by SMRAM writes.
@@ -85,6 +85,7 @@ index 000000000000..6b5306687b88
 +#include <stdint.h>
 +#include <string.h>
 +#include <sys/ioctl.h>
++#include <linux/stringify.h>
 +
 +#include "test_util.h"
 +
@@ -103,8 +104,7 @@ index 000000000000..6b5306687b88
 +#define SMRAM_STAGE_SUCCESS 0xfe
 +#define SMRAM_STAGE_FAILURE 0xfd
 +
-+#define STR(x) #x
-+#define XSTR(s) STR(s)
++#define XSTR(s) __stringify(s)
 +
 +#define SYNC_PORT 0xe
 +#define DONE 0xff
@@ -130,10 +130,14 @@ index 000000000000..6b5306687b88
 +	0x0f, 0xaa,                   /* rsm */
 +};
 +
-+void sync_with_host(uint64_t phase)
++/* We opt not to use GUEST_SYNC() here because we also have to make a sync call
++ * from SMM. As such, the address of the ucall struct we'd need to pass isn't
++ * something we can put into the above machine code in a maintainable way
++ */
++static inline void sync_with_host(uint64_t phase)
 +{
 +	asm volatile("in $" XSTR(SYNC_PORT)", %%al \n"
-+		     : : "a" (phase));
++		     : "+a" (phase));
 +}
 +
 +void self_smi(void)
@@ -142,11 +146,9 @@ index 000000000000..6b5306687b88
 +	      APIC_DEST_SELF | APIC_INT_ASSERT | APIC_DM_SMI);
 +}
 +
-+void guest_code(void *unused)
++void guest_code(void)
 +{
 +	uint64_t apicbase = rdmsr(MSR_IA32_APICBASE);
-+
-+	(void)unused;
 +
 +	sync_with_host(1);
 +
@@ -185,6 +187,8 @@ index 000000000000..6b5306687b88
 +	u64 *cr;
 +
 +	for (failure = 0; failure <= 1; failure++) {
++		stage_reported = 0;
++
 +		/* Create VM */
 +		vm = vm_create_default(VCPU_ID, 0, guest_code);
 +
@@ -207,17 +211,22 @@ index 000000000000..6b5306687b88
 +		}
 +		vcpu_set_msr(vm, VCPU_ID, MSR_IA32_SMBASE, SMRAM_GPA);
 +
-+		vcpu_args_set(vm, VCPU_ID, 1, 0);
-+
 +		for (stage = 1;; stage++) {
 +			_vcpu_run(vm, VCPU_ID);
++
++			memset(&regs, 0, sizeof(regs));
++			vcpu_regs_get(vm, VCPU_ID, &regs);
++
++			memset(&sregs, 0, sizeof(sregs));
++			vcpu_sregs_get(vm, VCPU_ID, &sregs);
 +
 +			/* stage_reported is currrently the last stage reported */
 +			if (failure && stage_reported == SMRAM_STAGE_FAILURE) {
 +				/* Ensure that we exit on smram modification of CR4 */
-+				TEST_ASSERT(run->exit_reason == KVM_EXIT_INTERNAL_ERROR,
-+					    "Stage %d: unexpected exit reason: %u (%s),\n",
-+					    stage, run->exit_reason,
++				TEST_ASSERT(run->exit_reason == KVM_EXIT_INTERNAL_ERROR &&
++					    run->internal.suberror == KVM_INTERNAL_ERROR_EMULATION,
++					    "Stage %d: unexpected exit reason: %u, suberror: %u (%s),\n",
++					    stage, run->exit_reason, run->internal.suberror,
 +					    exit_reason_str(run->exit_reason));
 +				if (run->exit_reason == KVM_EXIT_INTERNAL_ERROR)
 +					goto done;
@@ -227,12 +236,6 @@ index 000000000000..6b5306687b88
 +					    stage, run->exit_reason,
 +					    exit_reason_str(run->exit_reason));
 +			}
-+
-+			memset(&regs, 0, sizeof(regs));
-+			vcpu_regs_get(vm, VCPU_ID, &regs);
-+
-+			memset(&sregs, 0, sizeof(sregs));
-+			vcpu_sregs_get(vm, VCPU_ID, &sregs);
 +
 +			stage_reported = regs.rax & 0xff;
 +
