@@ -119,7 +119,7 @@ contain the correct values for pinned bits. CR0/4 values are then
 restored from SMRAM as usual.
 
 When running with nested virtualization, should pinned bits be cleared
-from host VMCS / VMCB on VM-Exit, they will be silently restored.
+from host VMCS / VMCB, on VM-Exit, they will be silently restored.
 
 Should userspace expose the CR pining CPUID feature bit, it must zero
 CR pinned MSRs on reboot. If it does not, it runs the risk of having
