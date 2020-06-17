@@ -1,68 +1,75 @@
-The paravirtualized CR pinning patchset is a strengthened version of existing
-control registers pinning for paravritualized guests. It protects KVM guests
-from ROP based attacks which attempt to disable key security features.
-Virtualized Linux guests such as Kata Containers, AWS Lambda, and Chromos
-Termina will get this protection enabled by default when they update their
-kernel / configs. Using virtualization allows us to provide a
-stronger version of a proven exploit mitigation technique.
+The paravirtualized CR pinning patchset is a strengthened version of
+existing control registers pinning for paravritualized guests. It
+protects KVM guests from ROP based attacks which attempt to disable key
+security features. Virtualized Linux guests such as Kata Containers, AWS
+Lambda, and Chromos Termina will get this protection enabled by default
+when they update their kernel / configs. Using virtualization allows us
+to provide a stronger version of a proven exploit mitigation technique.
 
-We’ve patched KVM to create 6 new KVM specific MSRs used to query which bits may
-be pinned, and to set which bits are pinned high or low in control registers 0
-and 4. Linux guest support was added so that non-kexec guests will be able to
-take advantage of this strengthened protection by default. A plan for enabling
-guests with kexec is proposed in this cover letter. As part of that plan, we add
-a command line flag that allows users to opt-in to the protection on boot if
-they have kexec built into their kernel, effectively opting out of kexec
-support. Hibernation and suspend to ram were enabled by updating the location
-where bits in control register 4 were saved to and restored from. The work also
-includes minor patches for QEMU to ensure reboot works by clearing the added
-MSRs and exposing the new CPUID feature bit. There is one SMM related selftest
-added in this patchset and another patch for kvm-unit-tests that will be sent
-separately.
+We’ve patched KVM to create 6 new KVM specific MSRs used to query which
+bits may be pinned, and to set which bits are pinned high or low in
+control registers 0 and 4. Linux guest support was added so that
+non-kexec guests will be able to take advantage of this strengthened
+protection by default. A plan for enabling guests with kexec is proposed
+in this cover letter. As part of that plan, we add a command line flag
+that allows users to opt-in to the protection on boot if they have kexec
+built into their kernel, effectively opting out of kexec support.
+Hibernation and suspend to ram were enabled by updating the location
+where bits in control register 4 were saved to and restored from. The
+work also includes minor patches for QEMU to ensure reboot works by
+clearing the added MSRs and exposing the new CPUID feature bit. There is
+one SMM related selftest added in this patchset and another patch for
+kvm-unit-tests that will be sent separately.
 
-Thank you to Sean and Drew who reviewed v2, to Boris, Paolo, Andy, and Liran
-who reviewed v1, and to Dave, Kristen, and Rick who've provided feedback
-throughout. I appreciate your time spent reviewing and feedback.
+Thank you to Sean and Drew who reviewed v2, to Boris, Paolo, Andy, and
+Liran who reviewed v1, and to Sean, Dave, Kristen, and Rick who've
+provided feedback throughout. I appreciate your time spent reviewing and
+feedback.
 
 Here are the previous RFC versions of this patchset for reference
 
 RFC v2: https://lkml.org/lkml/2020/2/18/1162
 RFC v1: https://lkml.org/lkml/2019/12/24/380
 
-## High level overview of the changes
 
-- A CPUID feature bit as well as MSRs were added to KVM. Guests can use the
-  CPUID feature bit to determine if MSRs are available. Reading the first 2 MSRs
-  returns the bits which may be pinned for CR0/4 respectively. The next 4 MSRs
-  are writeable and allow the guest and host userspace to set which bits are
-  pinned low or pinned high for CR0/4.
 
-- Hibernation and suspend-to-RAM are supported. This was done by updating
-  mmu_cr4_features on feature identification of the boot CPU. As such,
-  mmu_cr4_features is no longer read only after init.
+=== High level overview of the changes ===
 
-- CPU hotplug is supported.
+- A CPUID feature bit as well as MSRs were added to KVM. Guests can use
+  the CPUID feature bit to determine if MSRs are available. Reading the
+  first 2 MSRs returns the bits which may be pinned for CR0/4
+  respectively. The next 4 MSRs are writeable and allow the guest and
+  host userspace to set which bits are pinned low or pinned high for
+  CR0/4.
 
-- Nested virtualization is supported. SVM calls kvm_set_cr0/4 (which is where
-  pinning checks are implemented) so extra checks are not needed. VMX will
-  restore pinned bits on VM-Exit if they had been unset in the host VMCS.
+- Hibernation and suspend-to-RAM are supported. This was done by
+  updating mmu_cr4_features on feature identification of the boot CPU.
+  As such, mmu_cr4_features is no longer read only after init.
 
-- As suggested by Sean, unpinning of pinned bits on return from SMM due to
-  modification of SMRAM will cause an unhandleable emulation fault resulting in
-  termination of the guest.
+- CPU hotplug is supported. Pinning is per vCPU. When running as a guest
+  pinning is requested after CPU identification for non-boot CPUs. The
+  boot CPU requests pinning a directly after existing pinning is setup.
 
-- kexec support is still pending, since the plan is a bit long it's been moved
-  to the end of the cover letter. It talks about the decision to make a command
-  line parameter, why we opt in to pinning (and effectively out of kexec).
-  being that those changes wouldn't be localized to KVM
-  (and this patchset is on top of kvm/next).
+- Nested virtualization is supported. SVM / VMX restore pinned bits on
+  VM-Exit if they had been unset in the host VMCB / VMCS.
+
+- As suggested by Sean, unpinning of pinned bits on return from SMM due
+  to modification of SMRAM will cause an unhandleable emulation fault
+  resulting in termination of the guest.
+
+- kexec support is still pending, since the plan is a bit long it's been
+  moved to the end of the cover letter. It talks about the decision to
+  make a command line parameter, why we opt in to pinning (and
+  effectively out of kexec). Being that those changes wouldn't be
+  localized to KVM (and this patchset is on top of kvm/next).
 
 - As Paolo requested, a patch will be sent immediately following this
   patchset for kvm-unit-tests with the unit tests for general
   functionality. selftests are included for SMM specific functionality.
 
 
-## Description of changes and rational
+
+=== Description of changes and rational ===
 
 Paravirtualized Control Register pinning is a strengthened version of
 existing protections on the Write Protect, Supervisor Mode Execution /
@@ -89,10 +96,10 @@ https://www.abatchy.com/2018/01/kernel-exploitation-4
 
 We add a CR pin feature bit to the KVM cpuid, read only MSRs which
 guests use to identify which bits they may request be pinned, and CR
-pinned MSRs which contain the pinned bits. Guests can request that KVM
-pin bits within control register 0 or 4 via the CR pinned MSRs.  Writes
-to the MSRs fail if they include bits that aren't allowed to be pinned.
-Host userspace may clear or modify pinned bits at any time.  Once
+pinned low/high MSRs which contain the pinned bits. Guests can request
+that KVM pin bits within control register 0 or 4 via the CR pinned MSRs.
+Writes to the MSRs fail if they include bits that aren't allowed to be
+pinned. Host userspace may clear or modify pinned bits at any time. Once
 pinned bits are set, the guest may pin more allowed bits, but may never
 clear pinned bits.
 
@@ -166,7 +173,8 @@ Future patches could implement similar MSRs to protect bits in MSRs.
 The NXE bit of the EFER MSR is a prime candidate.
 
 
-## Plan for kexec support
+
+=== Plan for kexec support ===
 
 Andy's suggestion of a boot option has been incorporated as the
 pv_cr_pin command line option. Boris mentioned that short-term
@@ -252,6 +260,7 @@ Input on this would be much appreciated, as well as if this is the
 best way to handle things or if there's another way that would be
 preferred. This is just what we were able to come up with to ensure
 users didn't get anything broken they didn't agree to have broken.
+
 
 
 Thanks,
