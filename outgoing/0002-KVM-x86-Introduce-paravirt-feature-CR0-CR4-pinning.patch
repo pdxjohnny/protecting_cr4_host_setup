@@ -296,7 +296,7 @@ index 290784ba63e4..b04a5a119558 100644
  	if ((cr0 & X86_CR0_PG) && !(cr0 & X86_CR0_PE))
  		return 1;
  
-+        if (!is_smm(vcpu) && !is_guest_mode(vcpu) &&
++	if (!is_smm(vcpu) && !is_guest_mode(vcpu) &&
 +	    (((cr0 ^ vcpu->arch.cr0_pinned.high) & vcpu->arch.cr0_pinned.high) ||
 +	    ((~cr0 ^ vcpu->arch.cr0_pinned.low) & vcpu->arch.cr0_pinned.low)))
 +		return 1;
@@ -308,7 +308,7 @@ index 290784ba63e4..b04a5a119558 100644
  	if (kvm_valid_cr4(vcpu, cr4))
  		return 1;
  
-+        if (!is_smm(vcpu) && !is_guest_mode(vcpu) &&
++	if (!is_smm(vcpu) && !is_guest_mode(vcpu) &&
 +	    (((cr4 ^ vcpu->arch.cr4_pinned.high) & vcpu->arch.cr4_pinned.high) ||
 +	    ((~cr4 ^ vcpu->arch.cr4_pinned.low) & vcpu->arch.cr4_pinned.low)))
 +		return 1;

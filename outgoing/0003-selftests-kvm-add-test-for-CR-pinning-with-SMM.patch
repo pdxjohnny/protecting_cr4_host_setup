@@ -136,7 +136,7 @@ index 000000000000..f794df74ade4
 + */
 +static inline void sync_with_host(uint64_t phase)
 +{
-+	asm volatile("in $" XSTR(SYNC_PORT)", %%al \n"
++	asm volatile("in $" XSTR(SYNC_PORT)", %%al\n"
 +		     : "+a" (phase));
 +}
 +

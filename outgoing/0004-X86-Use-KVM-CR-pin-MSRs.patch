@@ -213,7 +213,7 @@ index 7e6403a8d861..7c932a01a310 100644
  #endif	/* CONFIG_PARAVIRT_SPINLOCKS */
  
 +#ifdef CONFIG_PARAVIRT_CR_PIN
-+static int kvm_paravirt_cr_pinning_enabled __ro_after_init = 0;
++static int kvm_paravirt_cr_pinning_enabled __ro_after_init;
 +
 +void __init kvm_paravirt_cr_pinning_init(void)
 +{
