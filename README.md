@@ -230,3 +230,108 @@ index 683d3bdb8f6a..de851ea31f96 100644
 		pr_info("vcpu->arch.cr0_pinned.low: %lx\n", vcpu->arch.cr0_pinned.low);
 		pr_info("----  END  CR0 VIOLATION ----\n");
 ```
+
+### Get maintainers
+
+```console
+$ scripts/get_maintainer.pl --email *.patch
+Jonathan Corbet <corbet@lwn.net> (maintainer:DOCUMENTATION,commit_signer:13/110=12%)
+Paolo Bonzini <pbonzini@redhat.com> (supporter:KERNEL VIRTUAL MACHINE (KVM),commit_signer:9/12=75%)
+Thomas Gleixner <tglx@linutronix.de> (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT),commit_signer:17/110=15%,commit_signer:25/41=61%,authored:12/41=29%,added_lines:189/405=47%,removed_lines:176/361=49%,authored:1/12=8%)
+Ingo Molnar <mingo@redhat.com> (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT),commit_signer:5/18=28%,authored:3/18=17%,added_lines:48/117=41%,removed_lines:116/142=82%)
+Borislav Petkov <bp@alien8.de> (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT),commit_signer:15/41=37%,added_lines:33/405=8%,removed_lines:27/361=7%,commit_signer:6/18=33%)
+x86@kernel.org (maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT))
+"H. Peter Anvin" <hpa@zytor.com> (reviewer:X86 ARCHITECTURE (32-BIT AND 64-BIT),commit_signer:2/18=11%)
+Sean Christopherson <sean.j.christopherson@intel.com> (reviewer:KERNEL VIRTUAL MACHINE FOR X86 (KVM/x86),authored:1/12=8%,removed_lines:723/756=96%)
+Vitaly Kuznetsov <vkuznets@redhat.com> (reviewer:KERNEL VIRTUAL MACHINE FOR X86 (KVM/x86),commit_signer:3/12=25%)
+Wanpeng Li <wanpengli@tencent.com> (reviewer:KERNEL VIRTUAL MACHINE FOR X86 (KVM/x86))
+Jim Mattson <jmattson@google.com> (reviewer:KERNEL VIRTUAL MACHINE FOR X86 (KVM/x86),commit_signer:3/12=25%)
+Joerg Roedel <joro@8bytes.org> (reviewer:KERNEL VIRTUAL MACHINE FOR X86 (KVM/x86))
+Shuah Khan <shuah@kernel.org> (maintainer:KERNEL SELFTEST FRAMEWORK)
+Mauro Carvalho Chehab <mchehab+huawei@kernel.org> (commit_signer:18/110=16%,authored:18/110=16%,added_lines:43/640=7%,removed_lines:43/196=22%)
+"Paul E. McKenney" <paulmck@kernel.org> (commit_signer:10/110=9%,authored:8/110=7%,added_lines:49/640=8%)
+Greg Kroah-Hartman <gregkh@linuxfoundation.org> (commit_signer:10/110=9%)
+Pawan Gupta <pawan.kumar.gupta@linux.intel.com> (added_lines:67/640=10%,commit_signer:5/41=12%,authored:4/41=10%,added_lines:30/405=7%)
+Juergen Gross <jgross@suse.com> (removed_lines:21/196=11%)
+Mike Kravetz <mike.kravetz@oracle.com> (removed_lines:13/196=7%)
+Oliver Neukum <oneukum@suse.com> (removed_lines:10/196=5%)
+Andy Lutomirski <luto@kernel.org> (commit_signer:6/41=15%,authored:3/41=7%,added_lines:40/405=10%,removed_lines:28/361=8%)
+"Peter Zijlstra (Intel)" <peterz@infradead.org> (commit_signer:5/41=12%)
+Fenghua Yu <fenghua.yu@intel.com> (authored:3/41=7%)
+Reinette Chatre <reinette.chatre@intel.com> (authored:3/41=7%,removed_lines:42/361=12%)
+Vineela Tummalapalli <vineela.tummalapalli@intel.com> (added_lines:35/405=9%,removed_lines:30/361=8%)
+Dave Hansen <dave.hansen@linux.intel.com> (commit_signer:3/18=17%,authored:1/18=6%)
+John Andersen <john.s.andersen@intel.com> (commit_signer:2/18=11%,authored:2/18=11%,added_lines:10/117=9%,added_lines:13/63=21%,commit_signer:1/1=100%,authored:1/1=100%,added_lines:207/207=100%)
+"Ronald G. Minnich" <rminnich@gmail.com> (authored:1/18=6%)
+Dan Williams <dan.j.williams@intel.com> (authored:1/18=6%,added_lines:8/117=7%,removed_lines:10/142=7%)
+Baoquan He <bhe@redhat.com> (added_lines:12/117=10%)
+Kees Cook <keescook@chromium.org> (added_lines:11/117=9%)
+Eric Auger <eric.auger@redhat.com> (commit_signer:3/12=25%,authored:3/12=25%,added_lines:24/63=38%)
+Aaron Lewis <aaronlewis@google.com> (commit_signer:2/12=17%,authored:1/12=8%,added_lines:6/63=10%)
+Peter Xu <peterx@redhat.com> (authored:1/12=8%)
+Makarand Sonare <makarandsonare@google.com> (added_lines:7/63=11%)
+linux-doc@vger.kernel.org (open list:DOCUMENTATION)
+linux-kernel@vger.kernel.org (open list)
+kvm@vger.kernel.org (open list:KERNEL VIRTUAL MACHINE (KVM))
+linux-kselftest@vger.kernel.org (open list:KERNEL SELFTEST FRAMEWORK)
+```
+
+Also add kernel-hardening@lists.openwall.com
+And liran.alon@oracle.com
+And drjones@redhat.com
+
+```console
+git send-email \
+  --subject-prefix="PATCH" \
+  --annotate \
+  --cover-letter \
+  --base=kvm/next \
+  --to corbet@lwn.net \
+  --to pbonzini@redhat.com \
+  --to tglx@linutronix.de \
+  --to mingo@redhat.com \
+  --to bp@alien8.de \
+  --to x86@kernel.org \
+  --to hpa@zytor.com \
+  --to shuah@kernel.org \
+  --to sean.j.christopherson@intel.com \
+  --to liran.alon@oracle.com \
+  --to drjones@redhat.com \
+  --cc vkuznets@redhat.com \
+  --cc wanpengli@tencent.com \
+  --cc jmattson@google.com \
+  --cc joro@8bytes.org \
+  --cc mchehab+huawei@kernel.org \
+  --cc gregkh@linuxfoundation.org \
+  --cc paulmck@kernel.org \
+  --cc pawan.kumar.gupta@linux.intel.com \
+  --cc jgross@suse.com \
+  --cc mike.kravetz@oracle.com \
+  --cc oneukum@suse.com \
+  --cc luto@kernel.org \
+  --cc peterz@infradead.org \
+  --cc fenghua.yu@intel.com \
+  --cc reinette.chatre@intel.com \
+  --cc vineela.tummalapalli@intel.com \
+  --cc dave.hansen@linux.intel.com \
+  --cc john.s.andersen@intel.com \
+  --to rick.p.edgecombe@intel.com \
+  --to kristen@linux.intel.com \
+  --cc arjan@linux.intel.com \
+  --cc caoj.fnst@cn.fujitsu.com \
+  --cc bhe@redhat.com \
+  --cc nivedita@alum.mit.edu \
+  --cc keescook@chromium.org \
+  --cc dan.j.williams@intel.com \
+  --cc eric.auger@redhat.com \
+  --cc aaronlewis@google.com \
+  --cc peterx@redhat.com \
+  --cc makarandsonare@google.com \
+  --cc linux-doc@vger.kernel.org \
+  --cc linux-kernel@vger.kernel.org \
+  --cc kvm@vger.kernel.org \
+  --cc linux-kselftest@vger.kernel.org \
+  --cc kernel-hardening@lists.openwall.com \
+  --bcc sandra.haron@intel.com \
+  HEAD~4
+```

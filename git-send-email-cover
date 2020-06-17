@@ -69,6 +69,44 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
 
 
 
+=== Chanages since RFCv2 ===
+
+- Related to Drew's comments
+
+  - Used linux/stringify.h in selftests
+
+  - Added comments on why we don't use GUEST_* due to SMM trickiness.
+    We opt not to use GUEST_SYNC() because we also have to make a sync call
+    from SMM. As such, the address of the ucall struct we'd need to pass isn't
+    something we can put into the machine code in a maintainable way. At least
+    so far as I could tell.
+
+- Related to Sean's comments
+
+  - Allowed pinning bits high or low rather than just high
+
+  - Cleaner code path for guest and host when writing to MSRs
+
+    - Didn't use read modify write behavior due to that requiring changes to
+      selftest save restore code which made me suspect that there might be
+      issues with other VMMs. The issue was because we read CR0/4 in the RWM
+      operation on the MSR, we must do KVM_SET_REGS before KVM_SET_MSRS, we also
+      had to call KVM_SET_SREGS and add checks for if we're in SMM or not. This
+      made it a bit more messy overall so I went with the first approach Sean
+      suggested where we just have pin high/low semantics.
+
+  - If the guest writes values to the allowed MSRs that are not the correct
+    value the wrmsr fails.
+
+  - If SMRAM modification would result in unpinning bits we bail with
+    X86EMUL_UNHANDLEABLE
+
+  - Added silent restoration of pinned bits for SVM and VMX when they may have
+    been modified in VMCB / VMCS. This didn't seem like a place were we'd want
+    to inject a fault, please let me know if we should.
+
+
+
 === Description of changes and rational ===
 
 Paravirtualized Control Register pinning is a strengthened version of

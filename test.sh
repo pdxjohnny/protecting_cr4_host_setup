@@ -32,15 +32,38 @@ mount_image
 
 sudo tee "${CHROOT}/do" <<<"rebooter"
 
-export LEADING="timeout --verbose --foreground 10s"
+export LEADING="timeout --verbose --foreground 60s"
 
 TRAILING="-no-reboot" "${HOME}/run.sh"
 echo "PASS: precheck" | tee "${LOG}/results"
 
 set +e
 
+test_selftests() {
+  cd "${HOME}/linux-combined/"
+  make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+  RELOAD=1 ~/run.sh
+  make TARGETS="kvm" summary=1 kselftest
+  cd tools/testing/selftests/kvm/
+  (./x86_64/smm_cr_pin_test &&
+   echo "PASS: selftests" | tee -a "${LOG}/results") || \
+  echo "FAIL: selftests" | tee -a "${LOG}/results"
+}
+
+test_unittests() {
+  cd "${HOME}/kvm-unit-tests/"
+  make -j $(($(nproc)*4))
+  (QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ./run_tests.sh \
+   cr_pin_high cr_pin_low vmx_cr_pin_test && \
+   echo "PASS: unittests" | tee -a "${LOG}/results") || \
+  echo "FAIL: unittests" | tee -a "${LOG}/results"
+  cat logs/{cr_pin_high,cr_pin_low,vmx_cr_pin_test}.log \
+    > "${LOG}/unittests"
+}
+
 # Hibernate
 test_hibernate() {
+  cd "${HOME}"
   sudo tee "${CHROOT}/do" <<<"test_hibernate.sh"
   "${HOME}/run.sh" 2>&1 | tee "${LOG}/hibernate_begin"
   if grep -q "reboot: Power down" "${LOG}/hibernate_begin"; then
@@ -57,6 +80,7 @@ test_hibernate() {
 
 # Suspend to RAM
 test_susram() {
+  cd "${HOME}"
   sudo tee "${CHROOT}/do" <<<"test_susram.sh"
   TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/susram"
   if grep -q "TEST SUSRAM END SUSRAM" "${LOG}/susram"; then
@@ -68,6 +92,7 @@ test_susram() {
 
 # kexec
 test_kexec() {
+  cd "${HOME}"
   sudo tee "${CHROOT}/do" <<<"test_kexec.sh"
   LEADING="timeout --verbose --foreground 10s" "${HOME}/run.sh" 2>&1 | tee "${LOG}/kexec"
   if grep -q "kexec_load failed: Operation not permitted" "${LOG}/kexec"; then
@@ -79,6 +104,7 @@ test_kexec() {
 
 # L2
 test_l2() {
+  cd "${HOME}"
   sudo tee "${CHROOT}/do" <<<"test_l2.sh"
   LEADING="timeout --verbose --foreground 60" "${HOME}/run.sh" 2>&1 | tee "${LOG}/l2"
   if [[ "$(grep "Run /usr/bin/rebooter as init process" "${LOG}/l2" | wc -l)0" -gt 20 ]]; then
@@ -88,7 +114,14 @@ test_l2() {
   fi
 }
 
-test_hibernate
-test_susram
-test_kexec
-test_l2
+
+if [ "x${1}" != "x" ]; then
+  "test_${1}"
+else
+  test_selftests
+  test_unittests
+  test_hibernate
+  test_susram
+  test_kexec
+  test_l2
+fi

@@ -1,4 +1,4 @@
-From 62ee4c3f8d081af0a6cc2a4dd37939709622de84 Mon Sep 17 00:00:00 2001
+From a709d53922c958fd10a0f06ff1a5395444e014ab Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/4] KVM: x86: Introduce paravirt feature CR0/CR4 pinning
@@ -279,7 +279,7 @@ index adb11b504d5c..a12bac57b374 100644
  	nested_ept_uninit_mmu_context(vcpu);
  
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 290784ba63e4..b53248d399ed 100644
+index 00c88c2f34e4..940de9a968bd 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
 @@ -772,6 +772,9 @@ bool pdptrs_changed(struct kvm_vcpu *vcpu)
@@ -334,9 +334,9 @@ index 290784ba63e4..b53248d399ed 100644
  		break;
  
 +	case MSR_KVM_CR0_PIN_ALLOWED:
++		return (data != KVM_CR0_PIN_ALLOWED);
 +	case MSR_KVM_CR4_PIN_ALLOWED:
-+		/* Ignore all writes to these MSRs since they're read only */
-+		break;
++		return (data != KVM_CR4_PIN_ALLOWED);
 +	case MSR_KVM_CR0_PINNED_LOW:
 +		if ((data & ~KVM_CR0_PIN_ALLOWED) ||
 +		    (data & vcpu->arch.cr0_pinned.high))
