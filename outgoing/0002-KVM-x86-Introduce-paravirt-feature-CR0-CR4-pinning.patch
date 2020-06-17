@@ -1,4 +1,4 @@
-From f88d182b303c133de34eb0c34d41648f0d98a929 Mon Sep 17 00:00:00 2001
+From e629f8565ef461c75fcaf797d455489a9ae68356 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/4] KVM: x86: Introduce paravirt feature CR0/CR4 pinning
@@ -279,7 +279,7 @@ index adb11b504d5c..a12bac57b374 100644
  	nested_ept_uninit_mmu_context(vcpu);
  
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 290784ba63e4..b04a5a119558 100644
+index 290784ba63e4..b53248d399ed 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
 @@ -772,6 +772,9 @@ bool pdptrs_changed(struct kvm_vcpu *vcpu)

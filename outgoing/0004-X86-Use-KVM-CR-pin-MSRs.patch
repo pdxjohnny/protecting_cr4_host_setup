@@ -1,4 +1,4 @@
-From a74358a4f8a56829f3b188b637527c49a530472b Mon Sep 17 00:00:00 2001
+From d3605c4f6dd085fa9b7d518b7b87a9244334171e Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 4/4] X86: Use KVM CR pin MSRs
@@ -180,7 +180,7 @@ index 921e67086a00..ee17223b1fa8 100644
  
  static __init int setup_noclflush(char *arg)
 diff --git a/arch/x86/kernel/kvm.c b/arch/x86/kernel/kvm.c
-index 7e6403a8d861..7c932a01a310 100644
+index 7e6403a8d861..def913b86a99 100644
 --- a/arch/x86/kernel/kvm.c
 +++ b/arch/x86/kernel/kvm.c
 @@ -23,6 +23,8 @@

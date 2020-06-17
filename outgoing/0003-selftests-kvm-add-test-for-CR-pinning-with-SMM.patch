@@ -1,4 +1,4 @@
-From 77bac53f58d47f11069b83e684c21ab426da80a0 Mon Sep 17 00:00:00 2001
+From 89d234ea559c0a77438b942474466a84a2c5aebd Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 27 Jan 2020 16:32:19 -0800
 Subject: [PATCH 3/4] selftests: kvm: add test for CR pinning with SMM
@@ -70,7 +70,7 @@ index 82b7fe16a824..8a2da0449772 100644
  #endif /* SELFTEST_KVM_PROCESSOR_H */
 diff --git a/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c b/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 new file mode 100644
-index 000000000000..f794df74ade4
+index 000000000000..a32f577ca1e5
 --- /dev/null
 +++ b/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 @@ -0,0 +1,207 @@
