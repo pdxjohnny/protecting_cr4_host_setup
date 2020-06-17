@@ -1,4 +1,4 @@
-From e629f8565ef461c75fcaf797d455489a9ae68356 Mon Sep 17 00:00:00 2001
+From 62ee4c3f8d081af0a6cc2a4dd37939709622de84 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/4] KVM: x86: Introduce paravirt feature CR0/CR4 pinning
@@ -60,8 +60,8 @@ as MSRs. The NXE bit of the EFER MSR is a prime candidate.
 Changes for QEMU are required to expose the CR pin cpuid feature bit. As
 well as clear the MSRs on reboot and enable migration.
 
-https://github.com/qemu/qemu/commit/0698f310c7ed51e9e9d22aeb765b2bd26788eda3
-https://github.com/qemu/qemu/commit/a927e4825998f50444b2978d0ae4d1e504b0547b
+https://github.com/qemu/qemu/commit/1b26f03653669c97dd8729f9f59be561d68e2b2d
+https://github.com/qemu/qemu/commit/3af36d57457892c3088ee88de759d4f258c159a7
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
