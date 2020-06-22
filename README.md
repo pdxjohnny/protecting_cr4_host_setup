@@ -333,5 +333,59 @@ git send-email \
   --cc linux-kselftest@vger.kernel.org \
   --cc kernel-hardening@lists.openwall.com \
   --bcc sandra.haron@intel.com \
+  --bcc deneen.t.dock@intel.com \
   HEAD~4
+```
+
+Send kvm-unit-tests patch
+
+```console
+git send-email \
+  --annotate \
+  --subject-prefix="kvm-unit-tests PATCH v2" \
+  --base=auto \
+  --to corbet@lwn.net \
+  --to pbonzini@redhat.com \
+  --to tglx@linutronix.de \
+  --to mingo@redhat.com \
+  --to bp@alien8.de \
+  --to hpa@zytor.com \
+  --to shuah@kernel.org \
+  --to sean.j.christopherson@intel.com \
+  --cc john.s.andersen@intel.com \
+  --to rick.p.edgecombe@intel.com \
+  --to kvm@vger.kernel.org \
+  --cc kernel-hardening@lists.openwall.com \
+  --bcc johnandersenpdx@gmail.com \
+  0001-x86-Add-control-register-pinning-tests.patch
+```
+
+## kexec
+
+Places that might have to do with kexec
+
+```console
+arch/arm/kernel/relocate_kernel.S
+arch/x86/boot/compressed/efi_thunk_64.S
+arch/x86/boot/compressed/head_64.S
+arch/x86/kernel/acpi/wakeup_64.S
+arch/x86/kernel/head_64.S
+arch/x86/kernel/relocate_kernel_64.S
+arch/x86/kernel/relocate_kernel_64.S:103
+arch/x86/kernel/relocate_kernel_64.S:105
+arch/x86/kernel/relocate_kernel_64.S:52
+arch/x86/kernel/relocate_kernel_64.S:53
+arch/x86/kernel/relocate_kernel_64.S:54
+arch/x86/kernel/relocate_kernel_64.S:55
+arch/x86/kernel/relocate_kernel_64.S:56
+arch/x86/kernel/relocate_kernel_64.S:57
+arch/x86/kernel/relocate_kernel_64.S:58
+arch/x86/kernel/relocate_kernel_64.S:60
+arch/x86/kernel/relocate_kernel_64.S:74
+arch/x86/kernel/relocate_kernel_64.S:77
+arch/x86/mm/mem_encrypt_boot.S
+arch/x86/platform/olpc/xo1-wakeup.S
+arch/x86/power/hibernate_asm_64.S
+arch/x86/realmode/rm/trampoline_64.S
+arch/x86/realmode/rm/wakeup_asm.S
 ```
