@@ -401,3 +401,5 @@ arch/x86/kernel/relocate_kernel_64.S
 arch/x86/realmode/rm/trampoline_64.S
 arch/x86/realmode/rm/wakeup_asm.S
 ```
+
+The branch with kexec support is called nokexec for some dumb reason.
