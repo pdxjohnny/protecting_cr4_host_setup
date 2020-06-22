@@ -389,3 +389,15 @@ arch/x86/power/hibernate_asm_64.S
 arch/x86/realmode/rm/trampoline_64.S
 arch/x86/realmode/rm/wakeup_asm.S
 ```
+
+Narrowed with
+
+```console
+$ git log --walk-reflogs -p | grep \\.S
+arch/x86/boot/compressed/efi_thunk_64.S
+arch/x86/boot/compressed/head_64.S
+arch/x86/kernel/head_64.S
+arch/x86/kernel/relocate_kernel_64.S
+arch/x86/realmode/rm/trampoline_64.S
+arch/x86/realmode/rm/wakeup_asm.S
+```
