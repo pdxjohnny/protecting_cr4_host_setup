@@ -1,5 +1,9 @@
 # Paravirtualization Based CR Pinning
 
+## TODO
+
+- Handle crashkernel
+
 Last working against ead68df94d24 - `KVM: x86: enable -Werror`
 
 ```console
