@@ -1,7 +1,7 @@
-From d8e575ddbe4afed53b4a7d590f6c8ccd16c807c2 Mon Sep 17 00:00:00 2001
+From 0c9f94a6276a802837a5572d7f820e2e43b933ab Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 27 Jan 2020 16:32:19 -0800
-Subject: [PATCH 3/4] selftests: kvm: add test for CR pinning with SMM
+Subject: [PATCH 3/6] selftests: kvm: add test for CR pinning with SMM
 
 Check that paravirtualized control register pinning blocks modifications
 of pinned CR values stored in SMRAM on exit from SMM.

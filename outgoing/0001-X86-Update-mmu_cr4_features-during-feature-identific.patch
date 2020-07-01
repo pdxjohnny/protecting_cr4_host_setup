@@ -1,7 +1,7 @@
-From df5446d9bcc12b234bee47d9fdaa698f621b8976 Mon Sep 17 00:00:00 2001
+From 13a311d3ccb88171c6697c4ef4ec6295d6f53735 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 8 Jan 2020 13:14:30 -0800
-Subject: [PATCH 1/4] X86: Update mmu_cr4_features during feature
+Subject: [PATCH 1/6] X86: Update mmu_cr4_features during feature
  identification
 
 In identify_cpu when setting up SMEP/SMAP/UMIP call

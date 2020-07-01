@@ -1,0 +1,120 @@
+From b940785434fa4c534f3352b9b24ba4d29d0a1d2b Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Tue, 26 Nov 2019 19:13:29 -0500
+Subject: [PATCH 6/6] X86: boot: Maintain CR0/4 WP, SMAP, SMEP, UMIP through
+ kexec
+
+This is a naive fix for kexec which has only been tested to work under
+KVM. When tested on a physical host, it did not boot when SMAP or UMIP
+were set in this fashion.
+
+The purpose of this patch within this patchset is to demonstrate the
+feasibility of kexec working when pinning is enabled. Also to solicit
+feedback on what the most appropriate way to do this is.
+
+Undoubtedly this is not the correct way to do this, as it skips CPU
+feature identification, opting instead for blindly setting the bits.
+The physical host I tested this on does not have UMIP so that's likely
+why it failed to boot when UMIP gets set blindly.  Within
+kvm-unit-tests, the test for SMAP maps memory as supervisor pages before
+enabling SMAP. I suspect this is why setting SMAP blindly causes the
+physical host not to boot.
+
+Within trampoline_32bit_src() if I add more instructions I get an error
+about "attempt to move .org backwards", which as I understand it means
+there are only so many instructions allowed in each of those functions.
+
+My suspicion is that someone with more knowledge of this area has a good
+idea on how best to handle this. Feedback would be much appreciated.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ arch/x86/boot/compressed/head_64.S   | 10 +++++-----
+ arch/x86/kernel/head_64.S            |  2 +-
+ arch/x86/kernel/relocate_kernel_64.S |  6 +++---
+ 3 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/arch/x86/boot/compressed/head_64.S b/arch/x86/boot/compressed/head_64.S
+index e821a7d7d5c4..f85744d25830 100644
+--- a/arch/x86/boot/compressed/head_64.S
++++ b/arch/x86/boot/compressed/head_64.S
+@@ -134,7 +134,7 @@ SYM_FUNC_START(startup_32)
+ 
+ 	/* Enable PAE mode */
+ 	movl	%cr4, %eax
+-	orl	$X86_CR4_PAE, %eax
++	orl	$(X86_CR4_PAE | X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP), %eax
+ 	movl	%eax, %cr4
+ 
+  /*
+@@ -232,7 +232,7 @@ SYM_FUNC_START(startup_32)
+ 	pushl	%eax
+ 
+ 	/* Enter paged protected Mode, activating Long Mode */
+-	movl	$(X86_CR0_PG | X86_CR0_PE), %eax /* Enable Paging and Protected mode */
++	movl	$(X86_CR0_PG | X86_CR0_PE | X86_CR0_WP), %eax /* Enable Paging and Protected mode */
+ 	movl	%eax, %cr0
+ 
+ 	/* Jump from 32bit compatibility mode into 64bit mode. */
+@@ -621,10 +621,10 @@ SYM_CODE_START(trampoline_32bit_src)
+ 	popl	%ecx
+ 
+ 	/* Enable PAE and LA57 (if required) paging modes */
+-	movl	$X86_CR4_PAE, %eax
++	movl	$(X86_CR4_PAE | X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP), %eax
+ 	cmpl	$0, %edx
+ 	jz	1f
+-	orl	$X86_CR4_LA57, %eax
++	orl	$(X86_CR4_LA57 | X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP), %eax
+ 1:
+ 	movl	%eax, %cr4
+ 
+@@ -636,7 +636,7 @@ SYM_CODE_START(trampoline_32bit_src)
+ 	pushl	%eax
+ 
+ 	/* Enable paging again */
+-	movl	$(X86_CR0_PG | X86_CR0_PE), %eax
++	movl	$(X86_CR0_PG | X86_CR0_PE | X86_CR0_WP), %eax
+ 	movl	%eax, %cr0
+ 
+ 	lret
+diff --git a/arch/x86/kernel/head_64.S b/arch/x86/kernel/head_64.S
+index 4bbc770af632..22708b66a2fe 100644
+--- a/arch/x86/kernel/head_64.S
++++ b/arch/x86/kernel/head_64.S
+@@ -123,7 +123,7 @@ SYM_CODE_START(secondary_startup_64)
+ 1:
+ 
+ 	/* Enable PAE mode, PGE and LA57 */
+-	movl	$(X86_CR4_PAE | X86_CR4_PGE), %ecx
++	movl	$(X86_CR4_PAE | X86_CR4_PGE | X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP), %ecx
+ #ifdef CONFIG_X86_5LEVEL
+ 	testl	$1, __pgtable_l5_enabled(%rip)
+ 	jz	1f
+diff --git a/arch/x86/kernel/relocate_kernel_64.S b/arch/x86/kernel/relocate_kernel_64.S
+index a4d9a261425b..85b6f8bbd6cc 100644
+--- a/arch/x86/kernel/relocate_kernel_64.S
++++ b/arch/x86/kernel/relocate_kernel_64.S
+@@ -124,8 +124,8 @@ SYM_CODE_START_LOCAL_NOALIGN(identity_mapped)
+ 	 *  - Proctected mode enabled
+ 	 */
+ 	movq	%cr0, %rax
+-	andq	$~(X86_CR0_AM | X86_CR0_WP | X86_CR0_TS | X86_CR0_EM), %rax
+-	orl	$(X86_CR0_PG | X86_CR0_PE), %eax
++	andq	$~(X86_CR0_AM | X86_CR0_TS | X86_CR0_EM), %rax
++	orl	$(X86_CR0_PG | X86_CR0_PE | X86_CR0_WP), %eax
+ 	movq	%rax, %cr0
+ 
+ 	/*
+@@ -133,7 +133,7 @@ SYM_CODE_START_LOCAL_NOALIGN(identity_mapped)
+ 	 *  - physical address extension enabled
+ 	 *  - 5-level paging, if it was enabled before
+ 	 */
+-	movl	$X86_CR4_PAE, %eax
++	movl	$(X86_CR4_PAE | X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP), %eax
+ 	testq	$X86_CR4_LA57, %r13
+ 	jz	1f
+ 	orl	$X86_CR4_LA57, %eax
+-- 
+2.21.0
+

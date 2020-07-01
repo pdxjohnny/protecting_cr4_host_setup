@@ -1,3 +1,26 @@
+Hi Sean,
+
+Thank you for reviewing this. Sorry I lagged on getting this to you. I have two
+questions are the moment.
+
+- Dave recommend that we make the command line option disable_pv_cr_pin, rather
+  than pv_cr_pin. This puts us in a position where users are no longer opting
+  into this functionality should they have kexec, but opting out. For when there
+  is a patch to make kexec work, we'd be creating a situation where unless the
+  user specified disable_pv_cr_pin on the command line, they wouldn't be able to
+  kexec an older kernel. Is this acceptable?
+
+- I've included in this patchset to you a naive fix for kexec. It's very RFC
+  work. I'm wondering if I should just re-label this whole thing RFC, or if I
+  should just send it all as PATCH v2. Or send that patch separately as an RFC.
+  Your thoughts here would be appreciated.
+
+Thanks,
+John
+
+=== END NOTES TO SEAN ===
+
+
 The paravirtualized CR pinning patchset is a strengthened version of
 existing control registers pinning for paravritualized guests. It
 protects KVM guests from ROP based attacks which attempt to disable key
@@ -6,14 +29,13 @@ Lambda, and Chromos Termina will get this protection enabled by default
 when they update their kernel / configs. Using virtualization allows us
 to provide a stronger version of a proven exploit mitigation technique.
 
-We’ve patched KVM to create 6 new KVM specific MSRs used to query which
+We've patched KVM to create 6 new KVM specific MSRs used to query which
 bits may be pinned, and to set which bits are pinned high or low in
 control registers 0 and 4. Linux guest support was added so that
 non-kexec guests will be able to take advantage of this strengthened
 protection by default. A plan for enabling guests with kexec is proposed
-in this cover letter. As part of that plan, we add a command line flag
-that allows users to opt-in to the protection on boot if they have kexec
-built into their kernel, effectively opting out of kexec support.
+in this cover letter.
+
 Hibernation and suspend to ram were enabled by updating the location
 where bits in control register 4 were saved to and restored from. The
 work also includes minor patches for QEMU to ensure reboot works by
@@ -26,8 +48,9 @@ Liran who reviewed v1, and to Sean, Dave, Kristen, and Rick who've
 provided feedback throughout. I appreciate your time spent reviewing and
 feedback.
 
-Here are the previous RFC versions of this patchset for reference
+Here are the previous versions of this patchset for reference
 
+PATCH v1: https://lkml.org/lkml/2020/6/17/921
 RFC v2: https://lkml.org/lkml/2020/2/18/1162
 RFC v1: https://lkml.org/lkml/2019/12/24/380
 
@@ -69,7 +92,18 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
 
 
 
-=== Chanages since RFCv2 ===
+=== Changes since PATCH v1 ===
+
+- Andy and Dave's comments on the allowed set of bits and how we shouldn't
+  restrict the allowed set
+
+  - The allowed bits default to the set which we pin natively. They can be
+    modified by the host VMM should there be a usecase for that.
+
+- Dave's comments
+
+
+=== Changes since RFC v2 ===
 
 - Related to Drew's comments
 
