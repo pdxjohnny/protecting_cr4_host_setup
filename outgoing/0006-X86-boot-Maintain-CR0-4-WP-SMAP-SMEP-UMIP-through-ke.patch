@@ -1,4 +1,4 @@
-From b940785434fa4c534f3352b9b24ba4d29d0a1d2b Mon Sep 17 00:00:00 2001
+From d063edf04130fb3e1c3e29011f0c800972f19a26 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 26 Nov 2019 19:13:29 -0500
 Subject: [PATCH 6/6] X86: boot: Maintain CR0/4 WP, SMAP, SMEP, UMIP through

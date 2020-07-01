@@ -1,19 +1,20 @@
 Hi Sean,
 
-Thank you for reviewing this. Sorry I lagged on getting this to you. I have two
-questions are the moment.
+Thank you for reviewing this. Sorry I lagged on getting this to you. I still
+don't have answers for the questions raised on the update mmu_cr4_features
+patch. But I thought it best to get you this sooner rather than later. I was
+hoping to get your thoughts on the following two things I see as open questions.
 
 - Dave recommend that we make the command line option disable_pv_cr_pin, rather
   than pv_cr_pin. This puts us in a position where users are no longer opting
   into this functionality should they have kexec, but opting out. For when there
   is a patch to make kexec work, we'd be creating a situation where unless the
   user specified disable_pv_cr_pin on the command line, they wouldn't be able to
-  kexec an older kernel. Is this acceptable?
+  kexec an older kernel. Is this acceptable? I feel like it's not.
 
 - I've included in this patchset to you a naive fix for kexec. It's very RFC
   work. I'm wondering if I should just re-label this whole thing RFC, or if I
   should just send it all as PATCH v2. Or send that patch separately as an RFC.
-  Your thoughts here would be appreciated.
 
 Thanks,
 John
@@ -60,10 +61,11 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
 
 - A CPUID feature bit as well as MSRs were added to KVM. Guests can use
   the CPUID feature bit to determine if MSRs are available. Reading the
-  first 2 MSRs returns the bits which may be pinned for CR0/4
-  respectively. The next 4 MSRs are writeable and allow the guest and
-  host userspace to set which bits are pinned low or pinned high for
-  CR0/4.
+  first 2 MSRs returns the bits which are allowed to be pinned for CR0/4
+  respectively. Allowed bits to pin default to the same set we pin natively.
+  Host VMM may override which bits are allowed to be pinned. The next 4 MSRs are
+  writeable and allow the guest and host userspace to set which bits are pinned
+  low or pinned high for CR0/4.
 
 - Hibernation and suspend-to-RAM are supported. This was done by
   updating mmu_cr4_features on feature identification of the boot CPU.
@@ -102,6 +104,11 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
 
 - Dave's comments
 
+  - Added disable_kexec command line option
+
+  - Added disable_pv_cr_pin command line option
+
+  - Removed pv_cr_pin command line option
 
 === Changes since RFC v2 ===
 
@@ -166,14 +173,14 @@ effective.
 
 https://www.abatchy.com/2018/01/kernel-exploitation-4
 
-We add a CR pin feature bit to the KVM cpuid, read only MSRs which
-guests use to identify which bits they may request be pinned, and CR
-pinned low/high MSRs which contain the pinned bits. Guests can request
-that KVM pin bits within control register 0 or 4 via the CR pinned MSRs.
-Writes to the MSRs fail if they include bits that aren't allowed to be
-pinned. Host userspace may clear or modify pinned bits at any time. Once
-pinned bits are set, the guest may pin more allowed bits, but may never
-clear pinned bits.
+We add a CR pin feature bit to the KVM cpuid, MSRs which guests use to identify
+which bits they may request be pinned, and CR pinned low/high MSRs which contain
+the pinned bits. Host VMM may modify which bits are allowed to be pinned. Guests
+can request that KVM pin bits within control register 0 or 4 via the CR pinned
+MSRs. Writes to the MSRs fail if they include bits that aren't allowed to be
+pinned. Host userspace may clear or modify pinned bits at any time. Once pinned
+bits are set, the guest may pin more allowed bits, but may never clear pinned
+bits.
 
 In the event that the guest vCPU attempts to disable any of the pinned
 bits, the vCPU that issued the write is sent a general protection
@@ -199,7 +206,7 @@ the guest enable pinning and subsequently cause general protection
 faults on next boot due to early boot code setting control registers to
 values which do not contain the pinned bits.
 
-Hibernation to disk and suspend-to-RAM are supported. identify_cpu was
+Hibernation to disk and suspend-to-RAM are supported. identify_cpu() was
 updated to ensure SMEP/SMAP/UMIP are present in mmu_cr4_features. This
 is necessary to ensure protections stay active during hibernation image
 restoration.
@@ -209,26 +216,29 @@ paravirtualized control register pinning. This is due to early boot
 code writing known good values to control registers, these values do
 not contain the protected bits. This is due to CPU feature
 identification being done at a later time, when the kernel properly
-checks if it can enable protections. As such, the pv_cr_pin command
-line option has been added which instructs the kernel to disable kexec
-in favor of enabling paravirtualized control register pinning.
-crashkernel is also disabled when the pv_cr_pin parameter is specified
-due to its reliance on kexec.
+checks if it can enable protections.
 
-When we make kexec compatible, we will still need a way for a kernel
-with support to know if the kernel it is attempting to load has
-support. If a kernel with this enabled attempts to kexec a kernel where
-this is not supported, it would trigger a fault almost immediately.
+Paravirtualized control register pinning will be enabled by default if
+available and kexec support is either not present or disabled via
+disable_kexec. Disabling kexec via it's sysctl will not result in the
+enabling of paravirtualized pinning, do to the setting of sysctl's
+happening after the check for pinning.
+
+Should the user find that paravirtualized pinning causes issues for
+them, it can be disabled using the new disable_pv_cr_pin command line
+option.
+
+When we fix kexec, we will still need a way for a kernel with support to
+know if the kernel it is attempting to load has support. If a kernel
+with this enabled attempts to kexec a kernel where this is not
+supported, it would trigger a fault almost immediately.
 
 Liran suggested adding a section to the built image acting as a flag to
 signify support for being kexec'd by a kernel with pinning enabled.
-Should that approach be implemented, it is likely that the command line
-flag (pv_cr_pin) would still be desired for some deprecation period. We
-wouldn't want the default behavior to change from being able to kexec
-older kernels to not being able to, as this might break some users
-workflows. Since we require that the user opt-in to break kexec we've
-held off on attempting to fix kexec in this patchset. This way no one
-sees any behavior they are not explicitly opting in to.
+Should that approach be implemented, any kernel without support for
+pinning would no longer be able to be kexec'd by a kernel running with
+pinning enabled. Should the user wish to kexec kernels lacking pinning
+support, they would have to disable paravirtualized pinning.
 
 Security conscious kernel configurations disable kexec already, per
 KSPP guidelines. Projects such as Kata Containers, AWS Lambda, ChromeOS
@@ -252,24 +262,20 @@ The NXE bit of the EFER MSR is a prime candidate.
 === Plan for kexec support ===
 
 Andy's suggestion of a boot option has been incorporated as the
-pv_cr_pin command line option. Boris mentioned that short-term
-solutions become immutable. However, for the reasons outlined below
-we need a way for the user to opt-in to pinning over kexec if both
-are compiled in, and the command line parameter seems to be a good
-way to do that. Liran's proposed solution of a flag within the ELF
-would allow us to identify which kernels have support is assumed to
-be implemented in the following scenarios.
+disable_kexec command line option. Liran's proposed solution of a flag
+within the ELF would allow us to identify which kernels have support is
+assumed to be implemented in the following scenarios.
 
-We then have the following cases (without the addition of pv_cr_pin):
+We then have the following cases:
 
 
 - Kernel running without pinning enabled kexecs kernel with pinning.
 
-  - Loaded kernel has kexec
+  - Loaded kernel has kexec (or is not disabled via disable_kexec)
 
     - Do not enable pinning
 
-  - Loaded kernel lacks kexec
+  - Loaded kernel lacks kexec (or is disabled via disable_kexec)
 
     - Enable pinning
 
@@ -283,52 +289,6 @@ We then have the following cases (without the addition of pv_cr_pin):
 
   - User is presented with an error saying that they may not kexec
     a kernel without pinning support.
-
-
-With the addition of pv_cr_pin we have the following situations:
-
-
-- Kernel running without pinning enabled kexecs kernel with pinning.
-
-  - Loaded kernel has kexec
-
-    - pv_cr_pin command line parameter present for new kernel
-
-      - Enable pinning
-
-    - pv_cr_pin command line parameter not present for new kernel
-
-      - Do not enable pinning
-
-  - Loaded kernel lacks kexec
-
-    - Enable pinning
-
-- Kernel running with pinning enabled kexecs kernel with pinning (as
-  identified by ELF addition).
-
-  - Okay
-
-- Kernel running with kexec and pinning enabled (opt-in via pv_cr_pin)
-  kexecs kernel without pinning (as identified by lack of ELF addition).
-
-  - User is presented with an error saying that they have opted
-    into pinning support and may not kexec a kernel without pinning
-    support.
-
-
-Without the command line parameter I'm not sure how we could preserve
-users workflows which might rely on kexecing older kernels (ones
-which wouldn't have support). I see the benefit here being that users
-have to opt-in to the possibility of breaking their workflow, via
-their addition of the pv_cr_pin command line flag. Which could of
-course also be called nokexec. A deprecation period could then be
-chosen where eventually pinning takes preference over kexec and users
-are presented with the error if they try to kexec an older kernel.
-Input on this would be much appreciated, as well as if this is the
-best way to handle things or if there's another way that would be
-preferred. This is just what we were able to come up with to ensure
-users didn't get anything broken they didn't agree to have broken.
 
 
 Thanks,

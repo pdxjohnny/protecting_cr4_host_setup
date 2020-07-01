@@ -1,22 +1,22 @@
-From 13a311d3ccb88171c6697c4ef4ec6295d6f53735 Mon Sep 17 00:00:00 2001
+From bdc9806819d3f7c41ae7046bcfb110aa9a1bc269 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 8 Jan 2020 13:14:30 -0800
 Subject: [PATCH 1/6] X86: Update mmu_cr4_features during feature
  identification
 
 In identify_cpu when setting up SMEP/SMAP/UMIP call
-cr4_set_bits_and_update_boot instead of cr4_set_bits. This ensures that
-mmu_cr4_features contains those bits, and does not disable those
+cr4_set_bits_and_update_boot() instead of cr4_set_bits(). This ensures
+that mmu_cr4_features contains those bits, and does not disable those
 protections when in hibernation asm.
 
-setup_arch updates mmu_cr4_features to save what identified features are
-supported for later use in hibernation asm when cr4 needs to be modified
-to toggle PGE. cr4 writes happen in restore_image and restore_registers.
-setup_arch occurs before identify_cpu, this leads to mmu_cr4_features
-not containing some of the cr4 features which were enabled via
-identify_cpu when hibernation asm is executed.
+setup_arch() updates mmu_cr4_features to save what identified features
+are supported for later use in hibernation asm when cr4 needs to be
+modified to toggle PGE. cr4 writes happen in restore_image() and
+restore_registers(). setup_arch occurs before identify_cpu(), this leads
+to mmu_cr4_features not containing some of the cr4 features which were
+enabled via identify_cpu() when hibernation asm is executed.
 
-On CPU bringup when cr4_set_bits_and_update_boot is called
+On CPU bringup when cr4_set_bits_and_update_boot() is called
 mmu_cr4_features will now be written to. For the boot CPU,
 the __ro_after_init on mmu_cr4_features does not cause a fault. However,
 __ro_after_init was removed due to it triggering faults on non-boot

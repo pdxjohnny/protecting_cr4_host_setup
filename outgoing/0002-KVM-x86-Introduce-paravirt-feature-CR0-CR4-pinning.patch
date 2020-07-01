@@ -1,4 +1,4 @@
-From 1646145b78c7ba67d046c092a3b3a8a304c8bee3 Mon Sep 17 00:00:00 2001
+From a263b903e42774dcea14106717188f3fa0ee1d46 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 2/6] KVM: x86: Introduce paravirt feature CR0/CR4 pinning
@@ -66,7 +66,7 @@ https://github.com/qemu/qemu/commit/3af36d57457892c3088ee88de759d4f258c159a7
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/msr.rst       |  53 +++++++++++++
+ Documentation/virt/kvm/msr.rst       |  55 +++++++++++++
  arch/x86/include/asm/kvm_host.h      |   8 ++
  arch/x86/include/uapi/asm/kvm_para.h |   7 ++
  arch/x86/kvm/cpuid.c                 |   3 +-
@@ -75,13 +75,13 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  arch/x86/kvm/svm/nested.c            |  11 ++-
  arch/x86/kvm/vmx/nested.c            |  10 ++-
  arch/x86/kvm/x86.c                   | 114 ++++++++++++++++++++++++++-
- 9 files changed, 202 insertions(+), 9 deletions(-)
+ 9 files changed, 204 insertions(+), 9 deletions(-)
 
 diff --git a/Documentation/virt/kvm/msr.rst b/Documentation/virt/kvm/msr.rst
-index e37a14c323d2..9fa43c4a5895 100644
+index e37a14c323d2..8f3777624688 100644
 --- a/Documentation/virt/kvm/msr.rst
 +++ b/Documentation/virt/kvm/msr.rst
-@@ -376,3 +376,56 @@ data:
+@@ -376,3 +376,58 @@ data:
  	write '1' to bit 0 of the MSR, this causes the host to re-scan its queue
  	and check if there are more notifications pending. The MSR is available
  	if KVM_FEATURE_ASYNC_PF_INT is present in CPUID.
@@ -91,8 +91,10 @@ index e37a14c323d2..9fa43c4a5895 100644
 +MSR_KVM_CR4_PIN_ALLOWED:
 +	0x4b564d09
 +
-+	Read only registers informing the guest which bits may be pinned for
-+	each control register respectively via the CR pinned MSRs.
++	Registers informing the guest which bits may be pinned for each control
++	register respectively via the CR pinned MSRs. Read only for the guest.
++	Host VMM may modify which bits are allowed by writing to these
++	registers.
 +
 +data:
 +	Bits which may be pinned.
@@ -100,8 +102,8 @@ index e37a14c323d2..9fa43c4a5895 100644
 +	Attempting to pin bits other than these will result in a failure when
 +	writing to the respective CR pinned MSR.
 +
-+	Bits which are allowed to be pinned are WP for CR0 and SMEP, SMAP, and
-+	UMIP for CR4.
++	Bits which are allowed to be pinned default to WP for CR0 and SMEP,
++	SMAP, and UMIP for CR4.
 +
 +MSR_KVM_CR0_PINNED_LOW:
 +	0x4b564d0a

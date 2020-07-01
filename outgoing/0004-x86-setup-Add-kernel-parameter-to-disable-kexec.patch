@@ -1,4 +1,4 @@
-From c323d6f25ecf6fa33522ac4603b9d899ac36d316 Mon Sep 17 00:00:00 2001
+From 6cc557f7222ad9590762ea248073bf219820394d Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 30 Jun 2020 19:21:19 -0700
 Subject: [PATCH 4/6] x86/setup: Add kernel parameter to disable kexec
