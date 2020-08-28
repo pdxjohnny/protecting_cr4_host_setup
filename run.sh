@@ -85,6 +85,11 @@ cp "${HOME}/seabios/out/bios.bin" "${CHROOT}/${HOME}/seabios/out/bios.bin"
 sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${CHROOT}/boot/bzImage"
 sudo chmod 644 "${CHROOT}/boot/bzImage"
 
+if [ "x${DO}" != "x" ]; then
+  sudo tee "${CHROOT}/do" <<<"${DO}"
+  cat "${CHROOT}/do"
+fi
+
 sudo sync
 sudo umount -R "${CHROOT}"
 sudo qemu-nbd --disconnect /dev/nbd0
@@ -93,7 +98,6 @@ trap mount_image EXIT
 
 rm -f /tmp/qemudebugpipe
 mkfifo /tmp/qemudebugpipe
-
 
 sudo $LEADING "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" "$@" \
   -smp cpus=2 \

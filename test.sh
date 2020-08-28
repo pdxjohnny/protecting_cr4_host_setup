@@ -94,7 +94,7 @@ test_susram() {
 test_kexec() {
   cd "${HOME}"
   sudo tee "${CHROOT}/do" <<<"test_kexec.sh"
-  LEADING="timeout --verbose --foreground 10s" "${HOME}/run.sh" 2>&1 | tee "${LOG}/kexec"
+  LEADING="timeout --verbose --foreground 10s" TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/kexec"
   if grep -q "kexec_load failed: Operation not permitted" "${LOG}/kexec"; then
     echo "PASS: KEXEC" | tee -a "${LOG}/results"
   else

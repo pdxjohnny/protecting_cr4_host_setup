@@ -32,14 +32,14 @@ do_bash() {
 
 do_kexec() {
   echo "Kexecing..."
-  /usr/sbin/kexec --append="$(cat /proc/cmdline)" -f /boot/bzImage
+  /usr/sbin/kexec --append="$(cat /proc/cmdline)" -f /boot/bzImage --kexec-file-syscall
 }
 
 do_reboot() {
   echo "Rebooting..."
   sleep 2
   /usr/sbin/reboot
-  
+ 
   while test 1; do
     echo "Waiting for reboot..."
     sleep 1
