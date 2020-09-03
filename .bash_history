@@ -1,4 +1,3 @@
-git diff
 make -j $(($(nproc)*4)) bzImage
 vim arch/x86/boot/compressed/head_64.S
 git log -p
@@ -998,3 +997,4 @@ ll ../kexec-tools/
 vim Documentation/x86/boot.rst
 ps aux | grep git
 kill 31330
+tmux a

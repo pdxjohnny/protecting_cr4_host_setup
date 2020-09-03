@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -xe
 
+KERNEL_VERSION=${KERNEL_VERSION:-"$(uname -r)"}
 CHROOT=${CHROOT:-"${HOME}/chroot"}
 IMAGE=${IMAGE:-"${HOME}/image.iso"}
 INIT=${INIT:-'/usr/lib/systemd/systemd'}
@@ -23,15 +24,15 @@ fi
 if [ -d "/sys/module/kvm" ]; then
   sudo modprobe -rf kvm
 fi
-sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
-sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/"
-sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
-sudo cp "${HOME}/linux-combined/virt/lib/irqbypass.ko" "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/irqbypass.ko"
-sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
-sudo modprobe irqbypass
-sudo modprobe kvm
-# sudo modprobe kvm-intel
-sudo modprobe kvm-intel nested=1
+sudo mkdir -p "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/arch/x86/kvm/"
+sudo mkdir -p "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/virt/lib/"
+sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "/lib/modules/${KERNEL_VERSION}/kernel/arch/x86/kvm/"
+sudo cp "${HOME}/linux-combined/virt/lib/irqbypass.ko" "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/virt/lib/irqbypass.ko"
+sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/arch/x86/kvm/"
+# sudo modprobe irqbypass
+# sudo modprobe kvm
+# # sudo modprobe kvm-intel
+# sudo modprobe kvm-intel nested=1
 
 if [ "x${RELOAD}" != "x" ]; then
   exit 0
@@ -61,12 +62,12 @@ fi
 
 mount_image
 
-sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
-sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/"
-sudo mkdir -p "${CHROOT}/lib/modules/$(uname -r)/kernel/fs/fat/"
-sudo cp "${HOME}/linux-combined/fs/fat/"*.ko "${CHROOT}/lib/modules/$(uname -r)/kernel/fs/fat/"
-sudo cp "${HOME}/linux-combined/virt/lib/irqbypass.ko" "${CHROOT}/lib/modules/$(uname -r)/kernel/virt/lib/irqbypass.ko"
-sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "${CHROOT}/lib/modules/$(uname -r)/kernel/arch/x86/kvm/"
+sudo mkdir -p "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/arch/x86/kvm/"
+sudo mkdir -p "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/virt/lib/"
+sudo mkdir -p "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/fs/fat/"
+sudo cp "${HOME}/linux-combined/fs/fat/"*.ko "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/fs/fat/"
+sudo cp "${HOME}/linux-combined/virt/lib/irqbypass.ko" "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/virt/lib/irqbypass.ko"
+sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/arch/x86/kvm/"
 
 sudo mkdir -p "${CHROOT}/${HOME}/seabios/out/"
 sudo cp "${HOME}/seabios/out/bios.bin" "${CHROOT}/${HOME}/seabios/out/bios.bin"
