@@ -1,109 +1,3 @@
-make -j $(($(nproc)*4)) bzImage
-vim arch/x86/boot/compressed/head_64.S
-git log -p
-cd ..
-git status
-git add -f outgoing/*
-git status
-cd linux-combined/
-make -j $(($(nproc)*4)) bzImage
-(cd ~/linux-combined/tools/testing/selftests/kvm/ && nodemon -e c,h --exec 'clear; cd ~/linux-combined && make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules && RELOAD=1 ~/run.sh && make TARGETS="kvm" summary=1 kselftest && cd tools/testing/selftests/kvm/ && ./x86_64/smm_cr_pin_test; test 1')
-make -j $(($(nproc)*4))
-~/run.sh
-git status
-git diff
-make -j $(($(nproc)*4))
-~/run.sh
-~/test.sh
-~/test.sh hibernate
-git status
-cd ..
-git add -f outgoing/*
-git status
-git add -f outgoing/*
-git status
-git add -f outgoing/0004-X86-Use-KVM-CR-pin-MSRs.patch 
-git status
-ll outgoing/
-git status
-git add git-send-email-cover 
-git status
-git commit -sm 'prep for patch v2 to sean'
-git push
-git add -f outgoing/*
-git status
-git diff --staged
-git status
-git add outgoing/*
-git diff --staged
-git status
-git add git-send-email-cover 
-git add git-send-email-cover outgoing/*
-git add -f outgoing/*
-git add git-send-email-cover 
-git satus
-git status
-git diff --staged
-git status
-git commit -sm 'patch v2 for sean'
-git push
-vim README.md 
-cd linux-combined/
-git send-email   --subject-prefix="PATCH v2"   --annotate   --cover-letter   --base=kvm/next   --to sean.j.christopherson@intel.com   HEAD~6
-git status
-git log
-git send-email   --subject-prefix="PATCH v2"   --annotate   --cover-letter   --base=ed7004c86f72b6a7cd4942934c94782ae1b58a92   --to sean.j.christopherson@intel.com   HEAD~6
-git log -n 1 | nc -lp 9999
-dmesg 
-dmesg -T
-vim arch/x86/boot/compressed/head_64.S
-vim arch/x86/kernel/head_64.S
-vim arch/x86/kernel/relocate_kernel_64.S 
-dmesg -T
-vim arch/x86/boot/compressed/head_64.S
-vim arch/x86/kernel/head_64.S
-vim arch/x86/kernel/relocate_kernel_64.S 
-dmesg -T
-ll
-cd ../kvm-unit-tests/
-ll
-git grep -i smap
-vim x86/smap.c
-vim x86/umip.c
-vim test.sh
-ll
-~/test.sh unittests
-~/test.sh
-cat /tmp/cr-pin-test-DlEnKZ5Wm2/hibernate_begin 
-~/test.sh hibernate
-ll
-git grep cpuid
-git grep feature
-git grep this_cpu_has
-igt grep FEATURE
-git grep FEATURE
-ll
-git status
-vim x86/vmx_tests.c
-git diff
-git stauts
-git status
-rm 0001-x86-Add-control-register-pinning-tests.patch 
-~/test.sh unittests
-git status
-git add -A
-git commit --amend
-git stauts
-git status
-git log -p
-vim x86/vmx_tests.c 
-vim x86/cr_pin_*.c
-git status
-git diff
-~/test.sh unittests
-vim x86/cr_pin_*.c
-~/test.sh unittests
-vim x86/cr_pin_low.
 vim x86/cr_pin_low.c
 vim x86/cr_pin_high.
 vim x86/cr_pin_high.c
@@ -998,3 +892,109 @@ vim Documentation/x86/boot.rst
 ps aux | grep git
 kill 31330
 tmux a
+cd ~/linux-combined/
+make install && make -j $(($(nproc)*4)) modules_install
+sudo make install && sudo  make -j $(($(nproc)*4)) modules_install
+ll /lib/modules
+sudo rm -rf /lib/modules/5.9.0+/
+sudo make install && sudo make -j $(($(nproc)*4)) modules_install
+ll /lib/modules/
+sudo mkdir /lib/modules/5.8.0+
+sudo make install && sudo make -j $(($(nproc)*4)) modules_install
+sudo grubby --help
+sudo grubby --default-kernel
+sudo grubby --default-kernel /boot/vmlinuz-5.8.0+
+sudo grubby --set-default-kernel /boot/vmlinuz-5.8.0+
+sudo grubby --set-default /boot/vmlinuz-5.8.0+
+sudo grubby --default-kernel
+sudo reboot
+tmux a
+vim arch/x86/boot/install.sh 
+ll
+cd ~/linux-combined/
+git grep xfs
+vim Documentation/admin-guide/xfs.rst 
+make menuconfig
+depmod 
+depmod -h
+sudo depmod -a
+git status
+sudo make install && sudo make -j $(($(nproc)*4)) modules_install
+tmux a
+tmu
+tmux
+cd linux-combined/
+ll
+ps au | grep make
+sudo make install && sudo make -j $(($(nproc)*4)) modules_install
+sudo make -j $(($(nproc)*4)) modules_install && sudo make install
+sudo grubby --set-default /boot/vmlinuz-5.8.0+
+sudo reboot
+tmux
+tmuokjjjjx
+tmux a
+tmux
+dmesg 
+tmux a
+uname -a
+ps aux
+ps aux | grep ssh
+kill 1255
+ll
+cd linux-combined/
+ll
+git log
+git status
+git log
+git status
+DO=do_kexec ~/run.sh
+vim ~/run.sh
+DO=do_kexec ~/run.sh
+vim ~/chroot/usr/bin/init.sh 
+DO=do_kexec ~/run.sh
+vim ~/chroot/usr/bin/init.sh 
+vim ~/chroot/usr/bin/uefi-setup.sh
+sudo vim ~/chroot/usr/bin/uefi-setup.sh
+DO=do_kexec ~/run.sh
+sudo vim ~/chroot/usr/bin/uefi-setup.sh
+DO=do_kexec ~/run.sh
+DO=do_kexec ~/run.sh -no-reboot
+vim ~/run.sh
+DO=do_kexec ~/run.sh -no-reboot
+DO=do_kexec ~/run.sh
+vim ~/run.sh
+vim ~/chroot/usr/bin/uefi-setup.sh
+sudo vim ~/chroot/usr/bin/uefi-setup.sh
+DO=do_kexec ~/run.sh -no-reboot
+sudo vim ~/chroot/usr/bin/uefi-setup.sh
+sudo vim ~/chroot/usr/bin/init.sh 
+DO=do_kexec ~/run.sh -no-reboot
+sudo vim ~/chroot/usr/bin/init.sh 
+sudo vim ~/chroot/usr/bin/uefi-setup.sh
+DO=do_kexec ~/run.sh -no-reboot
+git status
+git log
+git status
+vim arch/x86/kvm/x86.c
+(cd ~/linux-combined/tools/testing/selftests/kvm/ && nodemon -e c,h --exec 'clear; cd ~/linux-combined && make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules && RELOAD=1 ~/run.sh && make TARGETS="kvm" summary=1 kselftest && cd tools/testing/selftests/kvm/ && ./x86_64/smm_cr_pin_test; test 1')
+DO=do_kexec ~/run.sh -no-reboot
+echo $?
+vim ~/run.sh
+DO=do_kexec ~/run.sh -no-reboot
+vim ~/run.sh
+DO=do_kexec ~/run.sh -no-reboot
+sudo /home/johnsa1/qemu/build/x86_64-softmmu/qemu-system-x86_64 -no-reboot -smp cpus=2 -m 8192M -enable-kvm -bios /home/johnsa1/OVMF.fd -nographic -cpu host -drive file=/home/johnsa1/image.qcow2,index=0,media=disk,format=qcow2
+ps aux | grep qemu
+kill 14304
+sudo 'kill 14304
+sudo kill 14304
+ps aux | grep qemu
+sudo /home/johnsa1/qemu/build/x86_64-softmmu/qemu-system-x86_64 -no-reboot -smp cpus=2 -m 8192M -enable-kvm -bios /home/johnsa1/OVMF.fd -nographic -cpu host -drive file=/home/johnsa1/image.qcow2,index=0,media=disk,format=qcow2
+echo $?
+dmesg 
+sudo reboot
+uptime
+tmux
+passwd
+tmux a
+tmux

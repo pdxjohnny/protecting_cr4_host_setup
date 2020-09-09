@@ -29,10 +29,10 @@ sudo mkdir -p "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/virt/lib/"
 sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "/lib/modules/${KERNEL_VERSION}/kernel/arch/x86/kvm/"
 sudo cp "${HOME}/linux-combined/virt/lib/irqbypass.ko" "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/virt/lib/irqbypass.ko"
 sudo cp "${HOME}/linux-combined/arch/x86/kvm/"*.ko "${CHROOT}/lib/modules/${KERNEL_VERSION}/kernel/arch/x86/kvm/"
-# sudo modprobe irqbypass
-# sudo modprobe kvm
-# # sudo modprobe kvm-intel
-# sudo modprobe kvm-intel nested=1
+sudo modprobe irqbypass
+sudo modprobe kvm
+# sudo modprobe kvm-intel
+sudo modprobe kvm-intel nested=1
 
 if [ "x${RELOAD}" != "x" ]; then
   exit 0
