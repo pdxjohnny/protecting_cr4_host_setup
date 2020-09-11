@@ -1,144 +1,3 @@
-vim x86/cr_pin_low.c
-vim x86/cr_pin_high.
-vim x86/cr_pin_high.c
-vim x86/vmx_tests.c 
-git status
-git diff
-git add -A
-git commit --amend
-~/test.sh unittests
-git diff
-cd ../linux-combined/
-ll
-vim arch/x86/boot/compressed/head_64.S 
-vim arch/x86/boot/compressed/efi_thunk_64.S
-vim arch/x86/kernel/head_64.S
-vim arch/x86/kernel/relocate_kernel_64.S
-git grep identity_mapped
-vim arch/x86/kernel/relocate_kernel_64.S
-git grep relocate_kernel
-reset
-git grep relocate_kernel
-vim arch/x86/kernel/relocate_kernel_64.S
-vim arch/x86/realmode/rm/trampoline_64.S
-vim arch/x86/realmode/rm/wakeup_asm.S 
-vim arch/x86/boot/compressed/head_64.S
-git log -p nokexec
-vim ../README.md 
-cd ..
-git add README.md 
-git commit -sm 'README: nokexec is branch with kexec support for some dumb reason'
-git push
-cd kvm-unit-tests/
-git log -p
-cd ../linux-combined/
-vim arch/x86/Kconfig
-vim Documentation/admin-guide/kernel-parameters.txt 
-git diff
-git status
-git diff
-git add -A
-git status
-vim arch/x86/include/asm/kvm_para.h
-vim arch/x86/kernel/kvm.c
-git status
-git diff
-git grep kexec_load_disabled
-vim Documentation/admin-guide/sysctl/kernel.rst
-git grep kexec_load_disabled
-vim kernel/sysctl.c
-git grep kexec_load_disabled
-git status
-git grep crashkernel
-git satus
-git status
-git diff
-vim Documentation/admin-guide/sysctl/kernel.rst
-git diff
-git status
-vim Documentation/admin-guide/kernel-parameters.txt
-git status
-git reset HEAD .
-git satus
-git diff
-git status
-git diff
-cd
-sudo vim chroot/usr/bin/init.sh 
-sudo vim chroot/usr/bin/u
-sudo vim chroot/usr/bin/uefi-setup.sh 
-git add chroot/usr/bin/uefi-setup.sh
-git status
-git grep pv_cr_ping
-git grep pv_cr_pin
-ll chroot/home/johnsa1/run.sh
-vim chroot/home/johnsa1/run.sh
-vim git-send-email-cover 
-vim Re
-vim README.md 
-git add README.md
-git commit -sm 'TODO: crashkernel'
-git push
-git status
-git diff
-git status
-ll
-git status
-git diff
-git status
-git diff
-git status
-cd linux-combined/
-git status
-git diff
-vim t- reserve_crashkernel
-vim -t reserve_crashkernel
-git grep process_sysctl_arg
-git grep rcu_end_inkernel_boot
-vim init/main.c
-vim -t reserve_crashkernel
-git grep setup_arch
-vim init/main.c 
-git grep kexec_load_disabled
-git grep mutualy
-git grep 'mutually exclusive'
-git diff
-vim Documentation/admin-guide/kernel-parameters.txt
-git status
-git diff
-vim Documentation/admin-guide/kernel-parameters.txt
-git status
-git diff
-git checkout -- arch/x86/kernel/setup.c
-vim arch/x86/kernel/setup.c
-git add arch/x86/kernel/setup.c
-git satus
-git status
-git diff
-git add Documentation/admin-guide/kernel-parameters.txt
-git diff
-git add arch/x86/Kconfig
-git add arch/x86/include/asm/kvm_para.h
-git grep kvm_setup_paravirt_cr_pinning
-git diff
-git status
-git diff --staged
-git status
-git log
-git status
-git diff
-git grep cmdline_find_option_bool
-git grep cmdline
-vim kernel/params.c
-git grep param_
-git grep params.h
-git grep params\.h
-git grep params\.h | grep include
-git grep /params\.h | grep include
-git grep param_set_charp
-vim include/linux/moduleparam.h
-git status
-git diff
 git grep cmdline_find_option_bool
 vim arch/x86/kernel/setup.c
 git grep CONFIG_KEXEC
@@ -998,3 +857,144 @@ tmux
 passwd
 tmux a
 tmux
+tmux a
+tmux
+sudo vim /etc/ssh/sshd_config 
+cat ~/.ssh/authorized_keys 
+sudo journalctl -u sshd
+ll .ssh
+stat .ssh
+chmod 770 .ssh
+stat .ssh
+chmod 700 .ssh
+stat .ssh
+sudo journalctl -u sshd
+sudo journalctl -u sshd -f
+vim /etc/ssh/sshd_config
+sudo vim /etc/.vimrc
+sudo vim /root/.vimrc
+vim /etc/ssh/sshd_config
+sudo vim /etc/ssh/sshd_config 
+git status
+tmux a
+tmux
+env | grep -i proxy
+vim ~/.bash_r
+vim ~/.bash_profile 
+sudo vim /etc/environment 
+bash -x
+bash -e
+bash -x --help
+man bash
+sudo vim /etc/profile
+sudo grep -rn no_proxy /etc/
+ll
+cd qemu
+ll
+git status
+git fetch origin
+vim ~/.gitconfig 
+git config --system core gitproxy
+git config --system core.gitproxy
+git config --global core.gitproxy
+git config --global core.proxy
+vim .git/config 
+vim /usr/bin/git-proxy 
+sudo vim /usr/bin/git-proxy 
+git fetch origin
+git config
+git config --get-all
+git config --get-all proxy
+git config --get-all \*proxy\*
+git config --get-all core \*proxy\*
+git config --get-all core.\*proxy\*
+git config --get-all core.proxy
+git config -l
+git config --global -l
+git config --system -l
+cd ..
+git config -l
+cd /
+git config -l
+cd ~/qemu
+git status
+git fetch origin
+strace git fetch origin
+sudo vim /etc/environment 
+strace git fetch origin
+git fetch origin
+env | grep -i proxy
+tmux a
+tmux
+env | grep -i proxy
+cd ~/qemu
+git fetch origin
+git branch
+git checkout -b cr_pinning_fsgsbase
+git rebase origin/master
+git status
+git diff
+vim include/standard-headers/asm-x86/kvm_para.h
+git status
+git diff
+git add -A
+git diff --staged
+git status
+git reset HEAD slirp/
+git reset HEAD slirp
+git status
+git checkout -- slirp/
+git status
+git diff --staged
+git submodule update
+git submodule sync
+git status
+git rebase --continue
+git status
+git log -p
+git status
+cd build/
+../configure --target-list=x86_64-softmmu
+cd ..
+git push -u origin master 
+git config -l
+vim ~/.local/bin/git-proxy
+git push -u origin master 
+vim ~/.local/bin/git-proxy
+strace git push -u origin master 
+vim ~/.ssh/config 
+strace git push -u origin master 
+git status
+cd ~/qemu/build/
+ll
+../configure --target-list=x86_64-softmmu
+sudo eopkg it ninja
+sudo dnf -y install ninja
+sudo vim /etc/dnf/dnf.conf 
+sudo dnf -y install ninja
+sudo dnf -y install ninja-build
+../configure --target-list=x86_64-softmmu
+ninja --help
+ll ~/.local/bin/ninja 
+rm ~/.local/bin/ninja
+ninja --help
+sudo lsof | grep qcow2
+exit 0
+ss -tpln
+sudo ss -tpln
+git grep tbnet_alloc_rx
+vim drivers/net/thunderbolt.c
+git log -p
+git rebase -i e53f8bd40e0bc0480d8a4f0634d9c13772a6fd45~1
+git status
+git diff
+git commit -sam 'log on violation'
+git rebase -i e53f8bd40e0bc0480d8a4f0634d9c13772a6fd45~1
+git log --stat
+vim arch/x86/boot/compressed/head_64.S arch/x86/kernel/head_64.S arch/x86/kernel/relocate_kernel_64.S
+git status
+git ad d-A
+git add -A
+git rebase --continue
+vim ~/README.md 
+gdb vmlinux
