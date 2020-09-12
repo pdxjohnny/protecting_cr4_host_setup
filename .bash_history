@@ -1,65 +1,3 @@
-git grep cmdline_find_option_bool
-vim arch/x86/kernel/setup.c
-git grep CONFIG_KEXEC
-git grep KEXEC
-git tatus
-git diff
-vim arch/x86/kernel/setup.c
-git grep crashkernel
-vim kernel/crash_core.c
-vim arch/x86/kernel/setup.c
-git status
-git diff
-git status
-vim arch/x86/kernel/kvm.c
-git diff
-git add -A
-git status
-git diff --staged
-vim Documentation/admin-guide/kernel-parameters.txt
-git diff --staged
-git status
-git checkout -- Documentation/admin-guide/kernel-parameters.txt
-git status
-git diff --staged
-vim arch/x86/kernel/setup.c
-git status
-git diff
-git add -p
-git status
-git diff --staged
-git status
-git reset HEAD -p -- Documentation/admin-guide/kernel-parameters.
-git reset HEAD -p -- Documentation/admin-guide/kernel-parameters.txt
-git status
-git diff --staged
-git status
-git commit --amend
-git status
-git add -A
-git status
-vim Documentation/admin-guide/kernel-parameters.txt 
-vim Documentation/admin-guide/kernel-parameters.rst 
-vim Documentation/admin-guide/kernel-parameters.txt 
-git status
-git diff
-git add -A
-git status
-vim Documentation/admin-guide/kernel-parameters.txt 
-git add -A
-git status
-git diff --staged
-vim Documentation/admin-guide/kernel-parameters.txt 
-vim Documentation/admin-guide/kernel-parameters.rst 
-vim Documentation/admin-guide/kernel-parameters.txt 
-git status
-git diff --staged
-vim arch/x86/kernel/setup.c
-git status
-git commit -sa
-git status
-git rebase --continue
-git status
 git checkout -b patch_v2_pre_sysctl
 git push -u pdxjohnny 
 git grep kexec_load_disabled
@@ -998,3 +936,65 @@ git add -A
 git rebase --continue
 vim ~/README.md 
 gdb vmlinux
+log -p
+git log -p
+git status
+cd ..
+git staus
+git status
+git diff
+git add -A
+git commit -sam 'bash history update'
+git push
+cd linux-combined/
+git rebase -i ad017747fd461748c193acfa6cb0dac6ce5ba79a~1
+vim arch/x86/kernel/setup.c
+vim cr4_set_bits_and_update_boot
+vim -t cr4_set_bits_and_update_boot
+git diff
+python
+python3
+vim -t cr4_set_bits_and_update_boot
+git diff
+git add -A
+git rebase --continue
+git log -p HEAD~5
+git log -p HEAD~7
+git log -p HEAD~10
+git grep setup_fsgsbase
+git grep fsgsbase
+git grep -i fsgsbase
+vim arch/x86/kernel/cpu/common.c
+git diff
+git stash
+git rebase -i HEAD~10
+git rebase -i HEAD~11
+git stash pop
+git diff
+git add -A
+git rebase --continue
+git status
+sudo vim ~/chroot/usr/bin/uefi-setup.sh
+man fsck
+sudo vim ~/chroot/usr/bin/uefi-setup.sh
+dme
+dmesg 
+find . -name cr_pin_high.log
+find ~ -name cr_pin_high.log
+cat /home/johnsa1/kvm-unit-tests/logs/cr_pin_high.log
+tmpd
+sudo vim ~/chroot/usr/bin/uefi-setup.sh
+sudo vim ~/chroot/usr/bin/init.sh 
+dmesg 
+ll
+wget https://download.fedoraproject.org/pub/fedora/linux/releases/32/Server/x86_64/iso/Fedora-Server-dvd-x86_64-32-1.6.iso
+cd ~/qemu
+git grep -i hypercall
+docker ps
+docker pull fedora
+df -h
+ll
+git ls-files
+git ls-files | less
+uname -r
+ll /boot/

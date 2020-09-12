@@ -30,6 +30,7 @@ if [ "x${BOOTNUM}" != "x" ]; then
   /usr/sbin/efibootmgr -B -b "${BOOTNUM}"
 fi
 
+fsck /dev/sda1
 
 /usr/sbin/efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" --loader /bzImage.efi --unicode 'console=ttyS0 resume=/dev/sda2 root=/dev/sda3 rw nokaslr sysctl.kexec_load_disabled=1 init=/usr/bin/init.sh'
 

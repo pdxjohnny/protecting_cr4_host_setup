@@ -22,6 +22,7 @@ if [[ ! -d /sys/firmware ]]; then
   ulimit -u unlimited
   /usr/sbin/swapon /dev/sda2
   mount /dev/sda1 /boot
+  fsck /dev/sda1
 fi
 
 do_guest() {
