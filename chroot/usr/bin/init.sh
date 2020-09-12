@@ -25,6 +25,8 @@ if [[ ! -d /sys/firmware ]]; then
   fsck /dev/sda1
 fi
 
+cat /proc/cmdline
+
 do_guest() {
   sudo -u johnsa1 bash -c 'cd /home/johnsa1 && HOME=/home/johnsa1 /home/johnsa1/run.sh'
 }

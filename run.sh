@@ -76,7 +76,7 @@ sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${CHROOT}/boot/bzImage"
 sudo cp "${HOME}/linux-combined/arch/x86/boot/bzImage" "${CHROOT}/boot/bzImage.efi"
 sudo chmod 644 "${CHROOT}/boot/bzImage"
 
-echo "FS0:\\bzImage.efi console=ttyS0 root=/dev/sda3 rw nokaslr init=/usr/bin/uefi-setup.sh" | \
+echo "FS0:\\bzImage.efi console=ttyS0 resume=/dev/sda2 root=/dev/sda3 rw nokaslr no_console_suspend init=/usr/bin/uefi-setup.sh" | \
   sudo tee "${CHROOT}/boot/startup.nsh"
 
 sudo chown -R "${USER}:${USER}" "${CHROOT}/${HOME}"

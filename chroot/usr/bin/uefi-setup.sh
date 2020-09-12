@@ -32,7 +32,7 @@ fi
 
 fsck /dev/sda1
 
-/usr/sbin/efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" --loader /bzImage.efi --unicode 'console=ttyS0 resume=/dev/sda2 root=/dev/sda3 rw nokaslr sysctl.kexec_load_disabled=1 init=/usr/bin/init.sh'
+/usr/sbin/efibootmgr --disk /dev/sda --part 1 --create --label "Fedora Linux" --loader /bzImage.efi --unicode 'console=ttyS0 resume=/dev/sda2 root=/dev/sda3 rw nokaslr no_console_suspend init=/usr/bin/init.sh'
 
 # exec /usr/bin/rebooter
 exec /usr/bin/init.sh
