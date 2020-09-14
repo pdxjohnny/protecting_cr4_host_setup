@@ -1,12 +1,3 @@
-git diff
-git log
-git stash
-git log -p
-vim arch/x86/kernel/setup.c 
-git status
-git diff
-git rebase -i HEAD~4
-git stash pop
 git status
 vim arch/x86/kernel/setup.c 
 git status
@@ -998,3 +989,12 @@ systemctl status
 ll /etc/default/
 ll /etc/default/secure-tunnel@johnsa1-desk 
 cat /etc/default/secure-tunnel@johnsa1-desk
+cd
+git status
+git add README.md 
+DO=rebooter ~/run.sh -no-reboot
+git status
+git diff
+git add -A
+git commit -sam 'fixed hibernation test'
+git push

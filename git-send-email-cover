@@ -1,41 +1,17 @@
-Hi Sean,
-
-Thank you for reviewing this. Sorry I lagged on getting this to you. I still
-don't have answers for the questions raised on the update mmu_cr4_features
-patch. But I thought it best to get you this sooner rather than later. I was
-hoping to get your thoughts on the following two things I see as open questions.
-
-- Dave recommend that we make the command line option disable_pv_cr_pin, rather
-  than pv_cr_pin. This puts us in a position where users are no longer opting
-  into this functionality should they have kexec, but opting out. For when there
-  is a patch to make kexec work, we'd be creating a situation where unless the
-  user specified disable_pv_cr_pin on the command line, they wouldn't be able to
-  kexec an older kernel. Is this acceptable? I feel like it's not.
-
-- I've included in this patchset to you a naive fix for kexec. It's very RFC
-  work. I'm wondering if I should just re-label this whole thing RFC, or if I
-  should just send it all as PATCH v2. Or send that patch separately as an RFC.
-
-Thanks,
-John
-
-=== END NOTES TO SEAN ===
-
-
 The paravirtualized CR pinning patchset is a strengthened version of
-existing control registers pinning for paravritualized guests. It
-protects KVM guests from ROP based attacks which attempt to disable key
-security features. Virtualized Linux guests such as Kata Containers, AWS
-Lambda, and Chromos Termina will get this protection enabled by default
-when they update their kernel / configs. Using virtualization allows us
-to provide a stronger version of a proven exploit mitigation technique.
+existing control register pinning for paravritualized guests. It
+protects KVM guests from ROP (and the like) based attacks which attempt to
+disable key security features. Virtualized Linux guests such as Kata Containers,
+AWS Lambda, and Chromos Termina will get this protection enabled by default when
+they update their kernel / configs. Using virtualization allows us to provide a
+stronger version of a proven exploit mitigation technique we already have
+implemented natively.
 
 We've patched KVM to create 6 new KVM specific MSRs used to query which
 bits may be pinned, and to set which bits are pinned high or low in
 control registers 0 and 4. Linux guest support was added so that
-non-kexec guests will be able to take advantage of this strengthened
-protection by default. A plan for enabling guests with kexec is proposed
-in this cover letter.
+guests will be able to take advantage of this strengthened protection by
+default.
 
 Hibernation and suspend to ram were enabled by updating the location
 where bits in control register 4 were saved to and restored from. The
@@ -44,10 +20,9 @@ clearing the added MSRs and exposing the new CPUID feature bit. There is
 one SMM related selftest added in this patchset and another patch for
 kvm-unit-tests that will be sent separately.
 
-Thank you to Sean and Drew who reviewed v2, to Boris, Paolo, Andy, and
-Liran who reviewed v1, and to Sean, Dave, Kristen, and Rick who've
-provided feedback throughout. I appreciate your time spent reviewing and
-feedback.
+Thank you to Dave who reviewed v1. Sean and Drew who reviewed v2, to Boris,
+Paolo, Andy, and Liran who reviewed v1, and to Sean, Dave, Kristen, and Rick
+who've provided feedback throughout.
 
 Here are the previous versions of this patchset for reference
 
@@ -88,10 +63,24 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
   effectively out of kexec). Being that those changes wouldn't be
   localized to KVM (and this patchset is on top of kvm/next).
 
-- As Paolo requested, a patch will be sent immediately following this
-  patchset for kvm-unit-tests with the unit tests for general
-  functionality. selftests are included for SMM specific functionality.
 
+=== Testing ===
+
+- A patch will be sent immediately following this patchset for kvm-unit-tests
+  with the unit tests for general functionality. selftests are included for SMM
+  specific functionality.
+
+- This has been tested to work with
+
+  - reboot
+
+  - kexec
+
+  - hibernate / suspend to RAM
+
+  - SMM
+
+  - CPU hotplug
 
 
 === Changes since PATCH v1 ===
@@ -110,41 +99,70 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
 
   - Removed pv_cr_pin command line option
 
-=== Changes since RFC v2 ===
 
-- Related to Drew's comments
+=== kexec ===
 
-  - Used linux/stringify.h in selftests
+There has been a lot of discussion around kexec, which is now supported in PATCH
+v2. This section covers what kexec support looks like to end users.
 
-  - Added comments on why we don't use GUEST_* due to SMM trickiness.
-    We opt not to use GUEST_SYNC() because we also have to make a sync call
-    from SMM. As such, the address of the ucall struct we'd need to pass isn't
-    something we can put into the machine code in a maintainable way. At least
-    so far as I could tell.
+Liran's proposed solution of a flag within the ELF which allows us to identify
+which kernels have support has been implemented as an addition to kernel_info.S
 
-- Related to Sean's comments
+We now have the following cases
 
-  - Allowed pinning bits high or low rather than just high
+K0 - The running kernel
+K1 - Kernel we are going to execute from K0
 
-  - Cleaner code path for guest and host when writing to MSRs
+NS - Not Supported
+NE - Supported, Not enabled (via disable_pv_cr_pin or lack of feature flag)
+SE - Supported, Enabled
 
-    - Didn't use read modify write behavior due to that requiring changes to
-      selftest save restore code which made me suspect that there might be
-      issues with other VMMs. The issue was because we read CR0/4 in the RWM
-      operation on the MSR, we must do KVM_SET_REGS before KVM_SET_MSRS, we also
-      had to call KVM_SET_SREGS and add checks for if we're in SMM or not. This
-      made it a bit more messy overall so I went with the first approach Sean
-      suggested where we just have pin high/low semantics.
+          +----------------------+----------------------+----------------------+
+          |                      |                      |                      |
+          |        K1 - NS       |       K1 - NE        |       K1 - SE        |
+          |                      |                      |                      |
++---------+----------------------+----------------------+----------------------+
+|         |                      |                      |                      |
+| K0 - NS |         NOP          |         NOP          |       Turn On        |
+|         |                      |                      |                      |
++---------+----------------------+----------------------+----------------------+
+|         |                      |                      |                      |
+| K0 - NE |         NOP          |         NOP          |       Turn On        |
+|         |                      |                      |                      |
++---------+----------------------+----------------------+----------------------+
+|         |                      |                      |                      |
+| K0 - SE |   kexec checks (1)   |       Works (2)      |       Keep On        |
+|         |                      |                      |                      |
++---------+----------------------+----------------------+----------------------+
 
-  - If the guest writes values to the allowed MSRs that are not the correct
-    value the wrmsr fails.
 
-  - If SMRAM modification would result in unpinning bits we bail with
-    X86EMUL_UNHANDLEABLE
+1. When control register pinning is enabled the kexec_load system call is
+   disabled (returns -EINVAL). All kexec's must go through kexec_file.
 
-  - Added silent restoration of pinned bits for SVM and VMX when they may have
-    been modified in VMCB / VMCS. This didn't seem like a place were we'd want
-    to inject a fault, please let me know if we should.
+   kexec_file has facilities for checking if K1 can be launched without error.
+   kexec-tools will be patched to require (or default to) using kexec_file if
+   pinning is enabled in K0.
+
+- Kernel running without pinning enabled kexecs kernel with pinning.
+
+  - Loaded kernel has kexec (or is not disabled via disable_kexec)
+
+    - Do not enable pinning
+
+  - Loaded kernel lacks kexec (or is disabled via disable_kexec)
+
+    - Enable pinning
+
+- Kernel running with pinning enabled kexecs kernel with pinning (as
+  identified by ELF addition).
+
+  - Okay
+
+- Kernel running with pinning enabled kexecs kernel without pinning
+  (as identified by lack of ELF addition).
+
+  - User is presented with an error saying that they may not kexec
+    a kernel without pinning support.
 
 
 
@@ -256,39 +274,6 @@ bits are WP in CR0, and SMEP, SMAP, and UMIP in CR4.
 
 Future patches could implement similar MSRs to protect bits in MSRs.
 The NXE bit of the EFER MSR is a prime candidate.
-
-
-
-=== Plan for kexec support ===
-
-Andy's suggestion of a boot option has been incorporated as the
-disable_kexec command line option. Liran's proposed solution of a flag
-within the ELF would allow us to identify which kernels have support is
-assumed to be implemented in the following scenarios.
-
-We then have the following cases:
-
-
-- Kernel running without pinning enabled kexecs kernel with pinning.
-
-  - Loaded kernel has kexec (or is not disabled via disable_kexec)
-
-    - Do not enable pinning
-
-  - Loaded kernel lacks kexec (or is disabled via disable_kexec)
-
-    - Enable pinning
-
-- Kernel running with pinning enabled kexecs kernel with pinning (as
-  identified by ELF addition).
-
-  - Okay
-
-- Kernel running with pinning enabled kexecs kernel without pinning
-  (as identified by lack of ELF addition).
-
-  - User is presented with an error saying that they may not kexec
-    a kernel without pinning support.
 
 
 Thanks,
