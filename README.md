@@ -2,9 +2,10 @@
 
 ## TODO
 
-- Handle crashkernel
+- If `KEXEC_CORE` is enabled and `KVM_GUEST` is enabled, require that
+  `KEXEC_FILE` be enabled.
 
-Last working against ead68df94d24 - `KVM: x86: enable -Werror`
+## Commands
 
 ```console
 git send-email --subject-prefix="RFC v2" --annotate --cover-letter --to tglx@linutronix.de --to mingo@redhat.com --to bp@alien8.de --to x86@kernel.org --to pbonzini@redhat.com --cc hpa@zytor.com --cc sean.j.christopherson@intel.com --cc vkuznets@redhat.com --cc wanpengli@tencent.com --cc jmattson@google.com --cc liran.alon@oracle.com --cc luto@kernel.org --cc joro@8bytes.org --cc rick.p.edgecombe@intel.com --cc kristen@linux.intel.com --cc arjan@linux.intel.com --cc linux-kernel@vger.kernel.org --cc kvm@vger.kernel.org HEAD~4
@@ -407,3 +408,80 @@ arch/x86/realmode/rm/wakeup_asm.S
 ```
 
 The branch with kexec support is called nokexec for some dumb reason.
+
+
+
+```
+commit 2cc63f13ca49339d10bc145717a91362aee7fbdd
+Author: John Andersen <john.s.andersen@intel.com>
+Date:   Wed Jan 8 13:14:30 2020 -0800
+
+    X86: Update mmu_cr4_features during feature identification
+
+    In identify_cpu() when setting up SMEP/SMAP/UMIP/FSGSBASE call
+    cr4_set_bits_and_update_boot() instead of cr4_set_bits(). This ensures
+    that mmu_cr4_features contains those bits, and does not disable those
+    protections when in hibernation asm. This is necessary to support
+    paravirtualized control register pinning in conjunction with hibernation
+    / suspend to RAM. Without setting these bits in mmu_cr4_features, the
+    trampoline code disables them, resulting in a pinning violation.
+
+    setup_arch() updates mmu_cr4_features to save what identified features
+    are supported for later use in hibernation asm when CR4 needs to be
+    modified to toggle PGE. CR4 writes happen in restore_image() and
+    restore_registers(). setup_arch() occurs before identify_cpu(), this
+    leads to mmu_cr4_features not containing some of the CR4 features which
+    were enabled via identify_cpu() when hibernation asm is executed.
+
+    Two classes of cr4_set_bits() exist (cr4_set_bits() and
+    cr4_set_bits_and_update_boot()) see comment in setup.  Are there
+    features we *want* to disable before entering the hibernation assembly?
+
+    For instance, why not leave MCE enabled in there?  What about PCIDs or
+    OSPKE?  Does it hurt?
+
+      Update mmu_cr4_features (and, indirectly, trampoline_cr4_features)
+      with the current CR4 value.  This may not be necessary, but
+      auditing all the early-boot CR4 manipulation would be needed
+      to rule it out.
+
+    mmu_cr4_features is only used within the trampoline, the CR4 of the
+    image we're loading gets restored shortly
+
+    SMEP/SMAP/UMIP/FSGSBASE differ in nature from other CR4 bits which could
+    be added to the maintained set. For example, MCE is used for hardware
+    related errors, which could not be handled within the trampoline should
+    they occur without
+
+    PCIDE isn't relevant to the trampoline code since there is only one
+    processor and one thread running at the time.
+
+    PKE isn't something we'd want to leave enabled because we're not using
+    protection keys within the trampoline and
+
+    the maintained set because they are
+    related to protections against attackers in userspace and applicable
+    within
+
+    For instance, why not leave MCE enabled in there?  What about PCIDs or
+    OSPKE?  Does it hurt?
+
+    We can safely use mmu_cr4_features to leave SMEP/SMAP/UMIP set through
+    the hibernation trampoline. Should any exceptions occur because of their
+    still being enabled, it would signal to kernel developers that they have
+    inadvertently touched userspace memory. FSGSBASE is safe because there
+    are no userspace
+
+    MCE
+
+    For the boot CPU,
+    the __ro_after_init on mmu_cr4_features does not cause a fault. On
+    non-boot  CPUs was triggering faults. Therefore,
+    cr4_set_bits_and_update_boot() has been updated to check if the bits
+    we're attempting to set already exist within mmu_cr4_features. If they
+    do, no update is done, thereby avoiding writes which would trigger
+    faults.
+
+    Signed-off-by: John Andersen <john.s.andersen@intel.com>
+
+```

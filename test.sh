@@ -64,8 +64,7 @@ test_unittests() {
 # Hibernate
 test_hibernate() {
   cd "${HOME}"
-  sudo tee "${CHROOT}/do" <<<"test_hibernate.sh"
-  "${HOME}/run.sh" 2>&1 | tee "${LOG}/hibernate_begin"
+  DO=test_hibernate.sh "${HOME}/run.sh" 2>&1 | tee "${LOG}/hibernate_begin"
   if grep -q "reboot: Power down" "${LOG}/hibernate_begin"; then
     TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/hibernate_end"
     if grep -q "TEST HIBERNATE END HIBERNATION" "${LOG}/hibernate_end"; then
@@ -81,8 +80,7 @@ test_hibernate() {
 # Suspend to RAM
 test_susram() {
   cd "${HOME}"
-  sudo tee "${CHROOT}/do" <<<"test_susram.sh"
-  TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/susram"
+  TRAILING="-no-reboot" DO=test_susram.sh "${HOME}/run.sh" 2>&1 | tee "${LOG}/susram"
   if grep -q "TEST SUSRAM END SUSRAM" "${LOG}/susram"; then
     echo "PASS: susram" | tee -a "${LOG}/results"
   else

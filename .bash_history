@@ -1,35 +1,3 @@
-git checkout -b patch_v2_pre_sysctl
-git push -u pdxjohnny 
-git grep kexec_load_disabled
-vim kernel/sysctl.c
-git grep GUEST
-git log -p
-vim kernel/sysctl.c
-git status
-git diff
-git status
-git log
-git log -p
-git grep kvm_paravirt_cr_pinning_init
-vim arch/x86/kernel/kvm.c
-vim arch/x86/kernel/setup.c 
-git status
-vgrep disable_kexec
-vgrep --help disable_kexec
-vgrep -s 3 disable_kexec
-vgrep -s 2 disable_kexec
-vgrep disable_kexec -s 2
-vgrep -s 2
-vgrep cr_pin
-vgrep -s 18
-vim arch/x86/kernel/setup.c 
-vgrep -s 18
-gi satus
-git status
-git diff
-git stash
-vim arch/x86/kernel/setup.c 
-git status
 git diff
 git log
 git stash
@@ -998,3 +966,35 @@ git ls-files
 git ls-files | less
 uname -r
 ll /boot/
+cd -
+cd .
+git log | grep smm_cr_ping
+git log -p | grep smm_cr_pin
+cd
+git log -p | grep smm_cr_pin
+git log -p | grep smm_cr_pin  | grep log
+git log -p | grep smm_cr_pin | grep cat
+git log -p | grep asmc
+git log -p | grep asm
+ll ~/linux-combined/tools/testing/selftests/kvm/
+ll ~/linux-combined/tools/testing/selftests/kvm/x86_64/
+ll ~/linux-combined/tools/testing/selftests/kvm/config 
+cat ~/linux-combined/tools/testing/selftests/kvm/config
+cat ~/linux-combined/tools/testing/selftests/kvm/Makefile 
+grep -rn debug_regs .
+grep -rn debug_regs /tmp/
+vim /tmp/debug_regs 
+git status
+git log -p
+vim ../README.md 
+git grep __ro_after_init | grep =
+vim ../README.md 
+docker ps
+weechat
+sudo dnf -y install weechat
+weechat
+ll
+systemctl status
+ll /etc/default/
+ll /etc/default/secure-tunnel@johnsa1-desk 
+cat /etc/default/secure-tunnel@johnsa1-desk
