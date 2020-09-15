@@ -1,0 +1,135 @@
+From c066212f9eec5d655701a65f71b3b16f76892c4d Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Wed, 22 Jul 2020 13:11:06 -0700
+Subject: [PATCH 05/11] X86: boot: Maintain CR0/4 protections through kexec
+
+kexec previously disabled CR0 WP, and CR4 SMAP, SMEP, UMIP, and
+FSGSBASE by writing constants to CR0/4 which had those bits set to zero.
+
+Whenever code within the kexec path writes constants, change those
+writes to read, modify, write operations. Read in the current value of
+CR0/4, AND the bits we want to keep set if they are already enabled (WP,
+SMAP, SMEP, UMIP, and FSGSBASE), OR with the constant we had previously
+been writing, finally write back the modified register.
+
+Within pgtable.h we increase TRAMPOLINE_32BIT_CODE_SIZE by 9. The
+addition of an andl and an orl instruction within trampoline_32bit_src()
+results in 9 more bytes of machine code, which is why we've incremented
+by 9.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ arch/x86/boot/compressed/head_64.S   | 11 +++++++----
+ arch/x86/boot/compressed/pgtable.h   |  2 +-
+ arch/x86/kernel/head_64.S            |  5 ++++-
+ arch/x86/kernel/relocate_kernel_64.S | 17 +++++++++--------
+ 4 files changed, 21 insertions(+), 14 deletions(-)
+
+diff --git a/arch/x86/boot/compressed/head_64.S b/arch/x86/boot/compressed/head_64.S
+index 97d37f0a34f5..e182e79cdfda 100644
+--- a/arch/x86/boot/compressed/head_64.S
++++ b/arch/x86/boot/compressed/head_64.S
+@@ -239,8 +239,8 @@ SYM_FUNC_START(startup_32)
+ 	pushl	$__KERNEL_CS
+ 	pushl	%eax
+ 
+-	/* Enter paged protected Mode, activating Long Mode */
+-	movl	$(X86_CR0_PG | X86_CR0_PE), %eax /* Enable Paging and Protected mode */
++	/* Enter paged protected Mode, activating Long Mode and write protect */
++	movl	$(X86_CR0_PG | X86_CR0_PE | X86_CR0_WP), %eax
+ 	movl	%eax, %cr0
+ 
+ 	/* Jump from 32bit compatibility mode into 64bit mode. */
+@@ -629,7 +629,10 @@ SYM_CODE_START(trampoline_32bit_src)
+ 	popl	%ecx
+ 
+ 	/* Enable PAE and LA57 (if required) paging modes */
+-	movl	$X86_CR4_PAE, %eax
++	movl	%cr4, %eax
++	/* Keep protections enabled if already enabled */
++	andl	$(X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP | X86_CR4_FSGSBASE), %eax
++	orl	$X86_CR4_PAE, %eax
+ 	cmpl	$0, %edx
+ 	jz	1f
+ 	orl	$X86_CR4_LA57, %eax
+@@ -644,7 +647,7 @@ SYM_CODE_START(trampoline_32bit_src)
+ 	pushl	%eax
+ 
+ 	/* Enable paging again */
+-	movl	$(X86_CR0_PG | X86_CR0_PE), %eax
++	movl	$(X86_CR0_PG | X86_CR0_PE | X86_CR0_WP), %eax
+ 	movl	%eax, %cr0
+ 
+ 	lret
+diff --git a/arch/x86/boot/compressed/pgtable.h b/arch/x86/boot/compressed/pgtable.h
+index 6ff7e81b5628..d15439dd30c0 100644
+--- a/arch/x86/boot/compressed/pgtable.h
++++ b/arch/x86/boot/compressed/pgtable.h
+@@ -6,7 +6,7 @@
+ #define TRAMPOLINE_32BIT_PGTABLE_OFFSET	0
+ 
+ #define TRAMPOLINE_32BIT_CODE_OFFSET	PAGE_SIZE
+-#define TRAMPOLINE_32BIT_CODE_SIZE	0x70
++#define TRAMPOLINE_32BIT_CODE_SIZE	0x79
+ 
+ #define TRAMPOLINE_32BIT_STACK_END	TRAMPOLINE_32BIT_SIZE
+ 
+diff --git a/arch/x86/kernel/head_64.S b/arch/x86/kernel/head_64.S
+index 16da4ac01597..5dea82fdd73e 100644
+--- a/arch/x86/kernel/head_64.S
++++ b/arch/x86/kernel/head_64.S
+@@ -124,7 +124,10 @@ SYM_CODE_START(secondary_startup_64)
+ 1:
+ 
+ 	/* Enable PAE mode, PGE and LA57 */
+-	movl	$(X86_CR4_PAE | X86_CR4_PGE), %ecx
++	movq	%cr4, %rcx
++	/* Keep protections enabled if already enabled */
++	andl	$(X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP | X86_CR4_FSGSBASE), %ecx
++	orl	$(X86_CR4_PAE | X86_CR4_PGE), %ecx
+ #ifdef CONFIG_X86_5LEVEL
+ 	testl	$1, __pgtable_l5_enabled(%rip)
+ 	jz	1f
+diff --git a/arch/x86/kernel/relocate_kernel_64.S b/arch/x86/kernel/relocate_kernel_64.S
+index a4d9a261425b..37b29883c609 100644
+--- a/arch/x86/kernel/relocate_kernel_64.S
++++ b/arch/x86/kernel/relocate_kernel_64.S
+@@ -118,26 +118,27 @@ SYM_CODE_START_LOCAL_NOALIGN(identity_mapped)
+ 	 * Set cr0 to a known state:
+ 	 *  - Paging enabled
+ 	 *  - Alignment check disabled
+-	 *  - Write protect disabled
+ 	 *  - No task switch
+ 	 *  - Don't do FP software emulation.
+ 	 *  - Proctected mode enabled
++	 *  - Write protect enabled
+ 	 */
+ 	movq	%cr0, %rax
+-	andq	$~(X86_CR0_AM | X86_CR0_WP | X86_CR0_TS | X86_CR0_EM), %rax
+-	orl	$(X86_CR0_PG | X86_CR0_PE), %eax
++	andq	$~(X86_CR0_AM | X86_CR0_TS | X86_CR0_EM), %rax
++	orl	$(X86_CR0_PG | X86_CR0_PE | X86_CR0_WP), %eax
+ 	movq	%rax, %cr0
+ 
+ 	/*
+ 	 * Set cr4 to a known state:
+ 	 *  - physical address extension enabled
+ 	 *  - 5-level paging, if it was enabled before
++	 *  - SMEP, if it was enabled before
++	 *  - SMAP, if it was enabled before
++	 *  - UMIP, if it was enabled before
+ 	 */
+-	movl	$X86_CR4_PAE, %eax
+-	testq	$X86_CR4_LA57, %r13
+-	jz	1f
+-	orl	$X86_CR4_LA57, %eax
+-1:
++	movq	%r13, %rax
++	andl	$(X86_CR4_LA57 | X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP | X86_CR4_FSGSBASE), %eax
++	orl	$X86_CR4_PAE, %eax
+ 	movq	%rax, %cr4
+ 
+ 	jmp 1f
+-- 
+2.21.0
+

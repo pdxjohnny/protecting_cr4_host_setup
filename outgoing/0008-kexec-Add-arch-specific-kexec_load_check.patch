@@ -1,0 +1,65 @@
+From 0b056f758d1a4a60d4c3736bbca36940ffbc2fd9 Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Thu, 27 Aug 2020 23:26:40 -0700
+Subject: [PATCH 08/11] kexec: Add arch specific kexec_load_check
+
+At the end of kexec_load_check call arch_kexec_load_check to do any
+final architecture specific checks before loading the image.
+
+arch_kexec_load_check will be used by X86 for paravirtualized control
+register pinning kexec support checks.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ include/linux/kexec.h | 2 ++
+ kernel/kexec.c        | 5 +++++
+ kernel/kexec_core.c   | 7 +++++++
+ 3 files changed, 14 insertions(+)
+
+diff --git a/include/linux/kexec.h b/include/linux/kexec.h
+index 9e93bef52968..ed504ec8bf29 100644
+--- a/include/linux/kexec.h
++++ b/include/linux/kexec.h
+@@ -350,6 +350,8 @@ void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
+ 
+ void arch_kexec_protect_crashkres(void);
+ void arch_kexec_unprotect_crashkres(void);
++int arch_kexec_load_check(unsigned long nr_segments,
++			  unsigned long flags);
+ 
+ #ifndef page_to_boot_pfn
+ static inline unsigned long page_to_boot_pfn(struct page *page)
+diff --git a/kernel/kexec.c b/kernel/kexec.c
+index f977786fe498..cbfa8ac9c82e 100644
+--- a/kernel/kexec.c
++++ b/kernel/kexec.c
+@@ -230,6 +230,11 @@ static inline int kexec_load_check(unsigned long nr_segments,
+ 	if (nr_segments > KEXEC_SEGMENT_MAX)
+ 		return -EINVAL;
+ 
++	/* Architecture specific check */
++	result = arch_kexec_load_check(nr_segments, flags);
++	if (result)
++		return result;
++
+ 	return 0;
+ }
+ 
+diff --git a/kernel/kexec_core.c b/kernel/kexec_core.c
+index c19c0dad1ebe..3a85024adb57 100644
+--- a/kernel/kexec_core.c
++++ b/kernel/kexec_core.c
+@@ -1219,3 +1219,10 @@ void __weak arch_kexec_protect_crashkres(void)
+ 
+ void __weak arch_kexec_unprotect_crashkres(void)
+ {}
++
++/* Allow architecture code to provide additional load checks */
++int __weak arch_kexec_load_check(unsigned long nr_segments,
++				 unsigned long flags)
++{
++	return 0;
++}
+-- 
+2.21.0
+

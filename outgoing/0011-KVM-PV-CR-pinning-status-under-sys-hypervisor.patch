@@ -1,0 +1,120 @@
+From 3bf68df03ac2eee7b62107cbc154bd5ecb0960b8 Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Tue, 15 Sep 2020 11:45:31 -0700
+Subject: [PATCH 11/11] KVM: PV CR pinning status under /sys/hypervisor
+
+Add /sys/hypervisor/pv_cr_pinning file allowing userspace to check if
+paravirutalized control register pinning is enabled or not. kexec-tools
+uses the file to determine if it should use the file based syscall.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ drivers/Kconfig              |  2 ++
+ drivers/Makefile             |  1 +
+ drivers/kvm/Kconfig          | 14 +++++++++++++
+ drivers/kvm/Makefile         |  1 +
+ drivers/kvm/sys-hypervisor.c | 38 ++++++++++++++++++++++++++++++++++++
+ 5 files changed, 56 insertions(+)
+ create mode 100644 drivers/kvm/Kconfig
+ create mode 100644 drivers/kvm/Makefile
+ create mode 100644 drivers/kvm/sys-hypervisor.c
+
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index dcecc9f6e33f..2ffa43d4e59b 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -144,6 +144,8 @@ source "drivers/vhost/Kconfig"
+ 
+ source "drivers/hv/Kconfig"
+ 
++source "drivers/kvm/Kconfig"
++
+ source "drivers/xen/Kconfig"
+ 
+ source "drivers/greybus/Kconfig"
+diff --git a/drivers/Makefile b/drivers/Makefile
+index c0cd1b9075e3..cc8de8cd8e41 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -43,6 +43,7 @@ obj-y				+= soc/
+ 
+ obj-$(CONFIG_VIRTIO)		+= virtio/
+ obj-$(CONFIG_VDPA)		+= vdpa/
++obj-$(CONFIG_KVM_GUEST)		+= kvm/
+ obj-$(CONFIG_XEN)		+= xen/
+ 
+ # regulators early, since some subsystems rely on them to initialize
+diff --git a/drivers/kvm/Kconfig b/drivers/kvm/Kconfig
+new file mode 100644
+index 000000000000..47f40cb477b4
+--- /dev/null
++++ b/drivers/kvm/Kconfig
+@@ -0,0 +1,14 @@
++menu "KVM driver support"
++	depends on KVM_GUEST
++
++config KVM_SYS_HYPERVISOR
++	bool "Create KVM entries under /sys/hypervisor"
++	depends on SYSFS
++	select SYS_HYPERVISOR
++	default y
++	help
++	  Expose entries under /sys/hypervisor related to KVM as a guest.
++	  Currently only the status of paravirtualized control register pinning
++	  is exposed.
++
++endmenu
+diff --git a/drivers/kvm/Makefile b/drivers/kvm/Makefile
+new file mode 100644
+index 000000000000..73a43fc994b9
+--- /dev/null
++++ b/drivers/kvm/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_KVM_SYS_HYPERVISOR) += sys-hypervisor.o
+diff --git a/drivers/kvm/sys-hypervisor.c b/drivers/kvm/sys-hypervisor.c
+new file mode 100644
+index 000000000000..47b58a5e1265
+--- /dev/null
++++ b/drivers/kvm/sys-hypervisor.c
+@@ -0,0 +1,38 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <asm/kvm_para.h>
++#include <asm/hypervisor.h>
++
++#include <linux/kobject.h>
++#include <linux/sysfs.h>
++
++static ssize_t pv_cr_pinning_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", kvm_paravirt_cr_pinning_enabled);
++}
++
++static struct kobj_attribute pv_cr_pinning_attr = __ATTR_RO(pv_cr_pinning);
++
++static struct attribute *kvm_hypervisor_attrs[] = {
++	&pv_cr_pinning_attr.attr,
++	NULL,
++};
++
++static const struct attribute_group hypervisor_attr_group = {
++	.attrs = kvm_hypervisor_attrs,
++};
++
++static int __init kvm_sysfs_cr_pinning_init(void)
++{
++	return sysfs_create_group(hypervisor_kobj, &hypervisor_attr_group);
++}
++
++static int __init kvm_sysfs_init(void)
++{
++	if (!kvm_para_available() || nopv)
++		return -ENODEV;
++
++	return kvm_sysfs_cr_pinning_init();
++}
++device_initcall(kvm_sysfs_init);
+-- 
+2.21.0
+

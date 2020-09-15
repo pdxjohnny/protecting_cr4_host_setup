@@ -1,0 +1,165 @@
+From fdcd9d8e342874e909b2d5993fd075cadcf79f3e Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Thu, 20 Aug 2020 14:55:56 -0700
+Subject: [PATCH 10/11] X86: kexec: PV CR pinning support check
+
+Update kernel_info.S to include the string "PVCR" at the end of the
+fixed length data.
+
+When paravirtualized control register pinning is enabled
+bzImage64_probe() will check that the bzImage contains the kernel_info
+structure and that the kernel we're attempting to load supports PV CR
+pinning by looking for the string "PVCR" within the fixed length data.
+If the image we're loacking does not support PV CR pinning and it's
+currently enabled -ENOEXEC is returned.
+
+Implement arch_kexec_load_check() for X86. Make the implementation
+return -EINVAL if paravritaulized control register pinning is enabled.
+
+We blocking off the kexec_load path with -EINVAL and force users to use
+the kexec_file system call which preforms the check for PV CR pinning
+support.
+
+kexec-tools will be updated to require the use of the kexec_file syscall
+if paravirtualized control register pinning is enabled. By adding these
+checks users will not end up with a situation where they kexec a kernel
+without support for PV CR pinning from a kernel with it enabled. It's
+important we help users avoid this case because their system would
+crash since older kernel did not keep pinned protections enabled through
+a kexec.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ arch/x86/boot/compressed/kernel_info.S |  3 ++
+ arch/x86/include/uapi/asm/bootparam.h  |  1 +
+ arch/x86/kernel/kexec-bzimage64.c      | 40 +++++++++++++++++++++++++-
+ arch/x86/kernel/machine_kexec_64.c     | 15 ++++++++++
+ 4 files changed, 58 insertions(+), 1 deletion(-)
+
+diff --git a/arch/x86/boot/compressed/kernel_info.S b/arch/x86/boot/compressed/kernel_info.S
+index f818ee8fba38..da3909d3281f 100644
+--- a/arch/x86/boot/compressed/kernel_info.S
++++ b/arch/x86/boot/compressed/kernel_info.S
+@@ -17,6 +17,9 @@ kernel_info:
+ 	/* Maximal allowed type for setup_data and setup_indirect structs. */
+ 	.long	SETUP_TYPE_MAX
+ 
++	/* Indicate support for paravritualized control register pinning */
++	.ascii	"PVCR"
++
+ kernel_info_var_len_data:
+ 	/* Empty for time being... */
+ kernel_info_end:
+diff --git a/arch/x86/include/uapi/asm/bootparam.h b/arch/x86/include/uapi/asm/bootparam.h
+index 665ad78123d5..3b6a065d7af8 100644
+--- a/arch/x86/include/uapi/asm/bootparam.h
++++ b/arch/x86/include/uapi/asm/bootparam.h
+@@ -109,6 +109,7 @@ struct kernel_info {
+ 	__u32	size;
+ 	__u32	size_total;
+ 	__u32	setup_type_max;
++	__u32	pv_cr_pinning_magic;
+ } __attribute__((packed));
+ 
+ struct sys_desc_table {
+diff --git a/arch/x86/kernel/kexec-bzimage64.c b/arch/x86/kernel/kexec-bzimage64.c
+index 57c2ecf43134..0661a225e757 100644
+--- a/arch/x86/kernel/kexec-bzimage64.c
++++ b/arch/x86/kernel/kexec-bzimage64.c
+@@ -18,6 +18,7 @@
+ #include <linux/mm.h>
+ #include <linux/efi.h>
+ #include <linux/verification.h>
++#include <linux/kvm_para.h>
+ 
+ #include <asm/bootparam.h>
+ #include <asm/setup.h>
+@@ -263,6 +264,9 @@ static int bzImage64_probe(const char *buf, unsigned long len)
+ {
+ 	int ret = -ENOEXEC;
+ 	struct setup_header *header;
++	struct kernel_info *info;
++	u32 setup_sects;
++	u32 kernel_info_offset;
+ 
+ 	/* kernel should be at least two sectors long */
+ 	if (len < 2 * 512) {
+@@ -281,7 +285,41 @@ static int bzImage64_probe(const char *buf, unsigned long len)
+ 		return ret;
+ 	}
+ 
+-	if (header->version < 0x020C) {
++	if (IS_ENABLED(CONFIG_KVM_GUEST) && kvm_paravirt_cr_pinning_enabled) {
++		if (header->version < 0x020F) {
++			pr_err("Must be at least protocol version 2.15\n");
++			return ret;
++		}
++
++		setup_sects = header->setup_sects;
++		if (!setup_sects)
++			setup_sects = 4;
++
++		setup_sects <<= 9;
++
++		kernel_info_offset = setup_sects + 512 + header->kernel_info_offset;
++
++		if (len < (sizeof(struct kernel_info) + kernel_info_offset)) {
++			pr_err("File is too short to contain kernel_info\n");
++			return ret;
++		}
++
++		info = (struct kernel_info *)(buf + kernel_info_offset);
++		if (memcmp((char *)&info->header, "LToP", 4) != 0) {
++			pr_err("Invalid kernel_info header\n");
++			return ret;
++		}
++
++		if (info->size < offsetof(struct kernel_info, pv_cr_pinning_magic)) {
++			pr_err("kernel_info lacks paravirtualized control register pinning magic\n");
++			return ret;
++		}
++
++		if (memcmp((char *)&info->pv_cr_pinning_magic, "PVCR", 4) != 0) {
++			pr_err("Paravirtualized control register pinning enabled but bzImage lacks support\n");
++			return ret;
++		}
++	} else if (header->version < 0x020C) {
+ 		pr_err("Must be at least protocol version 2.12\n");
+ 		return ret;
+ 	}
+diff --git a/arch/x86/kernel/machine_kexec_64.c b/arch/x86/kernel/machine_kexec_64.c
+index a29a44a98e5b..ab0043655d2f 100644
+--- a/arch/x86/kernel/machine_kexec_64.c
++++ b/arch/x86/kernel/machine_kexec_64.c
+@@ -24,6 +24,7 @@
+ #include <asm/io_apic.h>
+ #include <asm/debugreg.h>
+ #include <asm/kexec-bzimage64.h>
++#include <asm/kvm_para.h>
+ #include <asm/setup.h>
+ #include <asm/set_memory.h>
+ 
+@@ -587,6 +588,20 @@ void arch_kexec_unprotect_crashkres(void)
+ 	kexec_mark_crashkres(false);
+ }
+ 
++int arch_kexec_load_check(unsigned long nr_segments,
++			  unsigned long flags)
++{
++	/*
++	 * Only allow the kexec file based syscall when paravirtualized control
++	 * register pinning is enabled. File based syscall can preform support
++	 * checks, load based syscall cannot.
++	 */
++	if (IS_ENABLED(CONFIG_KVM_GUEST) && kvm_paravirt_cr_pinning_enabled)
++		return -EINVAL;
++
++	return 0;
++}
++
+ /*
+  * During a traditional boot under SME, SME will encrypt the kernel,
+  * so the SME kexec kernel also needs to be un-encrypted in order to
+-- 
+2.21.0
+

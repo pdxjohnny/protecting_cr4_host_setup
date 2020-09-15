@@ -1,0 +1,74 @@
+From 4043dca28cb781de5e3866df456cc76e32d6b0c9 Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Tue, 1 Sep 2020 21:44:55 -0700
+Subject: [PATCH 03/11] Revert "x86/tlb: Move cr4_set_bits_and_update_boot() to
+ the usage site"
+
+This reverts commit 96f59fe291d2cdc0fcb6f5f2f4b7c9cea9533fc3.
+
+cr4_set_bits_and_update_boot() is needed in it's previous location
+(tlbflush.h) so that it can be used within common.c for paravirtualized
+control register pinning.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ arch/x86/include/asm/tlbflush.h | 15 +++++++++++++++
+ arch/x86/mm/init.c              | 13 -------------
+ 2 files changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/arch/x86/include/asm/tlbflush.h b/arch/x86/include/asm/tlbflush.h
+index 8c87a2e0b660..742ac6e27277 100644
+--- a/arch/x86/include/asm/tlbflush.h
++++ b/arch/x86/include/asm/tlbflush.h
+@@ -162,9 +162,24 @@ static inline void cr4_init_shadow(void)
+ 	this_cpu_write(cpu_tlbstate.cr4, __read_cr4());
+ }
+ 
++
++/*
++ * Save some of cr4 feature set we're using (e.g.  Pentium 4MB
++ * enable and PPro Global page enable), so that any CPU's that boot
++ * up after us can get the correct flags.  This should only be used
++ * during boot on the boot cpu.
++ */
+ extern unsigned long mmu_cr4_features;
+ extern u32 *trampoline_cr4_features;
+ 
++static inline void cr4_set_bits_and_update_boot(unsigned long mask)
++{
++	mmu_cr4_features |= mask;
++	if (trampoline_cr4_features)
++		*trampoline_cr4_features = mmu_cr4_features;
++	cr4_set_bits(mask);
++}
++
+ extern void initialize_tlbstate_and_flush(void);
+ 
+ /*
+diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
+index c7a47603537f..a352e4254c67 100644
+--- a/arch/x86/mm/init.c
++++ b/arch/x86/mm/init.c
+@@ -193,19 +193,6 @@ struct map_range {
+ 
+ static int page_size_mask;
+ 
+-/*
+- * Save some of cr4 feature set we're using (e.g.  Pentium 4MB
+- * enable and PPro Global page enable), so that any CPU's that boot
+- * up after us can get the correct flags. Invoked on the boot CPU.
+- */
+-static inline void cr4_set_bits_and_update_boot(unsigned long mask)
+-{
+-	mmu_cr4_features |= mask;
+-	if (trampoline_cr4_features)
+-		*trampoline_cr4_features = mmu_cr4_features;
+-	cr4_set_bits(mask);
+-}
+-
+ static void __init probe_page_size_mask(void)
+ {
+ 	/*
+-- 
+2.21.0
+

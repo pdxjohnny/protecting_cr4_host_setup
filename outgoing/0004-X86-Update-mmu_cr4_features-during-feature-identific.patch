@@ -1,0 +1,132 @@
+From 80d3efc24e853cbc585a19d0e83e0a802946847e Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Wed, 8 Jan 2020 13:14:30 -0800
+Subject: [PATCH 04/11] X86: Update mmu_cr4_features during feature
+ identification
+
+In identify_cpu() when setting up SMEP/SMAP/UMIP/FSGSBASE call
+cr4_set_bits_and_update_boot() instead of cr4_set_bits(). This ensures
+that mmu_cr4_features contains those bits, and does not disable those
+protections when in hibernation asm. This is necessary to support
+paravirtualized control register pinning in conjunction with hibernation
+/ suspend to RAM. Without setting these bits in mmu_cr4_features, the
+trampoline code disables them, resulting in a pinning violation.
+
+setup_arch() updates mmu_cr4_features to save what identified features
+are supported for later use in hibernation asm when CR4 needs to be
+modified to toggle PGE. CR4 writes happen in restore_image() and
+restore_registers(). setup_arch() occurs before identify_cpu(), this
+leads to mmu_cr4_features not containing some of the CR4 features which
+were enabled via identify_cpu() when hibernation asm is executed.
+
+Two classes of cr4_set_bits() exist (cr4_set_bits() and
+cr4_set_bits_and_update_boot()) see comment in setup.  Are there
+features we *want* to disable before entering the hibernation assembly?
+
+For instance, why not leave MCE enabled in there?  What about PCIDs or
+OSPKE?  Does it hurt?
+
+  Update mmu_cr4_features (and, indirectly, trampoline_cr4_features)
+  with the current CR4 value.  This may not be necessary, but
+  auditing all the early-boot CR4 manipulation would be needed
+  to rule it out.
+
+mmu_cr4_features is only used within the trampoline, the CR4 of the
+image we're loading gets restored shortly
+
+SMEP/SMAP/UMIP/FSGSBASE differ in nature from other CR4 bits which could
+be added to the maintained set. For example, MCE is used for hardware
+related errors, which could not be handled within the trampoline should
+they occur without
+
+PCIDE isn't relevant to the trampoline code since there is only one
+processor and one thread running at the time.
+
+PKE isn't something we'd want to leave enabled because we're not using
+protection keys within the trampoline and
+
+the maintained set because they are
+related to protections against attackers in userspace and applicable
+within
+
+For instance, why not leave MCE enabled in there?  What about PCIDs or
+OSPKE?  Does it hurt?
+
+We can safely use mmu_cr4_features to leave SMEP/SMAP/UMIP set through
+the hibernation trampoline. Should any exceptions occur because of their
+still being enabled, it would signal to kernel developers that they have
+inadvertently touched userspace memory. FSGSBASE is safe because there
+are no userspace
+
+MCE
+
+For the boot CPU,
+the __ro_after_init on mmu_cr4_features does not cause a fault. On
+non-boot  CPUs was triggering faults. Therefore,
+cr4_set_bits_and_update_boot() has been updated to check if the bits
+we're attempting to set already exist within mmu_cr4_features. If they
+do, no update is done, thereby avoiding writes which would trigger
+faults.
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ arch/x86/include/asm/tlbflush.h | 2 ++
+ arch/x86/kernel/cpu/common.c    | 8 ++++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/arch/x86/include/asm/tlbflush.h b/arch/x86/include/asm/tlbflush.h
+index 742ac6e27277..af0d48f6d581 100644
+--- a/arch/x86/include/asm/tlbflush.h
++++ b/arch/x86/include/asm/tlbflush.h
+@@ -174,6 +174,8 @@ extern u32 *trampoline_cr4_features;
+ 
+ static inline void cr4_set_bits_and_update_boot(unsigned long mask)
+ {
++	if (!(mmu_cr4_features ^ (mmu_cr4_features | mask)))
++		return;
+ 	mmu_cr4_features |= mask;
+ 	if (trampoline_cr4_features)
+ 		*trampoline_cr4_features = mmu_cr4_features;
+diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
+index 965474d78cef..002a48abf777 100644
+--- a/arch/x86/kernel/cpu/common.c
++++ b/arch/x86/kernel/cpu/common.c
+@@ -297,7 +297,7 @@ __setup("nosmep", setup_disable_smep);
+ static __always_inline void setup_smep(struct cpuinfo_x86 *c)
+ {
+ 	if (cpu_has(c, X86_FEATURE_SMEP))
+-		cr4_set_bits(X86_CR4_SMEP);
++		cr4_set_bits_and_update_boot(X86_CR4_SMEP);
+ }
+ 
+ static __init int setup_disable_smap(char *arg)
+@@ -316,7 +316,7 @@ static __always_inline void setup_smap(struct cpuinfo_x86 *c)
+ 
+ 	if (cpu_has(c, X86_FEATURE_SMAP)) {
+ #ifdef CONFIG_X86_SMAP
+-		cr4_set_bits(X86_CR4_SMAP);
++		cr4_set_bits_and_update_boot(X86_CR4_SMAP);
+ #else
+ 		cr4_clear_bits(X86_CR4_SMAP);
+ #endif
+@@ -333,7 +333,7 @@ static __always_inline void setup_umip(struct cpuinfo_x86 *c)
+ 	if (!cpu_has(c, X86_FEATURE_UMIP))
+ 		goto out;
+ 
+-	cr4_set_bits(X86_CR4_UMIP);
++	cr4_set_bits_and_update_boot(X86_CR4_UMIP);
+ 
+ 	pr_info_once("x86/cpu: User Mode Instruction Prevention (UMIP) activated\n");
+ 
+@@ -1513,7 +1513,7 @@ static void identify_cpu(struct cpuinfo_x86 *c)
+ 
+ 	/* Enable FSGSBASE instructions if available. */
+ 	if (cpu_has(c, X86_FEATURE_FSGSBASE)) {
+-		cr4_set_bits(X86_CR4_FSGSBASE);
++		cr4_set_bits_and_update_boot(X86_CR4_FSGSBASE);
+ 		elf_hwcap2 |= HWCAP2_FSGSBASE;
+ 	}
+ 
+-- 
+2.21.0
+

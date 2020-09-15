@@ -1,16 +1,3 @@
-git log
-git stash
-git rebase --continue
-git rebase -i HEAD~5
-git stash pop
-git diff
-git add -A
-git rebase --continue
-git rebase -i HEAD~6
-git log -p
-git status
-git log -p
-vim arch/x86/kernel/kvm.c
 vgrep User\ mode
 vgrep User\ mode\ instruction
 vgrep 'User Mode In'
@@ -998,3 +985,16 @@ vim Documentation/userspace-api/media/v4l/v4l2grab.c.rst
 ping rza
 curl rza:8000
 tmux a
+git log -p arch/x86/kernel/cpu/common.c
+python -c 'print(hex(1 << 16))'
+cd ../qemu
+git grep 'support requested'
+git grep pc-testdev
+git grep TYPE_TESTDEV
+vim hw/misc/pc-testdev.c
+git grep cr-pin
+vim target/i386/cpu.c
+git grep 'support requested'
+vim target/i386/cpu.c
+git grep qemu64
+vim target/i386/cpu.c
