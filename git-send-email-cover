@@ -14,15 +14,20 @@ guests will be able to take advantage of this strengthened protection by
 default.
 
 Hibernation and suspend to ram were enabled by updating the location
-where bits in control register 4 were saved to and restored from. The
-work also includes minor patches for QEMU to ensure reboot works by
-clearing the added MSRs and exposing the new CPUID feature bit. There is
-one SMM related selftest added in this patchset and another patch for
-kvm-unit-tests that will be sent separately.
+where bits in control register 4 were saved to and restored from. kexec was
+supported by adding a string to kernel_info and checking for it within
+kexec_file, along with keeping protections enabled through the trampoline.
+
+The work also includes minor patches for QEMU to ensure reboot works by
+clearing the added MSRs and exposing the new CPUID feature bit. A patch for
+kexec-tools is also involved to have it require the use of file based kexec if
+pinning is enabled. There is one SMM related selftest added in this patchset and
+another patch for kvm-unit-tests that will be sent separately.
 
 Thank you to Dave who reviewed v1. Sean and Drew who reviewed v2, to Boris,
 Paolo, Andy, and Liran who reviewed v1, and to Sean, Dave, Kristen, and Rick
-who've provided feedback throughout.
+who've provided feedback throughout. I believe I have addressed everyones
+comments, please let me know if I've missed anything.
 
 Here are the previous versions of this patchset for reference
 
@@ -32,7 +37,7 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
 
 
 
-=== High level overview of the changes ===
+=== High level overview of the changes and previously discussed topics ===
 
 - A CPUID feature bit as well as MSRs were added to KVM. Guests can use
   the CPUID feature bit to determine if MSRs are available. Reading the
@@ -44,7 +49,6 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
 
 - Hibernation and suspend-to-RAM are supported. This was done by
   updating mmu_cr4_features on feature identification of the boot CPU.
-  As such, mmu_cr4_features is no longer read only after init.
 
 - CPU hotplug is supported. Pinning is per vCPU. When running as a guest
   pinning is requested after CPU identification for non-boot CPUs. The
@@ -57,11 +61,11 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
   to modification of SMRAM will cause an unhandleable emulation fault
   resulting in termination of the guest.
 
-- kexec support is still pending, since the plan is a bit long it's been
-  moved to the end of the cover letter. It talks about the decision to
-  make a command line parameter, why we opt in to pinning (and
-  effectively out of kexec). Being that those changes wouldn't be
-  localized to KVM (and this patchset is on top of kvm/next).
+- kexec is supported. Protected bits stay enabled through the trampoline.
+  kernel_info has been updated to signal that the trampoline will keep
+  protections enabled. Checks have been added to the file based system call
+  to verify the kernel being loaded will keep protections enabled.
+
 
 
 === Testing ===
@@ -83,6 +87,7 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
   - CPU hotplug
 
 
+
 === Changes since PATCH v1 ===
 
 - Andy and Dave's comments on the allowed set of bits and how we shouldn't
@@ -98,6 +103,7 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
   - Added disable_pv_cr_pin command line option
 
   - Removed pv_cr_pin command line option
+
 
 
 === kexec ===
