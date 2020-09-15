@@ -1,4 +1,3 @@
-git diff
 git log
 git stash
 git rebase --continue
@@ -998,3 +997,4 @@ vim ./Documentation/userspace-api/media/v4l
 vim Documentation/userspace-api/media/v4l/v4l2grab.c.rst
 ping rza
 curl rza:8000
+tmux a
