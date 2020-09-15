@@ -1,21 +1,3 @@
-git status
-vim arch/x86/kernel/setup.c 
-git status
-git diff
-git rebase --abort
-git rebase --continue
-git rebase -i HEAD~5
-git stash pop
-vim arch/x86/kernel/setup.c 
-gi tstatus
-git diff
-git add -A
-git rebase --continue
-git status
-git log -p
-git stash
-git stash show
-git stash pop
 git diff
 git log
 git stash
@@ -998,3 +980,21 @@ git diff
 git add -A
 git commit -sam 'fixed hibernation test'
 git push
+cd linux-combined/
+git grep libv4l
+find . -name \*libv4l\*
+find . -name \*4l\*
+find . -name \*v4l\*
+ll samples/v4l/
+ll samples/v4l/Makefile 
+vim samples/v4l/Makefile
+vim samples/v4l/v4l2-pci-skeleton.c 
+find . -name \*v4l\*
+vim ./Documentation/userspace-api/media/v4l/v4l2.rst 
+vim ./Documentation/userspace-api/media/v4l/common.rst 
+vim ./Documentation/userspace-api/media/v4l/open.rst 
+git grep v4l2_open
+vim ./Documentation/userspace-api/media/v4l
+vim Documentation/userspace-api/media/v4l/v4l2grab.c.rst
+ping rza
+curl rza:8000
