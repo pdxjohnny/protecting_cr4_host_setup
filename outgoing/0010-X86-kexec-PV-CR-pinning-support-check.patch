@@ -1,4 +1,4 @@
-From fdcd9d8e342874e909b2d5993fd075cadcf79f3e Mon Sep 17 00:00:00 2001
+From 6c4fe07115e142342c072263bb108d4db4eeb212 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Thu, 20 Aug 2020 14:55:56 -0700
 Subject: [PATCH 10/11] X86: kexec: PV CR pinning support check

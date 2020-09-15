@@ -1,4 +1,4 @@
-From c066212f9eec5d655701a65f71b3b16f76892c4d Mon Sep 17 00:00:00 2001
+From 3387e61bb693b43536430dd79eac3fa390a14dc2 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 22 Jul 2020 13:11:06 -0700
 Subject: [PATCH 05/11] X86: boot: Maintain CR0/4 protections through kexec

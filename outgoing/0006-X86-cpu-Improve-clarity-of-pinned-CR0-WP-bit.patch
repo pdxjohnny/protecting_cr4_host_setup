@@ -1,4 +1,4 @@
-From 895157b061558713c9ed7df95a4b328c137949fe Mon Sep 17 00:00:00 2001
+From 3bfaeeec981f96366b43e3edf8c3b5200c4703ee Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 14 Sep 2020 22:43:40 -0700
 Subject: [PATCH 06/11] X86: cpu: Improve clarity of pinned CR0 WP bit

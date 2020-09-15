@@ -1,4 +1,4 @@
-From 5342b94714c0b22a886b20d048bb916df04884bd Mon Sep 17 00:00:00 2001
+From e8d7493116343a7ae4c1e9c22d5c6843687b2ec0 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 07/11] X86: Use KVM CR pin MSRs

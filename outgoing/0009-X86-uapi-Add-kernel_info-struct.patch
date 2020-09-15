@@ -1,4 +1,4 @@
-From 4d54798f9658666d4792662a1f9e465b9e2a19ae Mon Sep 17 00:00:00 2001
+From afa37eacb9bf1e71184e0615dcf6e7fff94ccd3b Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 14 Sep 2020 10:59:32 -0700
 Subject: [PATCH 09/11] X86: uapi: Add kernel_info struct

@@ -1,4 +1,4 @@
-From 80d3efc24e853cbc585a19d0e83e0a802946847e Mon Sep 17 00:00:00 2001
+From e5658de8f091fbaef78cec54030e0fad63664404 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 8 Jan 2020 13:14:30 -0800
 Subject: [PATCH 04/11] X86: Update mmu_cr4_features during feature
@@ -20,53 +20,14 @@ leads to mmu_cr4_features not containing some of the CR4 features which
 were enabled via identify_cpu() when hibernation asm is executed.
 
 Two classes of cr4_set_bits() exist (cr4_set_bits() and
-cr4_set_bits_and_update_boot()) see comment in setup.  Are there
-features we *want* to disable before entering the hibernation assembly?
+cr4_set_bits_and_update_boot()) are due to a lack of validation on the
+early-boot CR4 manipulation (see existing comment in setup.c).
+We can now consider SMEP/SMAP/UMIP/FSGSBASE to be validated.
 
-For instance, why not leave MCE enabled in there?  What about PCIDs or
-OSPKE?  Does it hurt?
-
-  Update mmu_cr4_features (and, indirectly, trampoline_cr4_features)
-  with the current CR4 value.  This may not be necessary, but
-  auditing all the early-boot CR4 manipulation would be needed
-  to rule it out.
-
-mmu_cr4_features is only used within the trampoline, the CR4 of the
-image we're loading gets restored shortly
-
-SMEP/SMAP/UMIP/FSGSBASE differ in nature from other CR4 bits which could
-be added to the maintained set. For example, MCE is used for hardware
-related errors, which could not be handled within the trampoline should
-they occur without
-
-PCIDE isn't relevant to the trampoline code since there is only one
-processor and one thread running at the time.
-
-PKE isn't something we'd want to leave enabled because we're not using
-protection keys within the trampoline and
-
-the maintained set because they are
-related to protections against attackers in userspace and applicable
-within
-
-For instance, why not leave MCE enabled in there?  What about PCIDs or
-OSPKE?  Does it hurt?
-
-We can safely use mmu_cr4_features to leave SMEP/SMAP/UMIP set through
-the hibernation trampoline. Should any exceptions occur because of their
-still being enabled, it would signal to kernel developers that they have
-inadvertently touched userspace memory. FSGSBASE is safe because there
-are no userspace
-
-MCE
-
-For the boot CPU,
-the __ro_after_init on mmu_cr4_features does not cause a fault. On
-non-boot  CPUs was triggering faults. Therefore,
 cr4_set_bits_and_update_boot() has been updated to check if the bits
 we're attempting to set already exist within mmu_cr4_features. If they
 do, no update is done, thereby avoiding writes which would trigger
-faults.
+faults on non-boot CPUs (due to __ro_after_init).
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
