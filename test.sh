@@ -91,10 +91,13 @@ test_susram() {
 # kexec
 test_kexec() {
   cd "${HOME}"
-  sudo tee "${CHROOT}/do" <<<"test_kexec.sh"
-  LEADING="timeout --verbose --foreground 10s" TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/kexec"
-  if grep -q "kexec_load failed: Operation not permitted" "${LOG}/kexec"; then
-    echo "PASS: KEXEC" | tee -a "${LOG}/results"
+  DO=test_kexec.sh LEADING="timeout --verbose --foreground 15s" TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/kexec"
+  if grep -q "Starting new kernel" "${LOG}/kexec"; then
+    if [[ "$(grep "Hypervisor detected: KVM" "${LOG}/kexec" | wc -l)0" -gt 10 ]]; then
+      echo "PASS: KEXEC" | tee -a "${LOG}/results"
+    else
+      echo "FAIL: KEXEC" | tee -a "${LOG}/results"
+    fi
   else
     echo "FAIL: KEXEC" | tee -a "${LOG}/results"
   fi
