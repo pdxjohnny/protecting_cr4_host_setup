@@ -34,8 +34,10 @@ sudo tee "${CHROOT}/do" <<<"rebooter"
 
 export LEADING="timeout --verbose --foreground 60s"
 
-TRAILING="-no-reboot" "${HOME}/run.sh"
-echo "PASS: precheck" | tee "${LOG}/results"
+if [[ "x${SKIP_PRECHECK}" == "x" ]]; then
+  TRAILING="-no-reboot" "${HOME}/run.sh"
+  echo "PASS: precheck" | tee "${LOG}/results"
+fi
 
 set +e
 
@@ -51,14 +53,18 @@ test_selftests() {
 }
 
 test_unittests() {
+  local tests=(cr_pin_high cr_pin_low vmx_cr_pin_no_enforce_l1_on_l2)
+  cd "${HOME}/linux-combined/"
+  make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+  RELOAD=1 ~/run.sh
   cd "${HOME}/kvm-unit-tests/"
   make -j $(($(nproc)*4))
-  (QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ./run_tests.sh \
-   cr_pin_high cr_pin_low vmx_cr_pin_test && \
+  (QEMU=~/qemu/build/x86_64-softmmu/qemu-system-x86_64 ./run_tests.sh ${tests[@]} && \
    echo "PASS: unittests" | tee -a "${LOG}/results") || \
   echo "FAIL: unittests" | tee -a "${LOG}/results"
-  cat logs/{cr_pin_high,cr_pin_low,vmx_cr_pin_test}.log \
-    > "${LOG}/unittests"
+  for i in ${tests[@]}; do
+    cat "${HOME}/kvm-unit-tests/logs/${i}.log" >> "${LOG}/unittests"
+  done
 }
 
 # Hibernate
@@ -103,6 +109,17 @@ test_kexec() {
   fi
 }
 
+# kdump
+test_kdump() {
+  cd "${HOME}"
+  DO=test_kdump.sh LEADING="timeout --verbose --foreground 15s" TRAILING="-no-reboot" "${HOME}/run.sh" 2>&1 | tee "${LOG}/kdump"
+  if grep -q "KDUMP PASSED" "${LOG}/kdump"; then
+    echo "PASS: KDUMP" | tee -a "${LOG}/results"
+  else
+    echo "FAIL: KDUMP" | tee -a "${LOG}/results"
+  fi
+}
+
 # L2
 test_l2() {
   cd "${HOME}"
@@ -124,5 +141,6 @@ else
   test_hibernate
   test_susram
   test_kexec
+  test_kdump
   test_l2
 fi

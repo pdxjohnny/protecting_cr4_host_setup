@@ -1,7 +1,7 @@
-From 4043dca28cb781de5e3866df456cc76e32d6b0c9 Mon Sep 17 00:00:00 2001
+From e3f9fdf887e99aef567c5e422b8a98773ce4f1a4 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 1 Sep 2020 21:44:55 -0700
-Subject: [PATCH 03/11] Revert "x86/tlb: Move cr4_set_bits_and_update_boot() to
+Subject: [PATCH 3/9] Revert "x86/tlb: Move cr4_set_bits_and_update_boot() to
  the usage site"
 
 This reverts commit 96f59fe291d2cdc0fcb6f5f2f4b7c9cea9533fc3.

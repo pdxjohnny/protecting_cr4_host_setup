@@ -1,7 +1,7 @@
-From 40c6859c7a2034014d3207bd5fdbcde46393a17f Mon Sep 17 00:00:00 2001
+From 1d72ab9bd16930efab184ca7bbf10f1d6d947c06 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Thu, 27 Aug 2020 23:26:40 -0700
-Subject: [PATCH 08/11] kexec: Add arch specific kexec_load_check
+Subject: [PATCH 7/9] kexec: Add arch specific kexec_load_check
 
 At the end of kexec_load_check call arch_kexec_load_check to do any
 final architecture specific checks before loading the image.

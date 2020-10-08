@@ -1,7 +1,7 @@
-From 3387e61bb693b43536430dd79eac3fa390a14dc2 Mon Sep 17 00:00:00 2001
+From b2e9b87daa95c9f8507d086799989bfb55b5b06c Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 22 Jul 2020 13:11:06 -0700
-Subject: [PATCH 05/11] X86: boot: Maintain CR0/4 protections through kexec
+Subject: [PATCH 5/9] X86: boot: Maintain CR0/4 protections through kexec
 
 kexec previously disabled CR0 WP, and CR4 SMAP, SMEP, UMIP, and
 FSGSBASE by writing constants to CR0/4 which had those bits set to zero.
@@ -12,18 +12,18 @@ CR0/4, AND the bits we want to keep set if they are already enabled (WP,
 SMAP, SMEP, UMIP, and FSGSBASE), OR with the constant we had previously
 been writing, finally write back the modified register.
 
-Within pgtable.h we increase TRAMPOLINE_32BIT_CODE_SIZE by 9. The
-addition of an andl and an orl instruction within trampoline_32bit_src()
-results in 9 more bytes of machine code, which is why we've incremented
-by 9.
+Increase TRAMPOLINE_32BIT_CODE_SIZE by 9. The addition of an andl and an
+orl instruction within trampoline_32bit_src() results in 9 more bytes of
+machine code.
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
  arch/x86/boot/compressed/head_64.S   | 11 +++++++----
  arch/x86/boot/compressed/pgtable.h   |  2 +-
  arch/x86/kernel/head_64.S            |  5 ++++-
- arch/x86/kernel/relocate_kernel_64.S | 17 +++++++++--------
- 4 files changed, 21 insertions(+), 14 deletions(-)
+ arch/x86/kernel/relocate_kernel_32.S |  6 +++---
+ arch/x86/kernel/relocate_kernel_64.S | 18 ++++++++++--------
+ 5 files changed, 25 insertions(+), 17 deletions(-)
 
 diff --git a/arch/x86/boot/compressed/head_64.S b/arch/x86/boot/compressed/head_64.S
 index 97d37f0a34f5..e182e79cdfda 100644
@@ -90,11 +90,33 @@ index 16da4ac01597..5dea82fdd73e 100644
  #ifdef CONFIG_X86_5LEVEL
  	testl	$1, __pgtable_l5_enabled(%rip)
  	jz	1f
+diff --git a/arch/x86/kernel/relocate_kernel_32.S b/arch/x86/kernel/relocate_kernel_32.S
+index 94b33885f8d2..8b50d27402d1 100644
+--- a/arch/x86/kernel/relocate_kernel_32.S
++++ b/arch/x86/kernel/relocate_kernel_32.S
+@@ -104,14 +104,14 @@ SYM_CODE_START_LOCAL_NOALIGN(identity_mapped)
+ 	 * Set cr0 to a known state:
+ 	 *  - Paging disabled
+ 	 *  - Alignment check disabled
+-	 *  - Write protect disabled
+ 	 *  - No task switch
+ 	 *  - Don't do FP software emulation.
+ 	 *  - Proctected mode enabled
++	 *  - Write protect enabled
+ 	 */
+ 	movl	%cr0, %eax
+-	andl	$~(X86_CR0_PG | X86_CR0_AM | X86_CR0_WP | X86_CR0_TS | X86_CR0_EM), %eax
+-	orl	$(X86_CR0_PE), %eax
++	andl	$~(X86_CR0_PG | X86_CR0_AM | X86_CR0_TS | X86_CR0_EM), %eax
++	orl	$(X86_CR0_PE | X86_CR0_WP), %eax
+ 	movl	%eax, %cr0
+ 
+ 	/* clear cr4 if applicable */
 diff --git a/arch/x86/kernel/relocate_kernel_64.S b/arch/x86/kernel/relocate_kernel_64.S
-index a4d9a261425b..37b29883c609 100644
+index a4d9a261425b..044e09433f70 100644
 --- a/arch/x86/kernel/relocate_kernel_64.S
 +++ b/arch/x86/kernel/relocate_kernel_64.S
-@@ -118,26 +118,27 @@ SYM_CODE_START_LOCAL_NOALIGN(identity_mapped)
+@@ -118,26 +118,28 @@ SYM_CODE_START_LOCAL_NOALIGN(identity_mapped)
  	 * Set cr0 to a known state:
  	 *  - Paging enabled
  	 *  - Alignment check disabled
@@ -118,6 +140,7 @@ index a4d9a261425b..37b29883c609 100644
 +	 *  - SMEP, if it was enabled before
 +	 *  - SMAP, if it was enabled before
 +	 *  - UMIP, if it was enabled before
++	 *  - FSGSBASE, if it was enabled before
  	 */
 -	movl	$X86_CR4_PAE, %eax
 -	testq	$X86_CR4_LA57, %r13

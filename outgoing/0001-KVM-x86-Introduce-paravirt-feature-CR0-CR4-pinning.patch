@@ -1,7 +1,7 @@
-From 016e30a988733317a656778065b33ab038f51273 Mon Sep 17 00:00:00 2001
+From 072e0e807bd8b464802e290f4aec9f39b857cb97 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
-Subject: [PATCH 01/11] KVM: x86: Introduce paravirt feature CR0/CR4 pinning
+Subject: [PATCH 1/9] KVM: x86: Introduce paravirt feature CR0/CR4 pinning
 
 Add a CR pin feature bit to the KVM cpuid. Add MSRs to KVM which guests
 use to identify which bits they may request be pinned. Allowed bits
@@ -19,64 +19,44 @@ unchanged. Clear pinning on vCPU reset to avoid faulting non-boot
 CPUs when they are disabled and then re-enabled, which is done when
 hibernating.
 
-Pinning is not active when running in SMM. Entering SMM disables pinned
-bits. Writes to control registers within SMM would therefore trigger
-general protection faults if pinning was enforced. Upon exit from SMM,
-SMRAM is modified to ensure the values of CR0/4 that will be restored
-contain the correct values for pinned bits. CR0/4 values are then
-restored from SMRAM as usual.
+Entering SMM zeros control registers, resulting in the disabling of bits
+which may be pinned. Ignore pinning MSRs when running in SMM. On exit
+from SMM, SMRAM is checked to ensure the values of CR0/4 that will be
+restored contain the correct values for pinned bits.
 
-When running with nested virtualization, should pinned bits be altered
-within L1 VMCS / VMCB, on VM-Exit, they will be silently restored.
+On VM-Exit check L1 control register values within VMCS / VMCB against
+pinning MSRs. According to Intel Vol 3 27.7 if VMCS misconfiguration
+is discovered trigger a VMX abort with the indicator field set to 3.
+According to AMD Vol 2 15.6 if VMCB host state inconsistency is
+discovered cause the processor to shutdown.
 
 Should userspace expose the CR pinning CPUID feature bit, it must zero
 CR pinned MSRs on reboot. If it does not, it runs the risk of having the
 guest enable pinning and subsequently cause general protection faults on
-next boot due to early boot code setting control registers to values
+next boot due to BIOS/EFI code setting control registers to values
 which do not contain the pinned bits. Userspace is responsible for
 migrating the contents of the CR* pinned MSRs. If userspace fails to
 migrate the MSRs the protection will no longer be active.
 
-Pinning of sensitive CR bits has already been implemented to protect
-against exploits directly calling native_write_cr*(). The current
-protection cannot stop ROP attacks which jump directly to a MOV CR
-instruction.
-
-https://web.archive.org/web/20171029060939/http://www.blackbunny.io/linux-kernel-x86-64-bypass-smep-kaslr-kptr_restric/
-
-Guests running with paravirtualized CR pinning can now be protected
-against the use of ROP, JOP, etc. techniques to disable CR bits. The
-same bits that are being pinned natively may be pinned via the CR pinned
-MSRs. These bits are WP in CR0, and SMEP, SMAP, UMIP, and FSGSBASE in
-CR4.
-
-Other hypervisors such as HyperV have implemented similar protections
-for Control Registers and MSRs; which security researchers have found
-effective.
-
-https://www.abatchy.com/2018/01/kernel-exploitation-4
-
-Future work could implement similar MSRs to protect bits elsewhere, such
-as MSRs. The NXE bit of the EFER MSR is a prime candidate.
-
 Changes for QEMU are required to expose the CR pin cpuid feature bit. As
 well as clear the MSRs on reboot and enable migration.
 
-https://github.com/qemu/qemu/commit/1b26f03653669c97dd8729f9f59be561d68e2b2d
-https://github.com/qemu/qemu/commit/3af36d57457892c3088ee88de759d4f258c159a7
+https://github.com/pdxjohnny/qemu/commit/1b26f03653669c97dd8729f9f59be561d68e2b2d
+https://github.com/pdxjohnny/qemu/commit/3af36d57457892c3088ee88de759d4f258c159a7
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
  Documentation/virt/kvm/msr.rst       |  62 +++++++++++++++
  arch/x86/include/asm/kvm_host.h      |   8 ++
  arch/x86/include/uapi/asm/kvm_para.h |   7 ++
+ arch/x86/include/uapi/asm/vmx.h      |   1 +
  arch/x86/kvm/cpuid.c                 |   3 +-
  arch/x86/kvm/emulate.c               |   3 +-
  arch/x86/kvm/kvm_emulate.h           |   2 +-
  arch/x86/kvm/svm/nested.c            |  11 ++-
- arch/x86/kvm/vmx/nested.c            |  10 ++-
+ arch/x86/kvm/vmx/nested.c            |  20 ++++-
  arch/x86/kvm/x86.c                   | 114 ++++++++++++++++++++++++++-
- 9 files changed, 211 insertions(+), 9 deletions(-)
+ 10 files changed, 222 insertions(+), 9 deletions(-)
 
 diff --git a/Documentation/virt/kvm/msr.rst b/Documentation/virt/kvm/msr.rst
 index e37a14c323d2..3aa7e0028ef1 100644
@@ -204,6 +184,18 @@ index 812e9b4c1114..91241e0d9691 100644
  
  struct kvm_steal_time {
  	__u64 steal;
+diff --git a/arch/x86/include/uapi/asm/vmx.h b/arch/x86/include/uapi/asm/vmx.h
+index b8ff9e8ac0d5..386b2f357649 100644
+--- a/arch/x86/include/uapi/asm/vmx.h
++++ b/arch/x86/include/uapi/asm/vmx.h
+@@ -155,6 +155,7 @@
+ 
+ #define VMX_ABORT_SAVE_GUEST_MSR_FAIL        1
+ #define VMX_ABORT_LOAD_HOST_PDPTE_FAIL       2
++#define VMX_ABORT_VMCS_CORRUPTED             3
+ #define VMX_ABORT_LOAD_HOST_MSR_FAIL         4
+ 
+ #endif /* _UAPIVMX_H */
 diff --git a/arch/x86/kvm/cpuid.c b/arch/x86/kvm/cpuid.c
 index 3fd6eec202d7..72a8c4925ea6 100644
 --- a/arch/x86/kvm/cpuid.c
@@ -268,14 +260,19 @@ index fb68467e6049..d9b6178b7040 100644
  	kvm_rsp_write(&svm->vcpu, hsave->save.rsp);
  	kvm_rip_write(&svm->vcpu, hsave->save.rip);
 diff --git a/arch/x86/kvm/vmx/nested.c b/arch/x86/kvm/vmx/nested.c
-index 23b58c28a1c9..26c4d9fcd905 100644
+index 23b58c28a1c9..c0f23a4020a3 100644
 --- a/arch/x86/kvm/vmx/nested.c
 +++ b/arch/x86/kvm/vmx/nested.c
-@@ -4158,11 +4158,17 @@ static void load_vmcs12_host_state(struct kvm_vcpu *vcpu,
+@@ -4158,11 +4158,27 @@ static void load_vmcs12_host_state(struct kvm_vcpu *vcpu,
  	 * (KVM doesn't change it);
  	 */
  	vcpu->arch.cr0_guest_owned_bits = KVM_POSSIBLE_CR0_GUEST_BITS;
 -	vmx_set_cr0(vcpu, vmcs12->host_cr0);
++
++	if (((vmcs12->host_cr0 ^ vcpu->arch.cr0_pinned.high) & vcpu->arch.cr0_pinned.high) ||
++	    ((~vmcs12->host_cr0 ^ vcpu->arch.cr0_pinned.low) & vcpu->arch.cr0_pinned.low))
++		nested_vmx_abort(vcpu, VMX_ABORT_VMCS_CORRUPTED);
++
 +	vmx_set_cr0(vcpu,
 +		    (vmcs12->host_cr0 |
 +		     vcpu->arch.cr0_pinned.high) &
@@ -284,9 +281,14 @@ index 23b58c28a1c9..26c4d9fcd905 100644
  	/* Same as above - no reason to call set_cr4_guest_host_mask().  */
  	vcpu->arch.cr4_guest_owned_bits = ~vmcs_readl(CR4_GUEST_HOST_MASK);
 -	vmx_set_cr4(vcpu, vmcs12->host_cr4);
++
++	if (((vmcs12->host_cr4 ^ vcpu->arch.cr4_pinned.high) & vcpu->arch.cr4_pinned.high) ||
++	    ((~vmcs12->host_cr4 ^ vcpu->arch.cr4_pinned.low) & vcpu->arch.cr4_pinned.low))
++		nested_vmx_abort(vcpu, VMX_ABORT_VMCS_CORRUPTED);
++
 +	vmx_set_cr4(vcpu,
-+		   (vmcs12->host_cr4 |
-+		    vcpu->arch.cr4_pinned.high) &
++		    (vmcs12->host_cr4 |
++		     vcpu->arch.cr4_pinned.high) &
 +		    ~vcpu->arch.cr4_pinned.low);
  
  	nested_ept_uninit_mmu_context(vcpu);

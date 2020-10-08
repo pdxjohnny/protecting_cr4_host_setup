@@ -1,7 +1,7 @@
-From fdf9f0667d414a63134d63d2780170fa73e3c602 Mon Sep 17 00:00:00 2001
+From bb8586da676d08cf78258ef3461ade6d0f676eae Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 15 Sep 2020 11:45:31 -0700
-Subject: [PATCH 11/11] KVM: PV CR pinning status under /sys/hypervisor
+Subject: [PATCH 8/9] KVM: PV CR pinning status under /sys/hypervisor
 
 Add /sys/hypervisor/pv_cr_pinning file allowing userspace to check if
 paravirutalized control register pinning is enabled or not. kexec-tools
@@ -46,7 +46,7 @@ index c0cd1b9075e3..cc8de8cd8e41 100644
  # regulators early, since some subsystems rely on them to initialize
 diff --git a/drivers/kvm/Kconfig b/drivers/kvm/Kconfig
 new file mode 100644
-index 000000000000..47f40cb477b4
+index 000000000000..d499c74c2f2d
 --- /dev/null
 +++ b/drivers/kvm/Kconfig
 @@ -0,0 +1,14 @@
@@ -55,7 +55,7 @@ index 000000000000..47f40cb477b4
 +
 +config KVM_SYS_HYPERVISOR
 +	bool "Create KVM entries under /sys/hypervisor"
-+	depends on SYSFS
++	depends on SYSFS && PARAVIRT_CR_PINNING
 +	select SYS_HYPERVISOR
 +	default y
 +	help

@@ -1,7 +1,7 @@
-From e8d7493116343a7ae4c1e9c22d5c6843687b2ec0 Mon Sep 17 00:00:00 2001
+From 5cf86d3ab04a837971866cae29ffe29202192267 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
-Subject: [PATCH 07/11] X86: Use KVM CR pin MSRs
+Subject: [PATCH 6/9] X86: Use KVM CR pin MSRs
 
 Strengthen existing control register pinning when running
 paravirtualized under KVM. Check which bits KVM supports pinning for
@@ -17,8 +17,10 @@ Identification of non-boot CPUs takes place after the boot CPU has setup
 native CR pinning. Therefore, non-boot CPUs access pinned bits setup by
 the boot CPU for CR4 and request that those be pinned. For CR0, WP is
 the only bit pinned and does not require feature identification, and
-therefore is always pinned. All CPUs request paravirtualized pinning of
-the same bits which are already pinned natively.
+therefore is always pinned. Native pinning hardcodes WP into it's check.
+As such there is no equivalent of the cr4_pinned_bits variable. All CPUs
+request paravirtualized pinning of the same bits which are already
+pinned natively.
 
 Paravirtualized control register pinning will be enabled by default if
 KVM guest support is enabled. Should the user find that paravirtualized
@@ -119,7 +121,7 @@ index 338119852512..47d9f605c1b5 100644
  
  #endif /* _ASM_X86_KVM_PARA_H */
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 30db3873f3c5..c7b501832a41 100644
+index 002a48abf777..e0bf0651bd4c 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
 @@ -22,6 +22,7 @@
@@ -130,21 +132,21 @@ index 30db3873f3c5..c7b501832a41 100644
  
  #include <asm/stackprotector.h>
  #include <asm/perf_event.h>
-@@ -443,6 +444,8 @@ static void __init setup_cr_pinning(void)
+@@ -439,6 +440,8 @@ static void __init setup_cr_pinning(void)
  {
  	cr4_pinned_bits = this_cpu_read(cpu_tlbstate.cr4) & cr4_pinned_mask;
  	static_key_enable(&cr_pinning.key);
 +
-+	kvm_setup_paravirt_cr_pinning(cr0_pinned_bits, cr4_pinned_bits);
++	kvm_setup_paravirt_cr_pinning(X86_CR0_WP, cr4_pinned_bits);
  }
  
  static __init int x86_nofsgsbase_setup(char *arg)
-@@ -1634,6 +1637,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
+@@ -1630,6 +1633,8 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
  	validate_apic_and_package_id(c);
  	x86_spec_ctrl_setup_ap();
  	update_srbds_msr();
 +
-+	kvm_setup_paravirt_cr_pinning(cr0_pinned_bits, cr4_pinned_bits);
++	kvm_setup_paravirt_cr_pinning(X86_CR0_WP, cr4_pinned_bits);
  }
  
  static __init int setup_noclflush(char *arg)
