@@ -1,4 +1,4 @@
-From d0ee1b2678ebc679ad17a46dc644f6e5cd4a20a3 Mon Sep 17 00:00:00 2001
+From 52b18c1dc20ac6f93178320fe4317e98d85a5f7c Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 6/9] X86: Use KVM CR pin MSRs
@@ -38,7 +38,7 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  5 files changed, 120 insertions(+)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 98ea67f27809..01662fff2008 100644
+index a1068742a6df..b2300180702b 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
 @@ -957,6 +957,17 @@
@@ -60,10 +60,10 @@ index 98ea67f27809..01662fff2008 100644
  			Disable PIN 1 of APIC timer
  			Can be useful to work around chipset bugs.
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 9a2849527dd7..44fe5d394851 100644
+index 7101ac64bb20..54eac192bce7 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -838,6 +838,21 @@ config PARAVIRT_TIME_ACCOUNTING
+@@ -839,6 +839,21 @@ config PARAVIRT_TIME_ACCOUNTING
  config PARAVIRT_CLOCK
  	bool
  
@@ -123,7 +123,7 @@ index 338119852512..06052134901d 100644
  
  #endif /* _ASM_X86_KVM_PARA_H */
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 002a48abf777..dc41f53ae54d 100644
+index d313ce522a6a..d403685868b6 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
 @@ -22,6 +22,7 @@
@@ -134,7 +134,7 @@ index 002a48abf777..dc41f53ae54d 100644
  
  #include <asm/stackprotector.h>
  #include <asm/perf_event.h>
-@@ -439,6 +440,11 @@ static void __init setup_cr_pinning(void)
+@@ -440,6 +441,11 @@ static void __init setup_cr_pinning(void)
  {
  	cr4_pinned_bits = this_cpu_read(cpu_tlbstate.cr4) & cr4_pinned_mask;
  	static_key_enable(&cr_pinning.key);
@@ -146,7 +146,7 @@ index 002a48abf777..dc41f53ae54d 100644
  }
  
  static __init int x86_nofsgsbase_setup(char *arg)
-@@ -1630,6 +1636,11 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
+@@ -1631,6 +1637,11 @@ void identify_secondary_cpu(struct cpuinfo_x86 *c)
  	validate_apic_and_package_id(c);
  	x86_spec_ctrl_setup_ap();
  	update_srbds_msr();
@@ -159,7 +159,7 @@ index 002a48abf777..dc41f53ae54d 100644
  
  static __init int setup_noclflush(char *arg)
 diff --git a/arch/x86/kernel/kvm.c b/arch/x86/kernel/kvm.c
-index 08320b0b2b27..1927b82da7ee 100644
+index 42c6e0deff9e..eeb9353886e0 100644
 --- a/arch/x86/kernel/kvm.c
 +++ b/arch/x86/kernel/kvm.c
 @@ -26,6 +26,7 @@
@@ -178,7 +178,7 @@ index 08320b0b2b27..1927b82da7ee 100644
  
  DEFINE_STATIC_KEY_FALSE(kvm_async_pf_enabled);
  
-@@ -743,6 +745,7 @@ static void __init kvm_apic_init(void)
+@@ -741,6 +743,7 @@ static void __init kvm_apic_init(void)
  static void __init kvm_init_platform(void)
  {
  	kvmclock_init();
@@ -186,7 +186,7 @@ index 08320b0b2b27..1927b82da7ee 100644
  	x86_platform.apic_post_init = kvm_apic_init;
  }
  
-@@ -924,6 +927,67 @@ void __init kvm_spinlock_init(void)
+@@ -922,6 +925,67 @@ void __init kvm_spinlock_init(void)
  
  #endif	/* CONFIG_PARAVIRT_SPINLOCKS */
  

@@ -1,4 +1,4 @@
-From c8e798db1d5676aeadd4b999f73f85abfd6fa2d8 Mon Sep 17 00:00:00 2001
+From b2408f23c705445e75eb6bf53f35579fae60dd3b Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 1 Sep 2020 21:44:55 -0700
 Subject: [PATCH 3/9] Revert "x86/tlb: Move cr4_set_bits_and_update_boot() to

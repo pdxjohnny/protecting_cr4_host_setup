@@ -1,4 +1,4 @@
-From 80257504c5d8a203b80477ca47bdd545793ab806 Mon Sep 17 00:00:00 2001
+From e5736e3123d26417b62033f22e61ccbb5e54c627 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 27 Jan 2020 16:32:19 -0800
 Subject: [PATCH 2/9] selftests: kvm: add test for CR pinning with SMM
@@ -16,7 +16,7 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  create mode 100644 tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 
 diff --git a/tools/testing/selftests/kvm/.gitignore b/tools/testing/selftests/kvm/.gitignore
-index 452787152748..c0666c3efcbb 100644
+index 307ceaadbbb9..5a27901eecc1 100644
 --- a/tools/testing/selftests/kvm/.gitignore
 +++ b/tools/testing/selftests/kvm/.gitignore
 @@ -10,6 +10,7 @@
@@ -25,10 +25,10 @@ index 452787152748..c0666c3efcbb 100644
  /x86_64/smm_test
 +/x86_64/smm_cr_pin_test
  /x86_64/state_test
+ /x86_64/user_msr_test
  /x86_64/vmx_preemption_timer_test
- /x86_64/svm_vmcall_test
 diff --git a/tools/testing/selftests/kvm/Makefile b/tools/testing/selftests/kvm/Makefile
-index 4a166588d99f..c5c205637f38 100644
+index 7ebe71fbca53..388cdccd3adf 100644
 --- a/tools/testing/selftests/kvm/Makefile
 +++ b/tools/testing/selftests/kvm/Makefile
 @@ -45,6 +45,7 @@ TEST_GEN_PROGS_x86_64 += x86_64/mmio_warning_test

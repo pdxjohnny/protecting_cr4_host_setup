@@ -1,4 +1,4 @@
-From a1edcd628920fb116c65a951f1f87e03284dc698 Mon Sep 17 00:00:00 2001
+From d5f80df6efcfd307415be33f159d03a24bba5785 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 8 Jan 2020 13:14:30 -0800
 Subject: [PATCH 4/9] X86: Update mmu_cr4_features during feature
@@ -49,10 +49,10 @@ index 742ac6e27277..af0d48f6d581 100644
  	if (trampoline_cr4_features)
  		*trampoline_cr4_features = mmu_cr4_features;
 diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
-index 965474d78cef..002a48abf777 100644
+index c5d6f17d9b9d..d313ce522a6a 100644
 --- a/arch/x86/kernel/cpu/common.c
 +++ b/arch/x86/kernel/cpu/common.c
-@@ -297,7 +297,7 @@ __setup("nosmep", setup_disable_smep);
+@@ -298,7 +298,7 @@ __setup("nosmep", setup_disable_smep);
  static __always_inline void setup_smep(struct cpuinfo_x86 *c)
  {
  	if (cpu_has(c, X86_FEATURE_SMEP))
@@ -61,7 +61,7 @@ index 965474d78cef..002a48abf777 100644
  }
  
  static __init int setup_disable_smap(char *arg)
-@@ -316,7 +316,7 @@ static __always_inline void setup_smap(struct cpuinfo_x86 *c)
+@@ -317,7 +317,7 @@ static __always_inline void setup_smap(struct cpuinfo_x86 *c)
  
  	if (cpu_has(c, X86_FEATURE_SMAP)) {
  #ifdef CONFIG_X86_SMAP
@@ -70,7 +70,7 @@ index 965474d78cef..002a48abf777 100644
  #else
  		cr4_clear_bits(X86_CR4_SMAP);
  #endif
-@@ -333,7 +333,7 @@ static __always_inline void setup_umip(struct cpuinfo_x86 *c)
+@@ -334,7 +334,7 @@ static __always_inline void setup_umip(struct cpuinfo_x86 *c)
  	if (!cpu_has(c, X86_FEATURE_UMIP))
  		goto out;
  
@@ -79,7 +79,7 @@ index 965474d78cef..002a48abf777 100644
  
  	pr_info_once("x86/cpu: User Mode Instruction Prevention (UMIP) activated\n");
  
-@@ -1513,7 +1513,7 @@ static void identify_cpu(struct cpuinfo_x86 *c)
+@@ -1514,7 +1514,7 @@ static void identify_cpu(struct cpuinfo_x86 *c)
  
  	/* Enable FSGSBASE instructions if available. */
  	if (cpu_has(c, X86_FEATURE_FSGSBASE)) {
