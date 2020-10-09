@@ -1,4 +1,4 @@
-From bb8586da676d08cf78258ef3461ade6d0f676eae Mon Sep 17 00:00:00 2001
+From c55b5b6803b2a8a4f465a2311420c1002616756a Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 15 Sep 2020 11:45:31 -0700
 Subject: [PATCH 8/9] KVM: PV CR pinning status under /sys/hypervisor
@@ -9,16 +9,29 @@ uses the file to determine if it should use the file based syscall.
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
+ MAINTAINERS                  |  1 +
  drivers/Kconfig              |  2 ++
  drivers/Makefile             |  1 +
  drivers/kvm/Kconfig          | 14 +++++++++++++
  drivers/kvm/Makefile         |  1 +
  drivers/kvm/sys-hypervisor.c | 38 ++++++++++++++++++++++++++++++++++++
- 5 files changed, 56 insertions(+)
+ 6 files changed, 57 insertions(+)
  create mode 100644 drivers/kvm/Kconfig
  create mode 100644 drivers/kvm/Makefile
  create mode 100644 drivers/kvm/sys-hypervisor.c
 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index f77df02e4121..40e6f631146a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9515,6 +9515,7 @@ S:	Supported
+ W:	http://www.linux-kvm.org
+ T:	git git://git.kernel.org/pub/scm/virt/kvm/kvm.git
+ F:	Documentation/virt/kvm/
++F:	drivers/kvm/
+ F:	include/asm-generic/kvm*
+ F:	include/kvm/iodev.h
+ F:	include/linux/kvm*
 diff --git a/drivers/Kconfig b/drivers/Kconfig
 index dcecc9f6e33f..2ffa43d4e59b 100644
 --- a/drivers/Kconfig

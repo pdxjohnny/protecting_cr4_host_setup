@@ -1,44 +1,3 @@
-time make -j $(($(nproc)*4)) bzImage && ~/test.sh kexec
-vim ~/chroot/usr/bin/test_kexec.sh 
-vim ~/chroot/usr/bin/test_kexec.sh
-sudo vim ~/chroot/usr/bin/test_kexec.sh
-time make -j $(($(nproc)*4)) bzImage && ~/test.sh kexec
-~/test.sh kexec
-DO=do_kexec ~/run.sh -no-reboot
-~/test.sh l2
-~/test.sh
-cat /tmp/cr-pin-test-DeIdgdRJKK/hibernate_begin 
-less -r /tmp/cr-pin-test-DeIdgdRJKK/hibernate_begin
-vim /tmp/cr-pin-test-DeIdgdRJKK/hibernate_begin
-~/test.sh hibernate
-cat ~/test.sh 
-DO=test_hibernate.sh ~/run.sh -no-reboot -S -s
-DO=test_hibernate.sh ~/run.sh -no-reboot
-DO=test_susram.sh ~/run.sh -no-reboot
-DO=test_susram.sh ~/run.sh -no-reboot -S -s
-DO=test_susram.sh ~/run.sh -no-reboot
-ll /tmp/cr-pin-test-
-ll /tmp/cr-pin-test-*
-cat /tmp/cr-pin-test-DeIdgdRJKK/results 
-cat /tmp/cr-pin-test-DeIdgdRJKK/kexec 
-DO=do_kexec ~/run.sh -no-reboot
-git status
-cd ..
-git status
-git diff
-git add -A
-git commit -sam 'test_kexec add --kexec-file-syscall'
-git push
-vim README.md 
-vim ~/run.sh 
-DO=test_susram.sh ~/run.sh -no-reboot
-sudo vim ~/chroot/usr/bin/uefi-setup.sh
-DO=test_susram.sh ~/run.sh -no-reboot
-sudo vim ~/chroot/usr/bin/init.sh
-DO=test_susram.sh ~/run.sh -no-reboot
-sudo vim ~/chroot/boot/startup.nsh 
-DO=test_susram.sh ~/run.sh -no-reboot
-sudo vim ~/chroot/boot/startup.nsh 
 DO=test_susram.sh ~/run.sh -no-reboot
 vim ~/run.sh 
 DO=test_susram.sh ~/run.sh -no-reboot
@@ -997,4 +956,45 @@ git commit -sam asdf
 git push
 git push -f
 git status
+python3
+vim ~/run.sh
+~/test.sh 
+vim ../run.sh 
+sudo vim ~/chroot/usr/bin/uefi-setup.sh
+vim .config
+git status
+git push -f
+vim Documentation/x86/boot.rst
+vim #       modified:   arch/x86/boot/compressed/kernel_info.S                      │
+vim arch/x86/boot/compressed/kernel_info.S
+vim arch/x86/include/uapi/asm/bootparam.h
+git log -p
+vim arch/x86/kernel/kexec-bzimage64.c
+git grep pinning
+git grep pinned.high
+vim arch/x86/kvm/svm/nested.c
+git status
+git checkout HEAD~1 -- arch/x86/kvm/svm/nested.c
+git status
+git diff --staged
+git log -p
+git staths
+git status
+rm tools/testing/selftests/kvm/x86_64/smm_cr_pin_test
+git stash
+git status
+git stash show
+git diff --staged
+git diff --staged > /tmp/f
+git reset HEAD .
+git status
+git checkout -- .
+git status
+git rebase --continue
+git log -p
+git log -p HEAD~9 -n 2 --reverse 
+git log -p HEAD~9 --reverse 
+git log -p
+git status
+git push -f
 python3
