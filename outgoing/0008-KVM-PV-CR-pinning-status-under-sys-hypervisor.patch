@@ -1,4 +1,4 @@
-From c55b5b6803b2a8a4f465a2311420c1002616756a Mon Sep 17 00:00:00 2001
+From 10b31a51c8c68eec1a0a87e8b984e2b9aebcdede Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 15 Sep 2020 11:45:31 -0700
 Subject: [PATCH 8/9] KVM: PV CR pinning status under /sys/hypervisor

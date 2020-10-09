@@ -1,4 +1,4 @@
-From 1d72ab9bd16930efab184ca7bbf10f1d6d947c06 Mon Sep 17 00:00:00 2001
+From 9eaf9dd8a470138be3a815ef3033dbd0a5c1a26c Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Thu, 27 Aug 2020 23:26:40 -0700
 Subject: [PATCH 7/9] kexec: Add arch specific kexec_load_check

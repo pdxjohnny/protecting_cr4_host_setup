@@ -1,4 +1,4 @@
-From 072e0e807bd8b464802e290f4aec9f39b857cb97 Mon Sep 17 00:00:00 2001
+From d0cfc0d11158279fea699a0b03dbfae301e9d01b Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 1/9] KVM: x86: Introduce paravirt feature CR0/CR4 pinning
@@ -27,8 +27,12 @@ restored contain the correct values for pinned bits.
 On VM-Exit check L1 control register values within VMCS / VMCB against
 pinning MSRs. According to Intel Vol 3 27.7 if VMCS misconfiguration
 is discovered trigger a VMX abort with the indicator field set to 3.
+
 According to AMD Vol 2 15.6 if VMCB host state inconsistency is
-discovered cause the processor to shutdown.
+discovered cause the processor to shutdown. Modifications to
+nested_svm_vmexit() to ensure that the processor is shutdown are
+non-trivial and the author lacks a platform to test any potential
+changes. As such, the CPUID feature bit is not set on AMD processors.
 
 Should userspace expose the CR pinning CPUID feature bit, it must zero
 CR pinned MSRs on reboot. If it does not, it runs the risk of having the
@@ -50,13 +54,12 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  arch/x86/include/asm/kvm_host.h      |   8 ++
  arch/x86/include/uapi/asm/kvm_para.h |   7 ++
  arch/x86/include/uapi/asm/vmx.h      |   1 +
- arch/x86/kvm/cpuid.c                 |   3 +-
+ arch/x86/kvm/cpuid.c                 |   3 +
  arch/x86/kvm/emulate.c               |   3 +-
  arch/x86/kvm/kvm_emulate.h           |   2 +-
- arch/x86/kvm/svm/nested.c            |  11 ++-
  arch/x86/kvm/vmx/nested.c            |  20 ++++-
  arch/x86/kvm/x86.c                   | 114 ++++++++++++++++++++++++++-
- 10 files changed, 222 insertions(+), 9 deletions(-)
+ 9 files changed, 214 insertions(+), 6 deletions(-)
 
 diff --git a/Documentation/virt/kvm/msr.rst b/Documentation/virt/kvm/msr.rst
 index e37a14c323d2..3aa7e0028ef1 100644
@@ -197,19 +200,19 @@ index b8ff9e8ac0d5..386b2f357649 100644
  
  #endif /* _UAPIVMX_H */
 diff --git a/arch/x86/kvm/cpuid.c b/arch/x86/kvm/cpuid.c
-index 3fd6eec202d7..72a8c4925ea6 100644
+index 3fd6eec202d7..553fe7bdf85d 100644
 --- a/arch/x86/kvm/cpuid.c
 +++ b/arch/x86/kvm/cpuid.c
-@@ -746,7 +746,8 @@ static inline int __do_cpuid_func(struct kvm_cpuid_array *array, u32 function)
- 			     (1 << KVM_FEATURE_PV_SEND_IPI) |
- 			     (1 << KVM_FEATURE_POLL_CONTROL) |
+@@ -748,6 +748,9 @@ static inline int __do_cpuid_func(struct kvm_cpuid_array *array, u32 function)
  			     (1 << KVM_FEATURE_PV_SCHED_YIELD) |
--			     (1 << KVM_FEATURE_ASYNC_PF_INT);
-+			     (1 << KVM_FEATURE_ASYNC_PF_INT) |
-+			     (1 << KVM_FEATURE_CR_PIN);
+ 			     (1 << KVM_FEATURE_ASYNC_PF_INT);
  
++		if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD)
++			entry->eax |= (1 << KVM_FEATURE_CR_PIN);
++
  		if (sched_info_on())
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
+ 
 diff --git a/arch/x86/kvm/emulate.c b/arch/x86/kvm/emulate.c
 index d0e2825ae617..95780422765b 100644
 --- a/arch/x86/kvm/emulate.c
@@ -237,28 +240,6 @@ index 43c93ffa76ed..e92dd7605e48 100644
  	int (*set_xcr)(struct x86_emulate_ctxt *ctxt, u32 index, u64 xcr);
  };
  
-diff --git a/arch/x86/kvm/svm/nested.c b/arch/x86/kvm/svm/nested.c
-index fb68467e6049..d9b6178b7040 100644
---- a/arch/x86/kvm/svm/nested.c
-+++ b/arch/x86/kvm/svm/nested.c
-@@ -646,8 +646,15 @@ int nested_svm_vmexit(struct vcpu_svm *svm)
- 	svm->vmcb->save.idtr = hsave->save.idtr;
- 	kvm_set_rflags(&svm->vcpu, hsave->save.rflags);
- 	svm_set_efer(&svm->vcpu, hsave->save.efer);
--	svm_set_cr0(&svm->vcpu, hsave->save.cr0 | X86_CR0_PE);
--	svm_set_cr4(&svm->vcpu, hsave->save.cr4);
-+	svm_set_cr0(&svm->vcpu,
-+		    (hsave->save.cr0 |
-+		    X86_CR0_PE |
-+		    svm->vcpu.arch.cr0_pinned.high) &
-+		    ~svm->vcpu.arch.cr0_pinned.low);
-+	svm_set_cr4(&svm->vcpu,
-+		    (hsave->save.cr4 |
-+		    svm->vcpu.arch.cr4_pinned.high) &
-+		    ~svm->vcpu.arch.cr4_pinned.low);
- 	kvm_rax_write(&svm->vcpu, hsave->save.rax);
- 	kvm_rsp_write(&svm->vcpu, hsave->save.rsp);
- 	kvm_rip_write(&svm->vcpu, hsave->save.rip);
 diff --git a/arch/x86/kvm/vmx/nested.c b/arch/x86/kvm/vmx/nested.c
 index 23b58c28a1c9..c0f23a4020a3 100644
 --- a/arch/x86/kvm/vmx/nested.c

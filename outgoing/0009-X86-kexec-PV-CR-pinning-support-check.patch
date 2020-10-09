@@ -1,4 +1,4 @@
-From cd56fad6b289597661535b04ea0a9a64a3dad1d7 Mon Sep 17 00:00:00 2001
+From 70235e7d4003c42f4ba36202f93b5a8664ffd26a Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 14 Sep 2020 10:59:32 -0700
 Subject: [PATCH 9/9] X86: kexec: PV CR pinning support check
@@ -47,8 +47,8 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  arch/x86/boot/compressed/kernel_info.S |  3 ++
  arch/x86/include/uapi/asm/bootparam.h  |  8 ++++++
  arch/x86/kernel/kexec-bzimage64.c      | 38 +++++++++++++++++++++++++-
- arch/x86/kernel/machine_kexec_64.c     | 15 ++++++++++
- 4 files changed, 63 insertions(+), 1 deletion(-)
+ arch/x86/kernel/machine_kexec_64.c     | 16 +++++++++++
+ 4 files changed, 64 insertions(+), 1 deletion(-)
 
 diff --git a/arch/x86/boot/compressed/kernel_info.S b/arch/x86/boot/compressed/kernel_info.S
 index f818ee8fba38..da3909d3281f 100644
@@ -84,7 +84,7 @@ index 600a141c8805..3b6a065d7af8 100644
  	__u16 length;
  	__u8  table[14];
 diff --git a/arch/x86/kernel/kexec-bzimage64.c b/arch/x86/kernel/kexec-bzimage64.c
-index 57c2ecf43134..07c6e37915b9 100644
+index 57c2ecf43134..30f1fe92bb53 100644
 --- a/arch/x86/kernel/kexec-bzimage64.c
 +++ b/arch/x86/kernel/kexec-bzimage64.c
 @@ -18,6 +18,7 @@
@@ -110,7 +110,7 @@ index 57c2ecf43134..07c6e37915b9 100644
  	}
  
 -	if (header->version < 0x020C) {
-+	if (IS_ENABLED(CONFIG_KVM_GUEST) && kvm_paravirt_cr_pinning_enabled) {
++	if (IS_ENABLED(CONFIG_PARAVIRT_CR_PINNING) && kvm_paravirt_cr_pinning_enabled) {
 +		if (header->version < 0x020F) {
 +			pr_err("Must be at least protocol version 2.15\n");
 +			return ret;
@@ -147,7 +147,7 @@ index 57c2ecf43134..07c6e37915b9 100644
  		return ret;
  	}
 diff --git a/arch/x86/kernel/machine_kexec_64.c b/arch/x86/kernel/machine_kexec_64.c
-index a29a44a98e5b..ab0043655d2f 100644
+index a29a44a98e5b..2c2a251eae00 100644
 --- a/arch/x86/kernel/machine_kexec_64.c
 +++ b/arch/x86/kernel/machine_kexec_64.c
 @@ -24,6 +24,7 @@
@@ -158,7 +158,7 @@ index a29a44a98e5b..ab0043655d2f 100644
  #include <asm/setup.h>
  #include <asm/set_memory.h>
  
-@@ -587,6 +588,20 @@ void arch_kexec_unprotect_crashkres(void)
+@@ -587,6 +588,21 @@ void arch_kexec_unprotect_crashkres(void)
  	kexec_mark_crashkres(false);
  }
  
@@ -166,11 +166,12 @@ index a29a44a98e5b..ab0043655d2f 100644
 +			  unsigned long flags)
 +{
 +	/*
-+	 * Only allow the kexec file based syscall when paravirtualized control
-+	 * register pinning is enabled. File based syscall can preform support
-+	 * checks, load based syscall cannot.
++	 * Don't allow kexec_load syscall when paravirtualized control register
++	 * pinning is enabled. File based syscall can preform support checks,
++	 * load based syscall cannot. Ensure user hits support checks by
++	 * disallowing access to the load syscall.
 +	 */
-+	if (IS_ENABLED(CONFIG_KVM_GUEST) && kvm_paravirt_cr_pinning_enabled)
++	if (IS_ENABLED(CONFIG_PARAVIRT_CR_PINNING) && kvm_paravirt_cr_pinning_enabled)
 +		return -EINVAL;
 +
 +	return 0;
