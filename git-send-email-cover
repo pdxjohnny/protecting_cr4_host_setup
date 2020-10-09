@@ -1,3 +1,20 @@
+Subject: [X86REVIEW PATCH v3 0/9] Paravirtualized Control Register Pinning
+
+
+I'm seeking a Reviewed-by tag from Sean to go back into public review for the
+next version of this patchset. Rick provided feedback on the last patchset and
+I've made changes accordingly. I found that I was unsure of how to change the
+SVM code so that we'd for sure shutdown the VM. Rick said Sean had expressed
+that the SVM code was in need of some work, so I made this a non-AMD feature
+because I'm not confident I can do that as it should be done without the ability
+to test (since I lack AMD hardware). Let me know if that's an okay course of
+action, or if maybe we should go with silent restore instead of the AMD SDM
+compliant behavior. Thank you in advance to anyone who takes a look at this!
+
+
+==========================================================================
+
+
 The paravirtualized CR pinning patchset is a strengthened version of
 existing control register pinning for paravritualized guests. It
 protects KVM guests from ROP (and the like) based attacks which attempt to
@@ -30,7 +47,7 @@ have addressed everyone's comments, please let me know if I've missed anything.
 
 Here are the previous versions of this patchset for reference
 
-PATCH v2 (internal): 
+PATCH v2 (internal): https://eclists.intel.com/sympa/arc/linux-drivers-review/2020-09/msg00593.html
 PATCH v1: https://lkml.org/lkml/2020/6/17/921
 RFC v2: https://lkml.org/lkml/2020/2/18/1162
 RFC v1: https://lkml.org/lkml/2019/12/24/380
@@ -115,6 +132,8 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
 
 === Changes since PATCH v1 ===
 
+- kexec support
+
 - Andy and Dave's comments on the allowed set of bits and how we shouldn't
   restrict the allowed set
 
@@ -123,11 +142,11 @@ RFC v1: https://lkml.org/lkml/2019/12/24/380
 
 - Dave's comments
 
-  - Added disable_kexec command line option
-
   - Added disable_pv_cr_pin command line option
 
   - Removed pv_cr_pin command line option
+
+  - Removed removal of __ro_after_init on mmu_cr4_features
 
 
 
