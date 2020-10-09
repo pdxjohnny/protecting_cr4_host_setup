@@ -1,4 +1,4 @@
-From f8add52c5957a372485c09c2774111283387e33f Mon Sep 17 00:00:00 2001
+From 81a5b653c6d6358f28e7e08cf98a4ec162917a0e Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 22 Jul 2020 13:11:06 -0700
 Subject: [PATCH 5/9] X86: boot: Maintain CR0/4 protections through kexec
@@ -11,6 +11,10 @@ writes to read, modify, write operations. Read in the current value of
 CR0/4, AND the bits we want to keep set if they are already enabled (WP,
 SMAP, SMEP, UMIP, and FSGSBASE), OR with the constant we had previously
 been writing, finally write back the modified register.
+
+Where WP was previously not set, set it. CR0_STATE includes WP, it's
+always supported and doesn't need any feature check before enabling.
+The code paths involved do not trigger exceptions due to it's enabling.
 
 Increase TRAMPOLINE_32BIT_CODE_SIZE by 9. The addition of an andl and an
 orl instruction within trampoline_32bit_src() results in 9 more bytes of
