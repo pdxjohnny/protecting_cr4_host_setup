@@ -95,13 +95,13 @@ index e37a14c323d2..6f726edddd18 100644
 +	these registers the register will be reset to it's default value. Host
 +	VMMs wishing to disallow pinning should not expose the CPU feature bit.
 +
-+MSR_KVM_CR0_PINNED_LOW:
++MSR_KVM_CR0_PINNED_ZERO:
 +	0x4b564d0a
-+MSR_KVM_CR0_PINNED_HIGH:
++MSR_KVM_CR0_PINNED_ONE:
 +	0x4b564d0b
-+MSR_KVM_CR4_PINNED_LOW:
++MSR_KVM_CR4_PINNED_ZERO:
 +	0x4b564d0c
-+MSR_KVM_CR4_PINNED_HIGH:
++MSR_KVM_CR4_PINNED_ONE:
 +	0x4b564d0d
 +
 +	Used to configure pinned bits in control registers
@@ -110,7 +110,7 @@ index e37a14c323d2..6f726edddd18 100644
 +	Bits to be pinned.
 +
 +	Fails if data contains bits which are not allowed to be pinned. Or if
-+	attempting to pin bits high that are already pinned low, or vice versa.
++	attempting to pin bits one that are already pinned zero, or vice versa.
 +	Bits which are allowed to be pinned can be found by reading the CR pin
 +	allowed MSRs.
 +
@@ -143,8 +143,8 @@ index d44858b69353..18feeffd8fbe 100644
  
 +struct kvm_vcpu_cr_pinning {
 +	unsigned long allowed;
-+	unsigned long high;
-+	unsigned long low;
++	unsigned long one;
++	unsigned long zero;
 +};
 +
  struct kvm_vcpu_arch {
@@ -182,10 +182,10 @@ index 950afebfba88..9890639c2275 100644
  #define MSR_KVM_ASYNC_PF_ACK	0x4b564d07
 +#define MSR_KVM_CR0_PIN_ALLOWED	0x4b564d08
 +#define MSR_KVM_CR4_PIN_ALLOWED	0x4b564d09
-+#define MSR_KVM_CR0_PINNED_LOW	0x4b564d0a
-+#define MSR_KVM_CR0_PINNED_HIGH	0x4b564d0b
-+#define MSR_KVM_CR4_PINNED_LOW	0x4b564d0c
-+#define MSR_KVM_CR4_PINNED_HIGH	0x4b564d0d
++#define MSR_KVM_CR0_PINNED_ZERO	0x4b564d0a
++#define MSR_KVM_CR0_PINNED_ONE	0x4b564d0b
++#define MSR_KVM_CR4_PINNED_ZERO	0x4b564d0c
++#define MSR_KVM_CR4_PINNED_ONE	0x4b564d0d
  
  struct kvm_steal_time {
  	__u64 steal;
@@ -252,27 +252,27 @@ index 89af692deb7e..e7f7641e1de9 100644
  	vcpu->arch.cr0_guest_owned_bits = KVM_POSSIBLE_CR0_GUEST_BITS;
 -	vmx_set_cr0(vcpu, vmcs12->host_cr0);
 +
-+	if (((vmcs12->host_cr0 ^ vcpu->arch.cr0_pinned.high) & vcpu->arch.cr0_pinned.high) ||
-+	    ((~vmcs12->host_cr0 ^ vcpu->arch.cr0_pinned.low) & vcpu->arch.cr0_pinned.low))
++	if (((vmcs12->host_cr0 ^ vcpu->arch.cr0_pinned.one) & vcpu->arch.cr0_pinned.one) ||
++	    ((~vmcs12->host_cr0 ^ vcpu->arch.cr0_pinned.zero) & vcpu->arch.cr0_pinned.zero))
 +		nested_vmx_abort(vcpu, VMX_ABORT_VMCS_CORRUPTED);
 +
 +	vmx_set_cr0(vcpu,
 +		    (vmcs12->host_cr0 |
-+		     vcpu->arch.cr0_pinned.high) &
-+		    ~vcpu->arch.cr0_pinned.low);
++		     vcpu->arch.cr0_pinned.one) &
++		    ~vcpu->arch.cr0_pinned.zero);
  
  	/* Same as above - no reason to call set_cr4_guest_host_mask().  */
  	vcpu->arch.cr4_guest_owned_bits = ~vmcs_readl(CR4_GUEST_HOST_MASK);
 -	vmx_set_cr4(vcpu, vmcs12->host_cr4);
 +
-+	if (((vmcs12->host_cr4 ^ vcpu->arch.cr4_pinned.high) & vcpu->arch.cr4_pinned.high) ||
-+	    ((~vmcs12->host_cr4 ^ vcpu->arch.cr4_pinned.low) & vcpu->arch.cr4_pinned.low))
++	if (((vmcs12->host_cr4 ^ vcpu->arch.cr4_pinned.one) & vcpu->arch.cr4_pinned.one) ||
++	    ((~vmcs12->host_cr4 ^ vcpu->arch.cr4_pinned.zero) & vcpu->arch.cr4_pinned.zero))
 +		nested_vmx_abort(vcpu, VMX_ABORT_VMCS_CORRUPTED);
 +
 +	vmx_set_cr4(vcpu,
 +		    (vmcs12->host_cr4 |
-+		     vcpu->arch.cr4_pinned.high) &
-+		    ~vcpu->arch.cr4_pinned.low);
++		     vcpu->arch.cr4_pinned.one) &
++		    ~vcpu->arch.cr4_pinned.zero);
  
  	nested_ept_uninit_mmu_context(vcpu);
  
@@ -285,8 +285,8 @@ index 397f599b20e5..70edb95820b9 100644
  		return 1;
  
 +	if (!is_smm(vcpu) && !is_guest_mode(vcpu) &&
-+	    (((cr0 ^ vcpu->arch.cr0_pinned.high) & vcpu->arch.cr0_pinned.high) ||
-+	    ((~cr0 ^ vcpu->arch.cr0_pinned.low) & vcpu->arch.cr0_pinned.low)))
++	    (((cr0 ^ vcpu->arch.cr0_pinned.one) & vcpu->arch.cr0_pinned.one) ||
++	    ((~cr0 ^ vcpu->arch.cr0_pinned.zero) & vcpu->arch.cr0_pinned.zero)))
 +		return 1;
 +
  #ifdef CONFIG_X86_64
@@ -297,8 +297,8 @@ index 397f599b20e5..70edb95820b9 100644
  		return 1;
  
 +	if (!is_smm(vcpu) && !is_guest_mode(vcpu) &&
-+	    (((cr4 ^ vcpu->arch.cr4_pinned.high) & vcpu->arch.cr4_pinned.high) ||
-+	    ((~cr4 ^ vcpu->arch.cr4_pinned.low) & vcpu->arch.cr4_pinned.low)))
++	    (((cr4 ^ vcpu->arch.cr4_pinned.one) & vcpu->arch.cr4_pinned.one) ||
++	    ((~cr4 ^ vcpu->arch.cr4_pinned.zero) & vcpu->arch.cr4_pinned.zero)))
 +		return 1;
 +
  	if (is_long_mode(vcpu)) {
@@ -310,10 +310,10 @@ index 397f599b20e5..70edb95820b9 100644
  	MSR_KVM_POLL_CONTROL,
 +	MSR_KVM_CR0_PIN_ALLOWED,
 +	MSR_KVM_CR4_PIN_ALLOWED,
-+	MSR_KVM_CR0_PINNED_LOW,
-+	MSR_KVM_CR0_PINNED_HIGH,
-+	MSR_KVM_CR4_PINNED_LOW,
-+	MSR_KVM_CR4_PINNED_HIGH,
++	MSR_KVM_CR0_PINNED_ZERO,
++	MSR_KVM_CR0_PINNED_ONE,
++	MSR_KVM_CR4_PINNED_ZERO,
++	MSR_KVM_CR4_PINNED_ONE,
  };
  
  static u32 emulated_msrs[ARRAY_SIZE(emulated_msrs_all)];
@@ -337,49 +337,49 @@ index 397f599b20e5..70edb95820b9 100644
 +				vcpu->arch.cr4_pinned.allowed = KVM_CR4_PIN_ALLOWED;
 +
 +		return (data != vcpu->arch.cr4_pinned.allowed);
-+	case MSR_KVM_CR0_PINNED_LOW:
++	case MSR_KVM_CR0_PINNED_ZERO:
 +		if ((data & ~vcpu->arch.cr0_pinned.allowed) ||
-+		    (data & vcpu->arch.cr0_pinned.high))
++		    (data & vcpu->arch.cr0_pinned.one))
 +			return 1;
 +
 +		if (!msr_info->host_initiated &&
-+		    (~data & vcpu->arch.cr0_pinned.low))
++		    (~data & vcpu->arch.cr0_pinned.zero))
 +			return 1;
 +
-+		vcpu->arch.cr0_pinned.low = data;
++		vcpu->arch.cr0_pinned.zero = data;
 +		break;
-+	case MSR_KVM_CR0_PINNED_HIGH:
++	case MSR_KVM_CR0_PINNED_ONE:
 +		if ((data & ~vcpu->arch.cr0_pinned.allowed) ||
-+		    (data & vcpu->arch.cr0_pinned.low))
++		    (data & vcpu->arch.cr0_pinned.zero))
 +			return 1;
 +
 +		if (!msr_info->host_initiated &&
-+		    (~data & vcpu->arch.cr0_pinned.high))
++		    (~data & vcpu->arch.cr0_pinned.one))
 +			return 1;
 +
-+		vcpu->arch.cr0_pinned.high = data;
++		vcpu->arch.cr0_pinned.one = data;
 +		break;
-+	case MSR_KVM_CR4_PINNED_LOW:
++	case MSR_KVM_CR4_PINNED_ZERO:
 +		if ((data & ~vcpu->arch.cr4_pinned.allowed) ||
-+		    (data & vcpu->arch.cr4_pinned.high))
++		    (data & vcpu->arch.cr4_pinned.one))
 +			return 1;
 +
 +		if (!msr_info->host_initiated &&
-+		    (~data & vcpu->arch.cr4_pinned.low))
++		    (~data & vcpu->arch.cr4_pinned.zero))
 +			return 1;
 +
-+		vcpu->arch.cr4_pinned.low = data;
++		vcpu->arch.cr4_pinned.zero = data;
 +		break;
-+	case MSR_KVM_CR4_PINNED_HIGH:
++	case MSR_KVM_CR4_PINNED_ONE:
 +		if ((data & ~vcpu->arch.cr4_pinned.allowed) ||
-+		    (data & vcpu->arch.cr4_pinned.low))
++		    (data & vcpu->arch.cr4_pinned.zero))
 +			return 1;
 +
 +		if (!msr_info->host_initiated &&
-+		    (~data & vcpu->arch.cr4_pinned.high))
++		    (~data & vcpu->arch.cr4_pinned.one))
 +			return 1;
 +
-+		vcpu->arch.cr4_pinned.high = data;
++		vcpu->arch.cr4_pinned.one = data;
 +		break;
  	case MSR_IA32_MCG_CTL:
  	case MSR_IA32_MCG_STATUS:
@@ -394,17 +394,17 @@ index 397f599b20e5..70edb95820b9 100644
 +	case MSR_KVM_CR4_PIN_ALLOWED:
 +		msr_info->data = vcpu->arch.cr4_pinned.allowed;
 +		break;
-+	case MSR_KVM_CR0_PINNED_LOW:
-+		msr_info->data = vcpu->arch.cr0_pinned.low;
++	case MSR_KVM_CR0_PINNED_ZERO:
++		msr_info->data = vcpu->arch.cr0_pinned.zero;
 +		break;
-+	case MSR_KVM_CR0_PINNED_HIGH:
-+		msr_info->data = vcpu->arch.cr0_pinned.high;
++	case MSR_KVM_CR0_PINNED_ONE:
++		msr_info->data = vcpu->arch.cr0_pinned.one;
 +		break;
-+	case MSR_KVM_CR4_PINNED_LOW:
-+		msr_info->data = vcpu->arch.cr4_pinned.low;
++	case MSR_KVM_CR4_PINNED_ZERO:
++		msr_info->data = vcpu->arch.cr4_pinned.zero;
 +		break;
-+	case MSR_KVM_CR4_PINNED_HIGH:
-+		msr_info->data = vcpu->arch.cr4_pinned.high;
++	case MSR_KVM_CR4_PINNED_ONE:
++		msr_info->data = vcpu->arch.cr4_pinned.one;
 +		break;
  	case MSR_IA32_P5_MC_ADDR:
  	case MSR_IA32_P5_MC_TYPE:
@@ -421,12 +421,12 @@ index 397f599b20e5..70edb95820b9 100644
 +	unsigned long cr0 = kvm_read_cr0(vcpu);
 +	unsigned long cr4 = kvm_read_cr4(vcpu);
 +
-+	if (((cr0 ^ vcpu->arch.cr0_pinned.high) & vcpu->arch.cr0_pinned.high) ||
-+	    ((~cr0 ^ vcpu->arch.cr0_pinned.low) & vcpu->arch.cr0_pinned.low))
++	if (((cr0 ^ vcpu->arch.cr0_pinned.one) & vcpu->arch.cr0_pinned.one) ||
++	    ((~cr0 ^ vcpu->arch.cr0_pinned.zero) & vcpu->arch.cr0_pinned.zero))
 +		return 1;
 +
-+	if (((cr4 ^ vcpu->arch.cr4_pinned.high) & vcpu->arch.cr4_pinned.high) ||
-+	    ((~cr4 ^ vcpu->arch.cr4_pinned.low) & vcpu->arch.cr4_pinned.low))
++	if (((cr4 ^ vcpu->arch.cr4_pinned.one) & vcpu->arch.cr4_pinned.one) ||
++	    ((~cr4 ^ vcpu->arch.cr4_pinned.zero) & vcpu->arch.cr4_pinned.zero))
 +		return 1;
 +
 +	kvm_smm_changed(vcpu);
