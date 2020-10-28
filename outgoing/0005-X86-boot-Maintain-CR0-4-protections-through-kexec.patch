@@ -1,4 +1,4 @@
-From 90e80ee703245dd147a9a879e9383a33701a5ce6 Mon Sep 17 00:00:00 2001
+From d605e0802340f9f6cb7e079da0df16bc28643799 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 22 Jul 2020 13:11:06 -0700
 Subject: [PATCH 5/9] X86: boot: Maintain CR0/4 protections through kexec
@@ -30,10 +30,10 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  5 files changed, 25 insertions(+), 17 deletions(-)
 
 diff --git a/arch/x86/boot/compressed/head_64.S b/arch/x86/boot/compressed/head_64.S
-index 97d37f0a34f5..e182e79cdfda 100644
+index 017de6cc87dc..a3c1d9d11b6d 100644
 --- a/arch/x86/boot/compressed/head_64.S
 +++ b/arch/x86/boot/compressed/head_64.S
-@@ -239,8 +239,8 @@ SYM_FUNC_START(startup_32)
+@@ -264,8 +264,8 @@ SYM_FUNC_START(startup_32)
  	pushl	$__KERNEL_CS
  	pushl	%eax
  
@@ -44,7 +44,7 @@ index 97d37f0a34f5..e182e79cdfda 100644
  	movl	%eax, %cr0
  
  	/* Jump from 32bit compatibility mode into 64bit mode. */
-@@ -629,7 +629,10 @@ SYM_CODE_START(trampoline_32bit_src)
+@@ -621,7 +621,10 @@ SYM_CODE_START(trampoline_32bit_src)
  	popl	%ecx
  
  	/* Enable PAE and LA57 (if required) paging modes */
@@ -56,7 +56,7 @@ index 97d37f0a34f5..e182e79cdfda 100644
  	cmpl	$0, %edx
  	jz	1f
  	orl	$X86_CR4_LA57, %eax
-@@ -644,7 +647,7 @@ SYM_CODE_START(trampoline_32bit_src)
+@@ -636,7 +639,7 @@ SYM_CODE_START(trampoline_32bit_src)
  	pushl	%eax
  
  	/* Enable paging again */
@@ -79,10 +79,10 @@ index 6ff7e81b5628..d15439dd30c0 100644
  #define TRAMPOLINE_32BIT_STACK_END	TRAMPOLINE_32BIT_SIZE
  
 diff --git a/arch/x86/kernel/head_64.S b/arch/x86/kernel/head_64.S
-index 16da4ac01597..5dea82fdd73e 100644
+index 7eb2a1c87969..52d956b8832e 100644
 --- a/arch/x86/kernel/head_64.S
 +++ b/arch/x86/kernel/head_64.S
-@@ -124,7 +124,10 @@ SYM_CODE_START(secondary_startup_64)
+@@ -150,7 +150,10 @@ SYM_INNER_LABEL(secondary_startup_64_no_verify, SYM_L_GLOBAL)
  1:
  
  	/* Enable PAE mode, PGE and LA57 */

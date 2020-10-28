@@ -1,4 +1,4 @@
-From e5736e3123d26417b62033f22e61ccbb5e54c627 Mon Sep 17 00:00:00 2001
+From 944b166c01b553b6d9d016dc2ce86d97791609ef Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 27 Jan 2020 16:32:19 -0800
 Subject: [PATCH 2/9] selftests: kvm: add test for CR pinning with SMM

@@ -1,4 +1,4 @@
-From a6499e900667b7366513eded3315e6e4834c226a Mon Sep 17 00:00:00 2001
+From 53c8459bd14b404da7df5f02f23373926c69dcae Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Thu, 27 Aug 2020 23:26:40 -0700
 Subject: [PATCH 7/9] kexec: Add arch specific kexec_load_check
@@ -30,7 +30,7 @@ index 9e93bef52968..ed504ec8bf29 100644
  #ifndef page_to_boot_pfn
  static inline unsigned long page_to_boot_pfn(struct page *page)
 diff --git a/kernel/kexec.c b/kernel/kexec.c
-index f977786fe498..cbfa8ac9c82e 100644
+index c82c6c06f051..ebffe91f2cf6 100644
 --- a/kernel/kexec.c
 +++ b/kernel/kexec.c
 @@ -230,6 +230,11 @@ static inline int kexec_load_check(unsigned long nr_segments,
@@ -46,7 +46,7 @@ index f977786fe498..cbfa8ac9c82e 100644
  }
  
 diff --git a/kernel/kexec_core.c b/kernel/kexec_core.c
-index c19c0dad1ebe..3a85024adb57 100644
+index 8798a8183974..09332deadc7f 100644
 --- a/kernel/kexec_core.c
 +++ b/kernel/kexec_core.c
 @@ -1219,3 +1219,10 @@ void __weak arch_kexec_protect_crashkres(void)

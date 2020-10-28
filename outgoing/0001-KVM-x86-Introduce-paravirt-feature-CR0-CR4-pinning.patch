@@ -1,4 +1,4 @@
-From 8f1fa40ef17147e252588b1c08939d68b47e1da8 Mon Sep 17 00:00:00 2001
+From ef39db4a85ee126fff7979e5e0797db55b4d3182 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 1/9] KVM: x86: Introduce paravirt feature CR0/CR4 pinning
@@ -50,7 +50,7 @@ https://github.com/pdxjohnny/qemu/commit/3af36d57457892c3088ee88de759d4f258c159a
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/msr.rst       |  62 +++++++++++++++
+ Documentation/virt/kvm/msr.rst       |  64 ++++++++++++++
  arch/x86/include/asm/kvm_host.h      |   8 ++
  arch/x86/include/uapi/asm/kvm_para.h |   7 ++
  arch/x86/include/uapi/asm/vmx.h      |   1 +
@@ -58,14 +58,14 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  arch/x86/kvm/emulate.c               |   3 +-
  arch/x86/kvm/kvm_emulate.h           |   2 +-
  arch/x86/kvm/vmx/nested.c            |  20 ++++-
- arch/x86/kvm/x86.c                   | 114 ++++++++++++++++++++++++++-
- 9 files changed, 214 insertions(+), 6 deletions(-)
+ arch/x86/kvm/x86.c                   | 120 ++++++++++++++++++++++++++-
+ 9 files changed, 222 insertions(+), 6 deletions(-)
 
 diff --git a/Documentation/virt/kvm/msr.rst b/Documentation/virt/kvm/msr.rst
-index e37a14c323d2..3aa7e0028ef1 100644
+index e37a14c323d2..6f726edddd18 100644
 --- a/Documentation/virt/kvm/msr.rst
 +++ b/Documentation/virt/kvm/msr.rst
-@@ -376,3 +376,65 @@ data:
+@@ -376,3 +376,67 @@ data:
  	write '1' to bit 0 of the MSR, this causes the host to re-scan its queue
  	and check if there are more notifications pending. The MSR is available
  	if KVM_FEATURE_ASYNC_PF_INT is present in CPUID.
@@ -87,11 +87,13 @@ index e37a14c323d2..3aa7e0028ef1 100644
 +	writing to the respective CR pinned MSR.
 +
 +	Bits which are allowed to be pinned default to WP for CR0 and SMEP,
-+	SMAP, and UMIP for CR4.
++	SMAP, UMIP, and FSGSBASE for CR4.
 +
 +	The host VMM may modify the set of allowed bits. However, only the above
 +	have been tested to work. Allowing the guest to pin other bits may or
-+	may not be compatible with KVM.
++	may not be compatible with KVM. When the host VMM writes a 0 to one of
++	these registers the register will be reset to it's default value. Host
++	VMMs wishing to disallow pinning should not expose the CPU feature bit.
 +
 +MSR_KVM_CR0_PINNED_LOW:
 +	0x4b564d0a
@@ -132,7 +134,7 @@ index e37a14c323d2..3aa7e0028ef1 100644
 +	bits, the write will fail and the guest will be sent a general
 +	protection fault.
 diff --git a/arch/x86/include/asm/kvm_host.h b/arch/x86/include/asm/kvm_host.h
-index d0f77235da92..8efe2a92e5df 100644
+index d44858b69353..18feeffd8fbe 100644
 --- a/arch/x86/include/asm/kvm_host.h
 +++ b/arch/x86/include/asm/kvm_host.h
 @@ -520,6 +520,12 @@ struct kvm_vcpu_hv {
@@ -163,18 +165,18 @@ index d0f77235da92..8efe2a92e5df 100644
  	u32 host_pkru;
  	u32 pkru;
 diff --git a/arch/x86/include/uapi/asm/kvm_para.h b/arch/x86/include/uapi/asm/kvm_para.h
-index 812e9b4c1114..91241e0d9691 100644
+index 950afebfba88..9890639c2275 100644
 --- a/arch/x86/include/uapi/asm/kvm_para.h
 +++ b/arch/x86/include/uapi/asm/kvm_para.h
-@@ -32,6 +32,7 @@
- #define KVM_FEATURE_POLL_CONTROL	12
+@@ -33,6 +33,7 @@
  #define KVM_FEATURE_PV_SCHED_YIELD	13
  #define KVM_FEATURE_ASYNC_PF_INT	14
-+#define KVM_FEATURE_CR_PIN		15
+ #define KVM_FEATURE_MSI_EXT_DEST_ID	15
++#define KVM_FEATURE_CR_PIN		16
  
  #define KVM_HINTS_REALTIME      0
  
-@@ -53,6 +54,12 @@
+@@ -54,6 +55,12 @@
  #define MSR_KVM_POLL_CONTROL	0x4b564d05
  #define MSR_KVM_ASYNC_PF_INT	0x4b564d06
  #define MSR_KVM_ASYNC_PF_ACK	0x4b564d07
@@ -200,10 +202,10 @@ index b8ff9e8ac0d5..386b2f357649 100644
  
  #endif /* _UAPIVMX_H */
 diff --git a/arch/x86/kvm/cpuid.c b/arch/x86/kvm/cpuid.c
-index 37c3668a774f..5078e6074e28 100644
+index 06a278b3701d..ddedcbf2ee06 100644
 --- a/arch/x86/kvm/cpuid.c
 +++ b/arch/x86/kvm/cpuid.c
-@@ -747,6 +747,9 @@ static inline int __do_cpuid_func(struct kvm_cpuid_array *array, u32 function)
+@@ -784,6 +784,9 @@ static inline int __do_cpuid_func(struct kvm_cpuid_array *array, u32 function)
  			     (1 << KVM_FEATURE_PV_SCHED_YIELD) |
  			     (1 << KVM_FEATURE_ASYNC_PF_INT);
  
@@ -214,7 +216,7 @@ index 37c3668a774f..5078e6074e28 100644
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
  
 diff --git a/arch/x86/kvm/emulate.c b/arch/x86/kvm/emulate.c
-index 0cc0db500f71..aa799b7ee8b7 100644
+index 0d917eb70319..4b0a84832e88 100644
 --- a/arch/x86/kvm/emulate.c
 +++ b/arch/x86/kvm/emulate.c
 @@ -2697,7 +2697,8 @@ static int em_rsm(struct x86_emulate_ctxt *ctxt)
@@ -241,7 +243,7 @@ index 43c93ffa76ed..e92dd7605e48 100644
  };
  
 diff --git a/arch/x86/kvm/vmx/nested.c b/arch/x86/kvm/vmx/nested.c
-index 6eca8a7deed1..59bee9c8a4da 100644
+index 89af692deb7e..e7f7641e1de9 100644
 --- a/arch/x86/kvm/vmx/nested.c
 +++ b/arch/x86/kvm/vmx/nested.c
 @@ -4174,11 +4174,27 @@ static void load_vmcs12_host_state(struct kvm_vcpu *vcpu,
@@ -275,7 +277,7 @@ index 6eca8a7deed1..59bee9c8a4da 100644
  	nested_ept_uninit_mmu_context(vcpu);
  
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index c4015a43cc8a..5e572d191178 100644
+index 397f599b20e5..70edb95820b9 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
 @@ -826,6 +826,11 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
@@ -290,7 +292,7 @@ index c4015a43cc8a..5e572d191178 100644
  #ifdef CONFIG_X86_64
  	if ((vcpu->arch.efer & EFER_LME) && !is_paging(vcpu) &&
  	    (cr0 & X86_CR0_PG)) {
-@@ -986,6 +991,11 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
+@@ -987,6 +992,11 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
  	if (kvm_valid_cr4(vcpu, cr4))
  		return 1;
  
@@ -302,7 +304,7 @@ index c4015a43cc8a..5e572d191178 100644
  	if (is_long_mode(vcpu)) {
  		if (!(cr4 & X86_CR4_PAE))
  			return 1;
-@@ -1303,6 +1313,12 @@ static const u32 emulated_msrs_all[] = {
+@@ -1304,6 +1314,12 @@ static const u32 emulated_msrs_all[] = {
  
  	MSR_K7_HWCR,
  	MSR_KVM_POLL_CONTROL,
@@ -315,18 +317,24 @@ index c4015a43cc8a..5e572d191178 100644
  };
  
  static u32 emulated_msrs[ARRAY_SIZE(emulated_msrs_all)];
-@@ -3163,6 +3179,60 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -3214,6 +3230,66 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  		vcpu->arch.msr_kvm_poll_control = data;
  		break;
  
 +	case MSR_KVM_CR0_PIN_ALLOWED:
 +		if (msr_info->host_initiated)
-+			vcpu->arch.cr0_pinned.allowed = data;
++			if (data)
++				vcpu->arch.cr0_pinned.allowed = data;
++			else
++				vcpu->arch.cr0_pinned.allowed = KVM_CR0_PIN_ALLOWED;
 +
 +		return (data != vcpu->arch.cr0_pinned.allowed);
 +	case MSR_KVM_CR4_PIN_ALLOWED:
 +		if (msr_info->host_initiated)
-+			vcpu->arch.cr4_pinned.allowed = data;
++			if (data)
++				vcpu->arch.cr4_pinned.allowed = data;
++			else
++				vcpu->arch.cr4_pinned.allowed = KVM_CR4_PIN_ALLOWED;
 +
 +		return (data != vcpu->arch.cr4_pinned.allowed);
 +	case MSR_KVM_CR0_PINNED_LOW:
@@ -376,7 +384,7 @@ index c4015a43cc8a..5e572d191178 100644
  	case MSR_IA32_MCG_CTL:
  	case MSR_IA32_MCG_STATUS:
  	case MSR_IA32_MC0_CTL ... MSR_IA32_MCx_CTL(KVM_MAX_MCE_BANKS) - 1:
-@@ -3437,6 +3507,24 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -3488,6 +3564,24 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  	case MSR_KVM_POLL_CONTROL:
  		msr_info->data = vcpu->arch.msr_kvm_poll_control;
  		break;
@@ -401,7 +409,7 @@ index c4015a43cc8a..5e572d191178 100644
  	case MSR_IA32_P5_MC_ADDR:
  	case MSR_IA32_P5_MC_TYPE:
  	case MSR_IA32_MCG_CAP:
-@@ -6728,9 +6816,23 @@ static int emulator_pre_leave_smm(struct x86_emulate_ctxt *ctxt,
+@@ -6792,9 +6886,23 @@ static int emulator_pre_leave_smm(struct x86_emulate_ctxt *ctxt,
  	return kvm_x86_ops.pre_leave_smm(emul_to_vcpu(ctxt), smstate);
  }
  
@@ -427,7 +435,7 @@ index c4015a43cc8a..5e572d191178 100644
  }
  
  static int emulator_set_xcr(struct x86_emulate_ctxt *ctxt, u32 index, u64 xcr)
-@@ -9881,6 +9983,9 @@ void kvm_arch_vcpu_destroy(struct kvm_vcpu *vcpu)
+@@ -9957,6 +10065,9 @@ void kvm_arch_vcpu_destroy(struct kvm_vcpu *vcpu)
  		static_key_slow_dec(&kvm_no_apic_vcpu);
  }
  
@@ -437,7 +445,7 @@ index c4015a43cc8a..5e572d191178 100644
  void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
  {
  	kvm_lapic_reset(vcpu, init_event);
-@@ -9950,6 +10055,11 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
+@@ -10026,6 +10137,11 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
  
  	vcpu->arch.ia32_xss = 0;
  
