@@ -281,3 +281,18 @@ sudo grubby --set-default=/boot/vmlinuz-5.10.0-rc1+
 sudo reboot
 tmux a
 tmux
+uname -a
+tmux
+tmux a
+git status
+git log -p
+git push -f
+git push -u origin 
+git push -u origin patch_v2_internal_v4 -f
+git push -u pdxjohnny patch_v2_internal_v4 -f
+cd ..
+vim target/i386/kvm.c
+git log -p
+vim target/i386/cpu.h
+cd linux-combined/
+git log 
