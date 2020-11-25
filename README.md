@@ -365,6 +365,27 @@ git send-email \
   0001-x86-Add-control-register-pinning-tests.patch
 ```
 
+
+PATCH v3 internal
+
+```
+git send-email \
+  --subject-prefix="[X86REVIEW] PATCH v3" \
+  --annotate \
+  --cover-letter \
+  --base=kvm/next \
+  --to x86-patch-review@eclists.intel.com \
+  --to linux-drivers-review@eclists.intel.com \
+  --cc dave.hansen@linux.intel.com \
+  --to sean.j.christopherson@intel.com \
+  --to kristen@linux.intel.com \
+  --to rick.p.edgecombe@intel.com \
+  --cc john.s.andersen@intel.com \
+  --bcc sandra.haron@intel.com \
+  --bcc johnandersenpdx@gmail.com \
+  HEAD~9
+```
+
 ## kexec
 
 Places that might have to do with kexec
