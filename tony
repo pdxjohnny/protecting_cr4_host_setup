@@ -1,0 +1,246 @@
+From: "Andersen, John" <john.s.andersen@intel.com>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: x86-patch-review@eclists.intel.com,
+	linux-drivers-review@eclists.intel.com, dave.hansen@linux.intel.com,
+	linux-security@eclists.intel.com, kristen@linux.intel.com,
+	rick.p.edgecombe@intel.com
+Bcc: john.s.andersen@intel.com
+Subject: Re: [x86] [X86REVIEW PATCH v4 0/9] Paravirtualized Control Register
+ Pinning
+Reply-To: 
+In-Reply-To: <20201118223751.GA16660@agluck-desk2.amr.corp.intel.com>
+
+On Wed, Nov 18, 2020 at 02:37:51PM -0800, Luck, Tony wrote:
+> On Thu, Nov 12, 2020 at 07:31:35PM -0800, John Andersen wrote:
+> > I'm seeking a Reviewed-by tag to go back into public review for the next
+> > version of this patchset. Rick and Kirill provided feedback on the last
+> > patchset and I've made changes accordingly (HIGH/LOW renamed to ONE/ZERO
+> > and using xloadflags instead of kernel_info).
+>
+> That's a good intro for internal folks to let them know what you want. It
+> needs to be followed by the text of what you plan to submit in the cover
+> letter when you post upstream.
+>
+> This is the most important component of an upstream submission. Without a
+> good one, community reviewers don't even know whether this series is something
+> they should be interested in.
+>
+> You need to summarize:
+>
+> 1) What problem you are solving
+>
+> 2) How you are you solving it
+>
+> 3) [optional, but often a good idea] what other options did you consider
+>
+> 4) What's in each patch (or group of patches). You should mention
+> any open areas, corner cases, or other bits where you are looking for
+> guidance to improve or fill in gaps.
+>
+
+There's a version that follows these guidelines at the end of this message.
+
+> P.S. Some maintainers like to see things that are picked up by
+> "checkpatch --strict" ... it looks like you have a couple of these.
+>
+
+I think
+"WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?"
+is a false positive, I posted to the linux-kernel mailing list about it but
+haven't gotten any response yet:
+https://marc.info/?l=linux-kernel&m=160580110616574&w=2
+
+> Also "checkpatch --codespell" will find some spelling errors (it
+> requires some dictionary to be installed ... too long ago for me
+> to remember details, but I think the error messages helped me find
+> the right package).
+>
+> WARNING: 'currrently' may be misspelled - perhaps 'currently'?
+> WARNING: 'paravirutalized' may be misspelled - perhaps 'paravirtualized'?
+> WARNING: 'preforms' may be misspelled - perhaps 'performs'?
+> WARNING: 'preform' may be misspelled - perhaps 'perform'?
+>
+
+Fixed all these, I didn't know about codespell. Thanks!
+
+Here is the updated cover leter:
+
+
+Subject: [X86REVIEW PATCH v4 0/9] Paravirtualized Control Register Pinning
+
+
+I'm seeking a Reviewed-by tag to go back into public review for the next
+version of this patchset. Rick and Kirill provided feedback on the last
+patchset and I've made changes accordingly (HIGH/LOW renamed to ONE/ZERO
+and using xloadflags instead of kernel_info).
+
+I found that I was unsure of how to change the SVM code so that we'd for
+sure shutdown the VM. Rick said Sean had expressed that the SVM code was
+in need of some work, so I made this a non-AMD feature because I'm not
+confident I can do that as it should be done without the ability to test
+(since I lack AMD hardware). Let me know if that's an okay course of
+action, or if maybe we should go with silent restore of possibly
+unpinned bits instead of the AMD SDM compliant behavior.
+
+Just as a refresher the paravirtualized CR pinning patchset is a
+strengthened version of existing control register pinning for
+paravritualized guests. It protects KVM guests from ROP (and the like)
+based attacks which attempt to disable security features set via bits in
+CR0/4.
+
+The work also includes minor patches for QEMU to ensure reboot works by
+clearing the added MSRs and exposing the new CPUID feature bit. A patch
+for kexec-tools is also involved to have it require the use of file
+based kexec if pinning is enabled.
+
+
+
+== High level overview of the changes and previously discussed topics ==
+
+- A CPUID feature bit as well as MSRs were added to KVM. Guests can use
+  the CPUID feature bit to determine if MSRs are available. Reading the
+  first 2 MSRs returns the bits which are allowed to be pinned for CR0/4
+  respectively. Allowed bits to pin default to the same set we pin
+  natively. Host VMM may override which bits are allowed to be pinned.
+  The next 4 MSRs are writeable and allow the guest and host userspace
+  to set which bits are pinned low or pinned high for CR0/4.
+
+- Hibernation and suspend-to-RAM are supported. This was done by
+  updating mmu_cr4_features on feature identification of the boot CPU.
+
+- CPU hotplug is supported. Pinning is per vCPU. When running as a guest
+  pinning is requested after CPU identification for non-boot CPUs. The
+  boot CPU requests pinning a directly after existing pinning is setup.
+
+- Nested virtualization is supported. A VMX-abort occurs if pinned bits
+  have been unset in the host VMCS on VM-Exit. This currently results in
+  a triple fault due to a TODO in nested_vmx_abort(). Ensuring SDM
+  compliant behavior for nested SVM was deemed out of scope at the
+  moment. As such the feature bit is not exposed on AMD.
+
+- As suggested by Sean, unpinning of pinned bits on return from SMM due
+  to modification of SMRAM will cause an unhandleable emulation fault
+  resulting in termination of the guest.
+
+- kexec is supported. Protected bits stay enabled through the
+  trampoline. xloadflags has been updated to signal that the trampoline
+  will keep protections enabled. Checks have been added to the file
+  based system call to verify the kernel being loaded will keep
+  protections enabled.
+
+
+
+=== Testing ===
+
+- This has been tested to work with: reboot, kexec, kdump,  hibernate /
+  suspend to RAM, SMM, Nested VMX, CPU hotplug, 32 bit (without kexec,
+  since kexec_file isn't supported).
+
+- A patch will be sent immediately following this patchset for
+  kvm-unit-tests with the unit tests for general functionality.
+  selftests are included for SMM specific functionality.
+
+
+
+=== Other not yet mentioned notable changes since external PATCH v1 ===
+
+- Andy and Dave's comments on the allowed set of bits and how we
+  shouldn't restrict the allowed set
+
+  - The allowed bits default to the set which we pin natively. They can
+    be modified by the host VMM should there be a usecase for that.
+
+- Dave's comments
+
+  - Added disable_pv_cr_pin command line option and removed pv_cr_pin
+    command line option
+
+  - Removed removal of __ro_after_init on mmu_cr4_features
+
+
+
+=== kexec ===
+
+Kexec presented a problem for CR pinning in that the new kernel would
+violate the CR pinning that was setup by the old kernel during the
+course of normal boot of the new kernel. This is due to values being
+MOV'd to CR0/4 which contain minimal bits required to make the
+transition. We ended up using AND and OR rather than a MOV to ensure
+that protections stayed enabled if they were previously enabled.
+
+We then added a bit to xloadflags to signify that the kernel contains
+the patched kexec path using AND and OR instead of MOV. In the event of
+a kexec the old kernel can check for this bit in xloadflags to determine
+if the new kernel will keep protections enabled or not.
+
+We currently have the following cases
+
+K0 - The running kernel
+K1 - Kernel we are going to execute from K0
+
+NS - Not Supported
+NE - Supported, Not enabled (via disable_pv_cr_pin or lack of CONFIG_)
+SE - Supported, Enabled
+
+          +-------------+-------------+-------------+
+          |             |             |             |
+          |   K1 - NS   |   K1 - NE   |   K1 - SE   |
+          |             |             |             |
++---------+-------------+-------------+-------------+
+|         |             |             |             |
+| K0 - NS |     NOP     |     NOP     |   Turn On   |
+|         |             |             |             |
++---------+-------------+-------------+-------------+
+|         |             |             |             |
+| K0 - NE |     NOP     |     NOP     |   Turn On   |
+|         |             |             |             |
++---------+-------------+-------------+-------------+
+|         |             |             |             |
+| K0 - SE |  Check (1)  |  Works (2)  |   Keep On   |
+|         |             |             |             |
++---------+-------------+-------------+-------------+
+
+
+1. When control register pinning is enabled the kexec_load system call
+   is disabled (returns -EINVAL). All kexec's must go through kexec_file
+
+   kexec_file has facilities for checking if K1 can be launched without
+   error. kexec-tools will be patched to default to using kexec_file if
+   pinning is enabled in K0.
+
+   If K0 preforms the check and K1 does not support pinning -ENOEXEC
+   will be returned.
+
+2. When a K0 SE boots K1 NE, K1 will be forced to accept that pinning
+   has previously been enabled. If pinning support has been disabled via
+   Kconfig or the command line, a warning will be printed and pinning
+   will be considered to be enabled. CPUs will attempt to preform
+   pinning as they usually would when pinning was intentionally enabled.
+   The kexec flow will preform checks appropriately, so the user is
+   never in a situation where they are not presented with an appropriate
+   error message.
+
+
+Thanks Rick and Kirill for the latest round of reviews. Thank you to
+everyone who's reviewed this series. I believe I have addressed
+everyone's comments, please let me know if I've missed anything.
+
+Here are the previous versions of this patchset for reference
+
+PATCH v3 (internal): https://eclists.intel.com/sympa/arc/linux-drivers-review/2020-10/msg00382.html
+PATCH v2 (internal): https://eclists.intel.com/sympa/arc/linux-drivers-review/2020-09/msg00593.html
+PATCH v1: https://lkml.org/lkml/2020/6/17/921
+RFC v2: https://lkml.org/lkml/2020/2/18/1162
+RFC v1: https://lkml.org/lkml/2019/12/24/380
+
+
+Thanks,
+John
+
+
+
+
+
+
+
+

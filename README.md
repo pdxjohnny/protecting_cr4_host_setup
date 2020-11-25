@@ -1,9 +1,26 @@
 # Paravirtualization Based CR Pinning
 
-## TODO
+## Cover letter guidelines from Tony Luck
 
-- If `KEXEC_CORE` is enabled and `KVM_GUEST` is enabled, require that
-  `KEXEC_FILE` be enabled.
+That's a good intro for internal folks to let them know what you want. It
+needs to be followed by the text of what you plan to submit in the cover
+letter when you post upstream.
+
+This is the most important component of an upstream submission. Without a
+good one, community reviewers don't even know whether this series is something
+they should be interested in.
+
+You need to summarize:
+
+1) What problem you are solving
+
+2) How you are you solving it
+
+3) [optional, but often a good idea] what other options did you consider
+
+4) What's in each patch (or group of patches). You should mention
+any open areas, corner cases, or other bits where you are looking for
+guidance to improve or fill in gaps.
 
 ## Commands
 

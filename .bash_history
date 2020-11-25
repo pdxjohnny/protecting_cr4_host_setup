@@ -296,3 +296,181 @@ git log -p
 vim target/i386/cpu.h
 cd linux-combined/
 git log 
+ll
+dmesg -T
+DO=test_kexec ~/run.sh 
+DO=test_kexec.sh ~/run.sh 
+git status
+git idff
+git diff
+git commit -sam 'bash history'
+git push
+~/test.sh
+~/test.sh unittests
+rset
+reset
+~/test.sh selftests
+reset
+SKIP_PRECHECK=1 ~/test.sh selftests
+~/test.sh unittests
+reset
+SKIP_PRECHECK=1 ~/test.sh selftests
+~/test.sh unittests
+git status
+vim git-send-email-cover 
+wc < git-send-email-cover
+vim git-send-email-cover 
+git status
+git add git-send-email-cover 
+git status
+git commit -sm 'cover letter: Update for v4'
+git push
+git commit -sam 'bash history'
+git push
+git log HEAD~9
+git log HEAD~8
+git log
+cd ~/linux-combined/
+git log HEAD~9
+git log HEAD~8
+git log
+cd ../kvm-unit-tests/
+git log -p
+make
+ll
+make clean
+git status
+git fetch --all
+git status
+git rebase origin/master
+vim x86/unittests.cfg 
+git status
+git diff
+git add -A
+git status
+git rebase --continue
+git status
+git push -f
+DO=bash ~/run.sh
+cd linux-combined/
+git fetch kvm
+git status
+git log
+git checkout -b patch_v2_internal_v4
+git rebase kvm/next
+git status
+git log -p
+git log --oneline
+git rebase -i HEAD~9
+git log --stat
+vim Documentation/virt/kvm/msr.rst
+git status
+git diff
+git add Documentation/virt/kvm/msr.rst
+git log -p
+git rebase --continue
+git log -p
+git log -p -n 9 HEAD~9
+git log -p -n 9 --reverse 
+git rebase -i HEAD~9
+git log -p -n 9 --reverse 
+git rebase -i HEAD~9
+git log -p
+vim arch/x86/boot/compressed/pgtable.h
+git diff
+git add -A
+git rebase --continue
+git push -f
+git push -u pdxjohnny
+git push -u pdxjohnny patch_v2_internal_v4
+git log -p -n 9 --reverse 
+git rebase -i HEAD~9
+git log -p -n 9 --reverse 
+git rebase -i HEAD~9
+git log -p -n 9 --reverse 
+git rebase -i HEAD~9
+git status
+git push -f
+git fetch kvm 
+make -j $(($(nproc)*4)) && sudo make modules_install -j $(($(nproc)*4)) && sudo make install
+ll
+ll /boot/
+uname -a
+sudo reboot
+cd ~/qemu
+ll
+cd build/
+git status
+make -j $(($(nproc)*4))
+ cd ..
+cd ..
+git status
+DO=rebooter ~/run.sh 
+DO=rebooter ~/run.sh -no-reboot
+ cd ..
+reset
+rm -rf ~/chroot/home/johnsa1/qemu/ && cp -r qemu ~/chroot/home/johnsa1/qemu/
+rm -rf ~/chroot/home/johnsa1/qemu/ && cp -r ~/qemu ~/chroot/home/johnsa1/qemu/
+cd
+DO=bash ~/run.sh
+reset
+cd qemu
+git log -p
+vim ~/.vimrc
+git status
+git diff
+git add -A
+git commit --amend
+git push -u pdxjohnny 
+git push -u pdxjohnny -f
+git fetch origin 
+git rebase origin/master
+git log
+git push -f
+git log -n 2
+git push
+git log -p
+cat /home/johnsa1/kvm-unit-tests/logs/cr_pin_high.log
+git log -p
+git log -p -n 9
+git log -p -n HEAD~9
+git log -p HEAD~9
+git log -p HEAD~8
+git log -p
+git rebase -i HEAD~9
+vim target/i386/kvm.c
+vim arch/x86/kvm/kvm.c
+vim arch/x86/kvm/x86.c
+git diff
+git stauts
+git status
+git add arch/
+git cherry-pick --continue
+git rebase --continue
+git status
+git push -f
+git log -p
+vim tools/testing/selftests/kvm/include/x86_64/processor.h
+tmux a
+ll
+cd linux-combined/
+ll
+git log --walk-reflogs
+ll
+vim drivers/kvm/sys-hypervisor.c
+make M=drivers/kvm -j $(($(nproc)*4))
+make M=drivers/kvm/ -j $(($(nproc)*4))
+rm drivers/kvm/{*.ko,*.o}
+rm drivers/kvm/*.o
+rm drivers/kvm/.*
+rm drivers/kvm/built-in.a 
+make M=drivers/kvm/ -j $(($(nproc)*4))
+ll drivers/kvm/
+cd drivers/kvm/
+make
+vim Kconfig 
+make -j $(($(nproc)*4)) bzImage
+cd ../../
+make -j $(($(nproc)*4)) bzImage
+DO=bash ~/run.sh
+DO=bash ~/run.sh -no-reboot

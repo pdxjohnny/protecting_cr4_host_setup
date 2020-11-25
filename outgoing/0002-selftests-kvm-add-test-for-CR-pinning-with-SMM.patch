@@ -1,4 +1,4 @@
-From 944b166c01b553b6d9d016dc2ce86d97791609ef Mon Sep 17 00:00:00 2001
+From 7a0a2e62c043dfa64350d6f1105f26d672163686 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Mon, 27 Jan 2020 16:32:19 -0800
 Subject: [PATCH 2/9] selftests: kvm: add test for CR pinning with SMM
@@ -11,27 +11,27 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  tools/testing/selftests/kvm/.gitignore        |   1 +
  tools/testing/selftests/kvm/Makefile          |   1 +
  .../selftests/kvm/include/x86_64/processor.h  |  13 ++
- .../selftests/kvm/x86_64/smm_cr_pin_test.c    | 208 ++++++++++++++++++
- 4 files changed, 223 insertions(+)
+ .../selftests/kvm/x86_64/smm_cr_pin_test.c    | 209 ++++++++++++++++++
+ 4 files changed, 224 insertions(+)
  create mode 100644 tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 
 diff --git a/tools/testing/selftests/kvm/.gitignore b/tools/testing/selftests/kvm/.gitignore
-index 307ceaadbbb9..5a27901eecc1 100644
+index 5468db7dd674..74f05d1446ac 100644
 --- a/tools/testing/selftests/kvm/.gitignore
 +++ b/tools/testing/selftests/kvm/.gitignore
-@@ -10,6 +10,7 @@
+@@ -13,6 +13,7 @@
  /x86_64/platform_info_test
  /x86_64/set_sregs_test
  /x86_64/smm_test
 +/x86_64/smm_cr_pin_test
  /x86_64/state_test
- /x86_64/user_msr_test
- /x86_64/vmx_preemption_timer_test
+ /x86_64/svm_vmcall_test
+ /x86_64/sync_regs_test
 diff --git a/tools/testing/selftests/kvm/Makefile b/tools/testing/selftests/kvm/Makefile
-index 7ebe71fbca53..388cdccd3adf 100644
+index 4febf4d5ead9..c6f860e2f4e5 100644
 --- a/tools/testing/selftests/kvm/Makefile
 +++ b/tools/testing/selftests/kvm/Makefile
-@@ -45,6 +45,7 @@ TEST_GEN_PROGS_x86_64 += x86_64/mmio_warning_test
+@@ -46,6 +46,7 @@ TEST_GEN_PROGS_x86_64 += x86_64/mmio_warning_test
  TEST_GEN_PROGS_x86_64 += x86_64/platform_info_test
  TEST_GEN_PROGS_x86_64 += x86_64/set_sregs_test
  TEST_GEN_PROGS_x86_64 += x86_64/smm_test
@@ -40,10 +40,10 @@ index 7ebe71fbca53..388cdccd3adf 100644
  TEST_GEN_PROGS_x86_64 += x86_64/vmx_preemption_timer_test
  TEST_GEN_PROGS_x86_64 += x86_64/svm_vmcall_test
 diff --git a/tools/testing/selftests/kvm/include/x86_64/processor.h b/tools/testing/selftests/kvm/include/x86_64/processor.h
-index 82b7fe16a824..8a2da0449772 100644
+index 90cd5984751b..353e10df3cc5 100644
 --- a/tools/testing/selftests/kvm/include/x86_64/processor.h
 +++ b/tools/testing/selftests/kvm/include/x86_64/processor.h
-@@ -200,6 +200,11 @@ static inline uint64_t get_cr0(void)
+@@ -219,6 +219,11 @@ static inline uint64_t get_cr0(void)
  	return cr0;
  }
  
@@ -55,7 +55,7 @@ index 82b7fe16a824..8a2da0449772 100644
  static inline uint64_t get_cr3(void)
  {
  	uint64_t cr3;
-@@ -383,4 +388,12 @@ void kvm_get_cpu_address_width(unsigned int *pa_bits, unsigned int *va_bits);
+@@ -436,4 +441,12 @@ uint64_t kvm_hypercall(uint64_t nr, uint64_t a0, uint64_t a1, uint64_t a2,
  /* VMX_EPT_VPID_CAP bits */
  #define VMX_EPT_VPID_CAP_AD_BITS       (1ULL << 21)
  
@@ -70,10 +70,10 @@ index 82b7fe16a824..8a2da0449772 100644
  #endif /* SELFTEST_KVM_PROCESSOR_H */
 diff --git a/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c b/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
 new file mode 100644
-index 000000000000..acec83114b5a
+index 000000000000..9ac5869574b3
 --- /dev/null
 +++ b/tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
-@@ -0,0 +1,208 @@
+@@ -0,0 +1,209 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Tests for control register pinning not being affected by SMRAM writes.
@@ -125,6 +125,7 @@ index 000000000000..acec83114b5a
 +	0xe4, SYNC_PORT,              /* in $SYNC_PORT, %al */
 +	0x0f, 0xaa,                   /* rsm */
 +};
++
 +uint8_t smi_handler_fault[] = {
 +	0xb0, SMRAM_STAGE_FAILURE,    /* mov $SMRAM_STAGE_FAILURE, %al */
 +	0xe4, SYNC_PORT,              /* in $SYNC_PORT, %al */
@@ -221,7 +222,7 @@ index 000000000000..acec83114b5a
 +			memset(&sregs, 0, sizeof(sregs));
 +			vcpu_sregs_get(vm, VCPU_ID, &sregs);
 +
-+			/* stage_reported is currrently the last stage reported */
++			/* stage_reported is currently the last stage reported */
 +			if (failure && stage_reported == SMRAM_STAGE_FAILURE) {
 +				/* Ensure that we exit on smram modification of CR4 */
 +				TEST_ASSERT(run->exit_reason == KVM_EXIT_INTERNAL_ERROR &&

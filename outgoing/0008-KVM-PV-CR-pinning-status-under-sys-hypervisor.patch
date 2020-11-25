@@ -1,34 +1,39 @@
-From 1b7362ab1ac201dc6cb1d473c5e4a783cb0722e6 Mon Sep 17 00:00:00 2001
+From 61fbad1721528880121fd678d6d6eb5e3c1ffbea Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 15 Sep 2020 11:45:31 -0700
 Subject: [PATCH 8/9] KVM: PV CR pinning status under /sys/hypervisor
 
-Add /sys/hypervisor/pv_cr_pinning file allowing userspace to check if
-paravirutalized control register pinning is enabled or not. kexec-tools
-uses the file to determine if it should use the file based syscall.
+Create a new KVM driver for X86 guests with paravirtualized control
+register pinning support enabled. Add /sys/hypervisor/pv_cr_pinning file
+allowing userspace to check if paravirtualized control register pinning
+is enabled or not.
+
+kexec-tools will use the file to determine if it should use the file
+based syscall. If pinning is enabled, it will use the file based syscall
+rather than the load based syscall.
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
  MAINTAINERS                  |  1 +
  drivers/Kconfig              |  2 ++
  drivers/Makefile             |  1 +
- drivers/kvm/Kconfig          | 14 +++++++++++++
+ drivers/kvm/Kconfig          | 17 ++++++++++++++++
  drivers/kvm/Makefile         |  1 +
  drivers/kvm/sys-hypervisor.c | 38 ++++++++++++++++++++++++++++++++++++
- 6 files changed, 57 insertions(+)
+ 6 files changed, 60 insertions(+)
  create mode 100644 drivers/kvm/Kconfig
  create mode 100644 drivers/kvm/Makefile
  create mode 100644 drivers/kvm/sys-hypervisor.c
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index e73636b75f29..43557686196b 100644
+index 4a34b25ecc1f..1b8134969be2 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -9615,6 +9615,7 @@ S:	Supported
+@@ -9596,6 +9596,7 @@ S:	Supported
  W:	http://www.linux-kvm.org
  T:	git git://git.kernel.org/pub/scm/virt/kvm/kvm.git
  F:	Documentation/virt/kvm/
-+F:	drivers/kvm/
++F:	drivers/kvm*
  F:	include/asm-generic/kvm*
  F:	include/kvm/iodev.h
  F:	include/linux/kvm*
@@ -59,10 +64,10 @@ index c0cd1b9075e3..cc8de8cd8e41 100644
  # regulators early, since some subsystems rely on them to initialize
 diff --git a/drivers/kvm/Kconfig b/drivers/kvm/Kconfig
 new file mode 100644
-index 000000000000..d499c74c2f2d
+index 000000000000..43e85244bcb7
 --- /dev/null
 +++ b/drivers/kvm/Kconfig
-@@ -0,0 +1,14 @@
+@@ -0,0 +1,17 @@
 +menu "KVM driver support"
 +	depends on KVM_GUEST
 +
@@ -72,9 +77,12 @@ index 000000000000..d499c74c2f2d
 +	select SYS_HYPERVISOR
 +	default y
 +	help
-+	  Expose entries under /sys/hypervisor related to KVM as a guest.
-+	  Currently only the status of paravirtualized control register pinning
-+	  is exposed.
++	  sysfs entries for Linux guests running under KVM. Expose status of KVM
++	  features, whether they are in use or not.
++
++	  Currently exposes a pv_cr_pinning entry under /sys/hypervisor if
++	  paravirtualized control register pinning is configured. The contents
++	  of the file are 0 for disabled or 1 for enabled.
 +
 +endmenu
 diff --git a/drivers/kvm/Makefile b/drivers/kvm/Makefile

@@ -1,4 +1,4 @@
-From ef39db4a85ee126fff7979e5e0797db55b4d3182 Mon Sep 17 00:00:00 2001
+From 2ec3294b09e020bf9196cc8bf30d286669cdefb9 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 1/9] KVM: x86: Introduce paravirt feature CR0/CR4 pinning
@@ -21,7 +21,7 @@ hibernating.
 
 Entering SMM zeros control registers, resulting in the disabling of bits
 which may be pinned. Ignore pinning MSRs when running in SMM. On exit
-from SMM, SMRAM is checked to ensure the values of CR0/4 that will be
+from SMM, check SMRAM to ensure the values of CR0/4 that will be
 restored contain the correct values for pinned bits.
 
 On VM-Exit check L1 control register values within VMCS against
@@ -32,25 +32,26 @@ According to AMD Vol 2 15.6 if VMCB host state inconsistency is
 discovered cause the processor to shutdown. Modifications to
 nested_svm_vmexit() to ensure that the processor is shutdown are
 non-trivial and the author lacks a platform to test any potential
-changes. As such, the CPUID feature bit is not set on AMD processors.
+changes. As such, do not set the KVM_FEATURE_CR_PIN CPUID feature on AMD
+processors.
 
 Should userspace expose the CR pinning CPUID feature bit, it must zero
 CR pinned MSRs on reboot. If it does not, it runs the risk of having the
 guest enable pinning and subsequently cause general protection faults on
 next boot due to BIOS/EFI code setting control registers to values
 which do not contain the pinned bits. Userspace is responsible for
-migrating the contents of the CR* pinned MSRs. If userspace fails to
-migrate the MSRs the protection will no longer be active.
+migrating the contents of the CR* MSRs. If userspace fails to migrate
+the MSRs the protection will no longer be active.
 
 Changes for QEMU are required to expose the CR pin cpuid feature bit. As
 well as clear the MSRs on reboot and enable migration.
 
-https://github.com/pdxjohnny/qemu/commit/1b26f03653669c97dd8729f9f59be561d68e2b2d
-https://github.com/pdxjohnny/qemu/commit/3af36d57457892c3088ee88de759d4f258c159a7
+https://github.com/pdxjohnny/qemu/commit/9a542186ca5587cf8cefc235c5d17abada0fbccd
+https://github.com/pdxjohnny/qemu/commit/b9bb3bd2ea1e9f4783cbf0bc068be186de311eff
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- Documentation/virt/kvm/msr.rst       |  64 ++++++++++++++
+ Documentation/virt/kvm/msr.rst       |  70 ++++++++++++++++
  arch/x86/include/asm/kvm_host.h      |   8 ++
  arch/x86/include/uapi/asm/kvm_para.h |   7 ++
  arch/x86/include/uapi/asm/vmx.h      |   1 +
@@ -59,13 +60,13 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  arch/x86/kvm/kvm_emulate.h           |   2 +-
  arch/x86/kvm/vmx/nested.c            |  20 ++++-
  arch/x86/kvm/x86.c                   | 120 ++++++++++++++++++++++++++-
- 9 files changed, 222 insertions(+), 6 deletions(-)
+ 9 files changed, 228 insertions(+), 6 deletions(-)
 
 diff --git a/Documentation/virt/kvm/msr.rst b/Documentation/virt/kvm/msr.rst
-index e37a14c323d2..6f726edddd18 100644
+index e37a14c323d2..50411ad6331b 100644
 --- a/Documentation/virt/kvm/msr.rst
 +++ b/Documentation/virt/kvm/msr.rst
-@@ -376,3 +376,67 @@ data:
+@@ -376,3 +376,73 @@ data:
  	write '1' to bit 0 of the MSR, this causes the host to re-scan its queue
  	and check if there are more notifications pending. The MSR is available
  	if KVM_FEATURE_ASYNC_PF_INT is present in CPUID.
@@ -94,6 +95,8 @@ index e37a14c323d2..6f726edddd18 100644
 +	may not be compatible with KVM. When the host VMM writes a 0 to one of
 +	these registers the register will be reset to it's default value. Host
 +	VMMs wishing to disallow pinning should not expose the CPU feature bit.
++
++	The MSR is available if KVM_FEATURE_CR_PIN is present in CPUID.
 +
 +MSR_KVM_CR0_PINNED_ZERO:
 +	0x4b564d0a
@@ -125,16 +128,20 @@ index e37a14c323d2..6f726edddd18 100644
 +	Host userspace may clear or change pinned bits at any point. Host
 +	userspace must clear pinned bits on reboot.
 +
-+	The MSR enables bit pinning for control registers. Pinning is active
-+	when the guest is not in SMM. If an exit from SMM results in pinned
-+	bits becoming unpinned. The guest will exit. If nested virtualization is
-+	enabled and the host VMCB/VMCS (L1) has pinned bits cleared in saved
-+	CR0/4 registers, they will silently be restored to pinned values. If the
++	The MSR enables bit pinning for control registers. Pinning means if the
 +	guest attempts to write values to CR0/4 where bits differ from pinned
 +	bits, the write will fail and the guest will be sent a general
-+	protection fault.
++	protection fault. Pinning is active when the guest is not in SMM. If an
++	exit from SMM results in pinned bits becoming unpinned as a result of
++	resotration from SMRAM, the guest will exit. If nested virtualization is
++	enabled and KVM detects that the host VMCS (L1) contains saved CR0/4
++	values which have bits set to values other than what they should be per
++	pinning MSRs, a VMX-abort will be sent to the guest and the offending
++	bits in CR0/4 will be set according to pinning MSRs.
++
++	The MSR is available if KVM_FEATURE_CR_PIN is present in CPUID.
 diff --git a/arch/x86/include/asm/kvm_host.h b/arch/x86/include/asm/kvm_host.h
-index d44858b69353..18feeffd8fbe 100644
+index f002cdb13a0b..971e2a24cecc 100644
 --- a/arch/x86/include/asm/kvm_host.h
 +++ b/arch/x86/include/asm/kvm_host.h
 @@ -520,6 +520,12 @@ struct kvm_vcpu_hv {
@@ -165,7 +172,7 @@ index d44858b69353..18feeffd8fbe 100644
  	u32 host_pkru;
  	u32 pkru;
 diff --git a/arch/x86/include/uapi/asm/kvm_para.h b/arch/x86/include/uapi/asm/kvm_para.h
-index 950afebfba88..9890639c2275 100644
+index 950afebfba88..17264d890aae 100644
 --- a/arch/x86/include/uapi/asm/kvm_para.h
 +++ b/arch/x86/include/uapi/asm/kvm_para.h
 @@ -33,6 +33,7 @@
@@ -190,10 +197,10 @@ index 950afebfba88..9890639c2275 100644
  struct kvm_steal_time {
  	__u64 steal;
 diff --git a/arch/x86/include/uapi/asm/vmx.h b/arch/x86/include/uapi/asm/vmx.h
-index b8ff9e8ac0d5..386b2f357649 100644
+index ada955c5ebb6..4accbe03fc0f 100644
 --- a/arch/x86/include/uapi/asm/vmx.h
 +++ b/arch/x86/include/uapi/asm/vmx.h
-@@ -155,6 +155,7 @@
+@@ -157,6 +157,7 @@
  
  #define VMX_ABORT_SAVE_GUEST_MSR_FAIL        1
  #define VMX_ABORT_LOAD_HOST_PDPTE_FAIL       2
@@ -202,10 +209,10 @@ index b8ff9e8ac0d5..386b2f357649 100644
  
  #endif /* _UAPIVMX_H */
 diff --git a/arch/x86/kvm/cpuid.c b/arch/x86/kvm/cpuid.c
-index 06a278b3701d..ddedcbf2ee06 100644
+index 5d352cc204ce..fd904488b017 100644
 --- a/arch/x86/kvm/cpuid.c
 +++ b/arch/x86/kvm/cpuid.c
-@@ -784,6 +784,9 @@ static inline int __do_cpuid_func(struct kvm_cpuid_array *array, u32 function)
+@@ -796,6 +796,9 @@ static inline int __do_cpuid_func(struct kvm_cpuid_array *array, u32 function)
  			     (1 << KVM_FEATURE_PV_SCHED_YIELD) |
  			     (1 << KVM_FEATURE_ASYNC_PF_INT);
  
@@ -216,7 +223,7 @@ index 06a278b3701d..ddedcbf2ee06 100644
  			entry->eax |= (1 << KVM_FEATURE_STEAL_TIME);
  
 diff --git a/arch/x86/kvm/emulate.c b/arch/x86/kvm/emulate.c
-index 0d917eb70319..4b0a84832e88 100644
+index 56cae1ff9e3f..8437c3136165 100644
 --- a/arch/x86/kvm/emulate.c
 +++ b/arch/x86/kvm/emulate.c
 @@ -2697,7 +2697,8 @@ static int em_rsm(struct x86_emulate_ctxt *ctxt)
@@ -243,10 +250,10 @@ index 43c93ffa76ed..e92dd7605e48 100644
  };
  
 diff --git a/arch/x86/kvm/vmx/nested.c b/arch/x86/kvm/vmx/nested.c
-index 89af692deb7e..e7f7641e1de9 100644
+index e2f26564a12d..72766230fcfc 100644
 --- a/arch/x86/kvm/vmx/nested.c
 +++ b/arch/x86/kvm/vmx/nested.c
-@@ -4174,11 +4174,27 @@ static void load_vmcs12_host_state(struct kvm_vcpu *vcpu,
+@@ -4200,11 +4200,27 @@ static void load_vmcs12_host_state(struct kvm_vcpu *vcpu,
  	 * (KVM doesn't change it);
  	 */
  	vcpu->arch.cr0_guest_owned_bits = KVM_POSSIBLE_CR0_GUEST_BITS;
@@ -277,10 +284,10 @@ index 89af692deb7e..e7f7641e1de9 100644
  	nested_ept_uninit_mmu_context(vcpu);
  
 diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-index 397f599b20e5..70edb95820b9 100644
+index a3fdc16cfd6f..12232e9ac24a 100644
 --- a/arch/x86/kvm/x86.c
 +++ b/arch/x86/kvm/x86.c
-@@ -826,6 +826,11 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
+@@ -825,6 +825,11 @@ int kvm_set_cr0(struct kvm_vcpu *vcpu, unsigned long cr0)
  	if ((cr0 & X86_CR0_PG) && !(cr0 & X86_CR0_PE))
  		return 1;
  
@@ -292,8 +299,8 @@ index 397f599b20e5..70edb95820b9 100644
  #ifdef CONFIG_X86_64
  	if ((vcpu->arch.efer & EFER_LME) && !is_paging(vcpu) &&
  	    (cr0 & X86_CR0_PG)) {
-@@ -987,6 +992,11 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
- 	if (kvm_valid_cr4(vcpu, cr4))
+@@ -986,6 +991,11 @@ int kvm_set_cr4(struct kvm_vcpu *vcpu, unsigned long cr4)
+ 	if (!kvm_is_valid_cr4(vcpu, cr4))
  		return 1;
  
 +	if (!is_smm(vcpu) && !is_guest_mode(vcpu) &&
@@ -304,7 +311,7 @@ index 397f599b20e5..70edb95820b9 100644
  	if (is_long_mode(vcpu)) {
  		if (!(cr4 & X86_CR4_PAE))
  			return 1;
-@@ -1304,6 +1314,12 @@ static const u32 emulated_msrs_all[] = {
+@@ -1299,6 +1309,12 @@ static const u32 emulated_msrs_all[] = {
  
  	MSR_K7_HWCR,
  	MSR_KVM_POLL_CONTROL,
@@ -317,24 +324,34 @@ index 397f599b20e5..70edb95820b9 100644
  };
  
  static u32 emulated_msrs[ARRAY_SIZE(emulated_msrs_all)];
-@@ -3214,6 +3230,66 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+@@ -2991,6 +3007,9 @@ static void record_steal_time(struct kvm_vcpu *vcpu)
+ 	kvm_unmap_gfn(vcpu, &map, &vcpu->arch.st.cache, true, false);
+ }
+ 
++#define KVM_CR0_PIN_ALLOWED	(X86_CR0_WP)
++#define KVM_CR4_PIN_ALLOWED	(X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP | X86_CR4_FSGSBASE)
++
+ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+ {
+ 	bool pr = false;
+@@ -3212,6 +3231,66 @@ int kvm_set_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
  		vcpu->arch.msr_kvm_poll_control = data;
  		break;
  
 +	case MSR_KVM_CR0_PIN_ALLOWED:
-+		if (msr_info->host_initiated)
-+			if (data)
-+				vcpu->arch.cr0_pinned.allowed = data;
-+			else
-+				vcpu->arch.cr0_pinned.allowed = KVM_CR0_PIN_ALLOWED;
++		if (msr_info->host_initiated) {
++			if (!data)
++				data = KVM_CR0_PIN_ALLOWED;
++			vcpu->arch.cr0_pinned.allowed = data;
++		}
 +
 +		return (data != vcpu->arch.cr0_pinned.allowed);
 +	case MSR_KVM_CR4_PIN_ALLOWED:
-+		if (msr_info->host_initiated)
-+			if (data)
-+				vcpu->arch.cr4_pinned.allowed = data;
-+			else
-+				vcpu->arch.cr4_pinned.allowed = KVM_CR4_PIN_ALLOWED;
++		if (msr_info->host_initiated) {
++			if (!data)
++				data = KVM_CR4_PIN_ALLOWED;
++			vcpu->arch.cr4_pinned.allowed = data;
++		}
 +
 +		return (data != vcpu->arch.cr4_pinned.allowed);
 +	case MSR_KVM_CR0_PINNED_ZERO:
@@ -384,8 +401,8 @@ index 397f599b20e5..70edb95820b9 100644
  	case MSR_IA32_MCG_CTL:
  	case MSR_IA32_MCG_STATUS:
  	case MSR_IA32_MC0_CTL ... MSR_IA32_MCx_CTL(KVM_MAX_MCE_BANKS) - 1:
-@@ -3488,6 +3564,24 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
- 	case MSR_KVM_POLL_CONTROL:
+@@ -3520,6 +3599,24 @@ int kvm_get_msr_common(struct kvm_vcpu *vcpu, struct msr_data *msr_info)
+ 
  		msr_info->data = vcpu->arch.msr_kvm_poll_control;
  		break;
 +	case MSR_KVM_CR0_PIN_ALLOWED:
@@ -409,7 +426,7 @@ index 397f599b20e5..70edb95820b9 100644
  	case MSR_IA32_P5_MC_ADDR:
  	case MSR_IA32_P5_MC_TYPE:
  	case MSR_IA32_MCG_CAP:
-@@ -6792,9 +6886,23 @@ static int emulator_pre_leave_smm(struct x86_emulate_ctxt *ctxt,
+@@ -6835,9 +6932,23 @@ static int emulator_pre_leave_smm(struct x86_emulate_ctxt *ctxt,
  	return kvm_x86_ops.pre_leave_smm(emul_to_vcpu(ctxt), smstate);
  }
  
@@ -435,17 +452,7 @@ index 397f599b20e5..70edb95820b9 100644
  }
  
  static int emulator_set_xcr(struct x86_emulate_ctxt *ctxt, u32 index, u64 xcr)
-@@ -9957,6 +10065,9 @@ void kvm_arch_vcpu_destroy(struct kvm_vcpu *vcpu)
- 		static_key_slow_dec(&kvm_no_apic_vcpu);
- }
- 
-+#define KVM_CR0_PIN_ALLOWED	(X86_CR0_WP)
-+#define KVM_CR4_PIN_ALLOWED	(X86_CR4_SMEP | X86_CR4_SMAP | X86_CR4_UMIP | X86_CR4_FSGSBASE)
-+
- void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
- {
- 	kvm_lapic_reset(vcpu, init_event);
-@@ -10026,6 +10137,11 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
+@@ -10072,6 +10183,11 @@ void kvm_vcpu_reset(struct kvm_vcpu *vcpu, bool init_event)
  
  	vcpu->arch.ia32_xss = 0;
  

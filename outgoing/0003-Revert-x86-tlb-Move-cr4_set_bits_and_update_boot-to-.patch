@@ -1,4 +1,4 @@
-From e003ee6b921b512d5e1fc7d46c2e7779e92ac866 Mon Sep 17 00:00:00 2001
+From 435d2e87cb80b0fea3148d3aa3839dc59824f1f0 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 1 Sep 2020 21:44:55 -0700
 Subject: [PATCH 3/9] Revert "x86/tlb: Move cr4_set_bits_and_update_boot() to
@@ -12,19 +12,18 @@ control register pinning.
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
- arch/x86/include/asm/tlbflush.h | 15 +++++++++++++++
+ arch/x86/include/asm/tlbflush.h | 14 ++++++++++++++
  arch/x86/mm/init.c              | 13 -------------
- 2 files changed, 15 insertions(+), 13 deletions(-)
+ 2 files changed, 14 insertions(+), 13 deletions(-)
 
 diff --git a/arch/x86/include/asm/tlbflush.h b/arch/x86/include/asm/tlbflush.h
-index 8c87a2e0b660..742ac6e27277 100644
+index 8c87a2e0b660..f0460c84fe55 100644
 --- a/arch/x86/include/asm/tlbflush.h
 +++ b/arch/x86/include/asm/tlbflush.h
-@@ -162,9 +162,24 @@ static inline void cr4_init_shadow(void)
+@@ -162,9 +162,23 @@ static inline void cr4_init_shadow(void)
  	this_cpu_write(cpu_tlbstate.cr4, __read_cr4());
  }
  
-+
 +/*
 + * Save some of cr4 feature set we're using (e.g.  Pentium 4MB
 + * enable and PPro Global page enable), so that any CPU's that boot
