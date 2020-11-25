@@ -1,33 +1,33 @@
-From 2b63e92f53600e77af1b4d686de00dc01990e70c Mon Sep 17 00:00:00 2001
+From d0afd62b1021f3f39f8914ce0e05fd6bb1308659 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 8 Jan 2020 13:14:30 -0800
 Subject: [PATCH 4/9] X86: Update mmu_cr4_features during feature
  identification
 
+Currently, setup_arch() updates mmu_cr4_features to save what identified
+features are supported for later use in hibernation asm when CR4 needs
+to be modified to toggle PGE. CR4 writes happen in restore_image() and
+restore_registers(). setup_arch() occurs before identify_cpu(), this
+lead to mmu_cr4_features not containing some of the CR4 features which
+were enabled via identify_cpu() when hibernation asm is executed.
+
 In identify_cpu() when setting up SMEP/SMAP/UMIP/FSGSBASE call
-cr4_set_bits_and_update_boot() instead of cr4_set_bits(). This ensures
-that mmu_cr4_features contains those bits, and does not disable those
-protections when in hibernation asm. This is necessary to support
+cr4_set_bits_and_update_boot() instead of cr4_set_bits(). Thereby
+ensuring that mmu_cr4_features contains those bits, and does not disable
+those protections when in hibernation asm. This is necessary to support
 paravirtualized control register pinning in conjunction with hibernation
 / suspend to RAM. Without setting these bits in mmu_cr4_features, the
 trampoline code disables them, resulting in a pinning violation.
 
-setup_arch() updates mmu_cr4_features to save what identified features
-are supported for later use in hibernation asm when CR4 needs to be
-modified to toggle PGE. CR4 writes happen in restore_image() and
-restore_registers(). setup_arch() occurs before identify_cpu(), this
-leads to mmu_cr4_features not containing some of the CR4 features which
-were enabled via identify_cpu() when hibernation asm is executed.
+Modify cr4_set_bits_and_update_boot() to make it read mmu_cr4_features,
+modify if needed, then write back the updated value if it was changed.
+Use a RMW operation to avoid writes which would trigger faults on
+non-boot CPUs due to the __ro_after_init attribute on mmu_cr4_features.
 
 Two classes of cr4_set_bits() exist (cr4_set_bits() and
 cr4_set_bits_and_update_boot()) are due to a lack of validation on the
 early-boot CR4 manipulation (see existing comment in setup.c).
 We can now consider SMEP/SMAP/UMIP/FSGSBASE to be validated.
-
-cr4_set_bits_and_update_boot() has been updated to check if the bits
-we're attempting to set already exist within mmu_cr4_features. If they
-do, no update is done, thereby avoiding writes which would trigger
-faults on non-boot CPUs (due to __ro_after_init).
 
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
@@ -36,10 +36,10 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  2 files changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/arch/x86/include/asm/tlbflush.h b/arch/x86/include/asm/tlbflush.h
-index 742ac6e27277..af0d48f6d581 100644
+index f0460c84fe55..608b554a999e 100644
 --- a/arch/x86/include/asm/tlbflush.h
 +++ b/arch/x86/include/asm/tlbflush.h
-@@ -174,6 +174,8 @@ extern u32 *trampoline_cr4_features;
+@@ -173,6 +173,8 @@ extern u32 *trampoline_cr4_features;
  
  static inline void cr4_set_bits_and_update_boot(unsigned long mask)
  {

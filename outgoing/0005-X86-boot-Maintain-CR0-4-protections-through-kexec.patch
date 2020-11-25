@@ -1,4 +1,4 @@
-From d605e0802340f9f6cb7e079da0df16bc28643799 Mon Sep 17 00:00:00 2001
+From f45e1878add7c9c3ad2ef7d6b65dbae0c3dc4ee6 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 22 Jul 2020 13:11:06 -0700
 Subject: [PATCH 5/9] X86: boot: Maintain CR0/4 protections through kexec
@@ -12,14 +12,20 @@ CR0/4, AND the bits we want to keep set if they are already enabled (WP,
 SMAP, SMEP, UMIP, and FSGSBASE), OR with the constant we had previously
 been writing, finally write back the modified register.
 
-Where WP was previously not set, set it. CR0_STATE includes WP, it's
-always supported and doesn't need any feature check before enabling.
-The code paths involved do not trigger exceptions due to it's enabling.
+Where WP was previously not set, set it. CR0_STATE includes WP. It's
+always supported and does not need any feature check before enabling.
+Testing showed that the code paths involved do not trigger exceptions
+due to it's enabling.
 
-Increase TRAMPOLINE_32BIT_CODE_SIZE by 9. The addition of an andl and an
-orl instruction within trampoline_32bit_src() results in 9 more bytes of
-machine code.
+Increase TRAMPOLINE_32BIT_CODE_SIZE by 16 due to the addition of
+instructions within trampoline_32bit_src().
 
+These changes are needed for paravirtualized control register pinning to
+be compatible with kexec. Without these changes a pinning violation
+would occur when the guest kexec's a new kernel due to pinned bits not
+being a part of the set of bits previously given to the MOV instruction.
+
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: John Andersen <john.s.andersen@intel.com>
 ---
  arch/x86/boot/compressed/head_64.S   | 11 +++++++----
@@ -66,7 +72,7 @@ index 017de6cc87dc..a3c1d9d11b6d 100644
  
  	lret
 diff --git a/arch/x86/boot/compressed/pgtable.h b/arch/x86/boot/compressed/pgtable.h
-index 6ff7e81b5628..d15439dd30c0 100644
+index 6ff7e81b5628..cc9b2529a086 100644
 --- a/arch/x86/boot/compressed/pgtable.h
 +++ b/arch/x86/boot/compressed/pgtable.h
 @@ -6,7 +6,7 @@
@@ -74,7 +80,7 @@ index 6ff7e81b5628..d15439dd30c0 100644
  
  #define TRAMPOLINE_32BIT_CODE_OFFSET	PAGE_SIZE
 -#define TRAMPOLINE_32BIT_CODE_SIZE	0x70
-+#define TRAMPOLINE_32BIT_CODE_SIZE	0x79
++#define TRAMPOLINE_32BIT_CODE_SIZE	0x80
  
  #define TRAMPOLINE_32BIT_STACK_END	TRAMPOLINE_32BIT_SIZE
  

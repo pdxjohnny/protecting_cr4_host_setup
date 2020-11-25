@@ -1,4 +1,4 @@
-From 332747b988c9b0f0a34482e6ccc162b48ada3756 Mon Sep 17 00:00:00 2001
+From 7a3ccf24ed001f8c7d83244a77d3a1ed93b76bc0 Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 12 Nov 2019 17:28:04 -0500
 Subject: [PATCH 6/9] X86: Use KVM CR pin MSRs
@@ -38,7 +38,7 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  5 files changed, 120 insertions(+)
 
 diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 526d65d8573a..7b6e81a79a28 100644
+index 526d65d8573a..be4b51d5c694 100644
 --- a/Documentation/admin-guide/kernel-parameters.txt
 +++ b/Documentation/admin-guide/kernel-parameters.txt
 @@ -968,6 +968,17 @@
@@ -47,7 +47,7 @@ index 526d65d8573a..7b6e81a79a28 100644
  
 +	disable_pv_cr_pin [SECURITY,X86]
 +			Disable paravirtualized control register pinning. By
-+			default, when running paravirutalized under KVM and when
++			default, when running paravirtualized under KVM and when
 +			kexec support is either not compiled in or disabled, the
 +			kernel will request that KVM never allow the disabling
 +			of kernel protection features set in CPU control
@@ -159,7 +159,7 @@ index 5c6d34fec84c..723e95dd13fe 100644
  
  static __init int setup_noclflush(char *arg)
 diff --git a/arch/x86/kernel/kvm.c b/arch/x86/kernel/kvm.c
-index 7f57ede3cb8e..e7a9a7355f43 100644
+index 7f57ede3cb8e..1182453abac6 100644
 --- a/arch/x86/kernel/kvm.c
 +++ b/arch/x86/kernel/kvm.c
 @@ -26,6 +26,7 @@
@@ -218,7 +218,7 @@ index 7f57ede3cb8e..e7a9a7355f43 100644
 +		rdmsrl(check_msrs[i], already_on);
 +
 +	if (!IS_ENABLED(CONFIG_PARAVIRT_CR_PINNING) ||
-+		cmdline_find_option_bool(boot_command_line, "disable_pv_cr_pin")) {
++	    cmdline_find_option_bool(boot_command_line, "disable_pv_cr_pin")) {
 +		if (already_on)
 +			WARN_ON_ONCE("Paravirtualized CR pinning enabled previously");
 +		else

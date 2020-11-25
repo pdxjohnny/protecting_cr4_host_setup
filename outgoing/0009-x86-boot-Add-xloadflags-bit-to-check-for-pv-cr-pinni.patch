@@ -1,0 +1,145 @@
+From 7ffff6ca1864e08a57da7b1702142f8fb995a87e Mon Sep 17 00:00:00 2001
+From: John Andersen <john.s.andersen@intel.com>
+Date: Mon, 14 Sep 2020 10:59:32 -0700
+Subject: [PATCH 9/9] x86/boot: Add xloadflags bit to check for pv cr pinning
+ support
+
+Add XLF_PARAVIRT_CR_PINNING to xloadflags.
+
+Make bzImage64_probe() check for the presence of XLF_PARAVIRT_CR_PINNING
+in xloadflags if paravirtualized control register pinning is enabled. If
+the image being loaded does not support PV CR pinning and it's currently
+enabled -ENOEXEC return from bzImage64_probe().
+
+Implement arch_kexec_load_check() for X86. Make the implementation
+return -EINVAL if paravritaulized control register pinning is enabled.
+By returning -EINVAL from arch_kexec_load_check() we force users to use
+the kexec_file system call which preforms the check for PV CR pinning
+support.
+
+kexec-tools needs updating to require the use of the kexec_file syscall
+if paravirtualized control register pinning is enabled. By adding these
+checks users will not end up with a situation where they kexec a kernel
+without support for PV CR pinning from a kernel with it enabled. It's
+important we help users avoid this case because their system would
+crash since older kernels did not keep pinned protections enabled
+through kexec.
+
+https://github.com/pdxjohnny/kexec-tools/commit/dde3dea426b7bd32f42d5c60e18dd48878aa7ed5
+
+Signed-off-by: John Andersen <john.s.andersen@intel.com>
+---
+ Documentation/x86/boot.rst            |  6 ++++++
+ arch/x86/boot/header.S                |  4 +++-
+ arch/x86/include/uapi/asm/bootparam.h |  1 +
+ arch/x86/kernel/kexec-bzimage64.c     |  8 ++++++++
+ arch/x86/kernel/machine_kexec_64.c    | 16 ++++++++++++++++
+ 5 files changed, 34 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/x86/boot.rst b/Documentation/x86/boot.rst
+index abb9fc164657..4e1e14d60c6f 100644
+--- a/Documentation/x86/boot.rst
++++ b/Documentation/x86/boot.rst
+@@ -722,6 +722,12 @@ Protocol:	2.12+
+ 
+ 	- If 1, the kernel supports kexec EFI boot with EFI runtime support.
+ 
++  Bit 7 (read): XLF_PARAVIRT_CR_PINNING
++
++	- If 1, the kernel supports being kexec'd from a kernel with
++	  paravirtualed control register pinning enabled. This means that
++	  protections set via bits in control registers will stay set through
++	  the transition to a new kernel.
+ 
+ ============	============
+ Field name:	cmdline_size
+diff --git a/arch/x86/boot/header.S b/arch/x86/boot/header.S
+index 6dbd7e9f74c9..6437b82589d1 100644
+--- a/arch/x86/boot/header.S
++++ b/arch/x86/boot/header.S
+@@ -432,7 +432,9 @@ xloadflags:
+ #define XLF56 0
+ #endif
+ 
+-			.word XLF0 | XLF1 | XLF23 | XLF4 | XLF56
++# define XLF7 XLF_PARAVIRT_CR_PINNING
++
++			.word XLF0 | XLF1 | XLF23 | XLF4 | XLF56 | XLF7
+ 
+ cmdline_size:   .long   COMMAND_LINE_SIZE-1     #length of the command line,
+                                                 #added with boot protocol
+diff --git a/arch/x86/include/uapi/asm/bootparam.h b/arch/x86/include/uapi/asm/bootparam.h
+index 600a141c8805..0eecc4fc334d 100644
+--- a/arch/x86/include/uapi/asm/bootparam.h
++++ b/arch/x86/include/uapi/asm/bootparam.h
+@@ -36,6 +36,7 @@
+ #define XLF_EFI_KEXEC			(1<<4)
+ #define XLF_5LEVEL			(1<<5)
+ #define XLF_5LEVEL_ENABLED		(1<<6)
++#define XLF_PARAVIRT_CR_PINNING		(1<<7)
+ 
+ #ifndef __ASSEMBLY__
+ 
+diff --git a/arch/x86/kernel/kexec-bzimage64.c b/arch/x86/kernel/kexec-bzimage64.c
+index 57c2ecf43134..b03be02a2720 100644
+--- a/arch/x86/kernel/kexec-bzimage64.c
++++ b/arch/x86/kernel/kexec-bzimage64.c
+@@ -18,6 +18,7 @@
+ #include <linux/mm.h>
+ #include <linux/efi.h>
+ #include <linux/verification.h>
++#include <linux/kvm_para.h>
+ 
+ #include <asm/bootparam.h>
+ #include <asm/setup.h>
+@@ -315,6 +316,13 @@ static int bzImage64_probe(const char *buf, unsigned long len)
+ 		return ret;
+ 	}
+ 
++	if (!(header->xloadflags & XLF_PARAVIRT_CR_PINNING) &&
++	    IS_ENABLED(CONFIG_PARAVIRT_CR_PINNING) &&
++	    kvm_paravirt_cr_pinning_enabled) {
++		pr_err("bzImage cannot handle paravirtualized control register pinning.\n");
++		return ret;
++	}
++
+ 	/* I've got a bzImage */
+ 	pr_debug("It's a relocatable bzImage64\n");
+ 	ret = 0;
+diff --git a/arch/x86/kernel/machine_kexec_64.c b/arch/x86/kernel/machine_kexec_64.c
+index a29a44a98e5b..2c2a251eae00 100644
+--- a/arch/x86/kernel/machine_kexec_64.c
++++ b/arch/x86/kernel/machine_kexec_64.c
+@@ -24,6 +24,7 @@
+ #include <asm/io_apic.h>
+ #include <asm/debugreg.h>
+ #include <asm/kexec-bzimage64.h>
++#include <asm/kvm_para.h>
+ #include <asm/setup.h>
+ #include <asm/set_memory.h>
+ 
+@@ -587,6 +588,21 @@ void arch_kexec_unprotect_crashkres(void)
+ 	kexec_mark_crashkres(false);
+ }
+ 
++int arch_kexec_load_check(unsigned long nr_segments,
++			  unsigned long flags)
++{
++	/*
++	 * Don't allow kexec_load syscall when paravirtualized control register
++	 * pinning is enabled. File based syscall can preform support checks,
++	 * load based syscall cannot. Ensure user hits support checks by
++	 * disallowing access to the load syscall.
++	 */
++	if (IS_ENABLED(CONFIG_PARAVIRT_CR_PINNING) && kvm_paravirt_cr_pinning_enabled)
++		return -EINVAL;
++
++	return 0;
++}
++
+ /*
+  * During a traditional boot under SME, SME will encrypt the kernel,
+  * so the SME kexec kernel also needs to be un-encrypted in order to
+-- 
+2.21.0
+
