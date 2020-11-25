@@ -1,4 +1,4 @@
-From f45e1878add7c9c3ad2ef7d6b65dbae0c3dc4ee6 Mon Sep 17 00:00:00 2001
+From 04570b07ed7955f9f604bffda3ac8159f49fc60d Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 22 Jul 2020 13:11:06 -0700
 Subject: [PATCH 5/9] X86: boot: Maintain CR0/4 protections through kexec
@@ -85,7 +85,7 @@ index 6ff7e81b5628..cc9b2529a086 100644
  #define TRAMPOLINE_32BIT_STACK_END	TRAMPOLINE_32BIT_SIZE
  
 diff --git a/arch/x86/kernel/head_64.S b/arch/x86/kernel/head_64.S
-index 7eb2a1c87969..52d956b8832e 100644
+index 3c417734790f..e9174df67936 100644
 --- a/arch/x86/kernel/head_64.S
 +++ b/arch/x86/kernel/head_64.S
 @@ -150,7 +150,10 @@ SYM_INNER_LABEL(secondary_startup_64_no_verify, SYM_L_GLOBAL)

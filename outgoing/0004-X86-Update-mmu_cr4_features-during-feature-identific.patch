@@ -1,4 +1,4 @@
-From d0afd62b1021f3f39f8914ce0e05fd6bb1308659 Mon Sep 17 00:00:00 2001
+From f26a787c7eb5eed59dee7c85dcd809bd2212841d Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Wed, 8 Jan 2020 13:14:30 -0800
 Subject: [PATCH 4/9] X86: Update mmu_cr4_features during feature

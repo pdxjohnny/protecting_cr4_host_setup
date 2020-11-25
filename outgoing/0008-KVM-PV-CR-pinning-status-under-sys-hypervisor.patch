@@ -1,4 +1,4 @@
-From d4ee9b0a4b190e7cd0e42f5bcc979420aa11a84a Mon Sep 17 00:00:00 2001
+From 61fbad1721528880121fd678d6d6eb5e3c1ffbea Mon Sep 17 00:00:00 2001
 From: John Andersen <john.s.andersen@intel.com>
 Date: Tue, 15 Sep 2020 11:45:31 -0700
 Subject: [PATCH 8/9] KVM: PV CR pinning status under /sys/hypervisor
@@ -26,10 +26,10 @@ Signed-off-by: John Andersen <john.s.andersen@intel.com>
  create mode 100644 drivers/kvm/sys-hypervisor.c
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index e73636b75f29..6ef813bb0d0d 100644
+index 4a34b25ecc1f..1b8134969be2 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -9615,6 +9615,7 @@ S:	Supported
+@@ -9596,6 +9596,7 @@ S:	Supported
  W:	http://www.linux-kvm.org
  T:	git git://git.kernel.org/pub/scm/virt/kvm/kvm.git
  F:	Documentation/virt/kvm/
