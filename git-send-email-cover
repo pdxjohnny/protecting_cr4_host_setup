@@ -49,8 +49,8 @@ sent separately.
 
 ================== High level overview of the changes ==================
 
-PATCH 1/9  KVM x86 Introduce paravirt feature CR0 CR4 pinning
-PATCH 2/9  selftests kvm add test for CR pinning with SMM
+PATCH 1/9  KVM: x86: Introduce paravirt feature CR0 CR4 pinning
+PATCH 2/9  selftests: kvm: add test for CR pinning with SMM
 
   A CPUID feature bit as well as MSRs were added to KVM. Guests can use
   the CPUID feature bit to determine if MSRs are available. Reading the
@@ -76,7 +76,7 @@ PATCH 2/9  selftests kvm add test for CR pinning with SMM
 
 PATCH 3/9  Revert "x86/tlb: Move cr4_set_bits_and_update_boot() to the
            usage site"
-PATCH 4/9  X86 Update mmu_cr4_features during feature identification
+PATCH 4/9  X86: Update mmu_cr4_features during feature identification
 
   Hibernation and suspend-to-RAM are supported. This was done by
   updating mmu_cr4_features on feature identification of the boot CPU.
@@ -84,33 +84,44 @@ PATCH 4/9  X86 Update mmu_cr4_features during feature identification
   needed to revert a patch which moved it to a location where it was
   marked as static. The revert enables us to use
   cr4_set_bits_and_update_boot() in common.c.
+  cr4_set_bits_and_update_boot() was also modified so that it does not
+  write to mmu_cr4_features if the bits to be set already are set.
+  This is required so that during identification on-boot CPUs do not
+  violate the __ro_after_init attribute on mmu_cr4_features.
 
-PATCH 5/9  X86 boot Maintain CR0 4 protections through kexec
+PATCH 5/9  X86: boot: Maintain CR0 4 protections through kexec
 
-  kexec is supported by modifying the trampoline to ensure that the
-  default set of bits which are allowed to be pinned stay enabled
-  through a kexec if they were enabled before.
+  kexec is supported by modifying head_32/64.S and
+  relocate_kernel_32/64.c to ensure that the default set of bits which
+  are allowed to be pinned stay enabled through a kexec if they were
+  enabled before.
 
-PATCH 6/9  X86 Use KVM CR pin MSRs
+PATCH 6/9  X86: Use KVM CR pin MSRs
 
   When running as a guest pinning is requested after CPU identification
   for non-boot CPUs. The boot CPU requests pinning a directly after
-  existing pinning is setup. CPU hotplug is supported using this
-  approach. The same bits which are already being pinned using native
-  pinning are pinned using paravirtualized pinning.
+  existing pinning is setup. This approach supports CPU hotplug.
+  The same bits which are already being pinned by native pinning are
+  pinned using paravirtualized pinning. A Kconfig and a command line
+  option have been added to allow users to disable pinning if they wish.
+  Guests who configure support for kexec can only use paravirtualized
+  pinning if they also enable the file based system call.
 
-PATCH 7/9  kexec Add arch specific kexec_load_check
-PATCH 8/9  KVM PV CR pinning status under sys hypervisor
-PATCH 9/9  x86 boot Add xloadflags bit to check for pv cr pinning
+PATCH 7/9  kexec: Add arch specific kexec_load_check
+PATCH 8/9  KVM: PV CR pinning status under sys hypervisor
+PATCH 9/9  x86: boot: Add xloadflags bit to check for pv cr pinning
 
   As suggested by Liran and Kirill, xloadflags has been updated to
   signal that the trampoline will keep protections enabled. Checks have
   been added to the file based kexec system call to verify the kernel
   being loaded will keep protections enabled. kexec-tools uses the added
-  /sys/hypervisor/pv_cr_pinning file to check if it should used the file
+  /sys/hypervisor/pv_cr_pinning file to check if it should use the file
   based system call, since the load based call is incapable of
-  preforming the xloadflags check. Details of kexec support are
-  explained later in this cover letter.
+  preforming the xloadflags check. These changes are necessary to ensure
+  the user is not able to kexec a kernel that doesn't have PATCH 5/9
+  applied to it, as such a kernel would attempt to disable pinning and
+  cause a #GP. Details of kexec support are explained later in this
+  cover letter.
 
 
 
