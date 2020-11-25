@@ -9,9 +9,7 @@ I found that I was unsure of how to change the SVM code so that we'd for
 sure shutdown the VM. Rick said Sean had expressed that the SVM code was
 in need of some work, so I made this a non-AMD feature because I'm not
 confident I can do that as it should be done without the ability to test
-(since I lack AMD hardware). Let me know if that's an okay course of
-action, or if maybe we should go with silent restore of possibly
-unpinned bits instead of the AMD SDM compliant behavior.
+since I lack AMD hardware.
 
 
 
@@ -44,6 +42,103 @@ for kexec-tools is also involved to have it require the use of file
 based kexec if pinning is enabled. There is one SMM related selftest
 added in this patchset and another patch for kvm-unit-tests that will be
 sent separately.
+
+
+
+=============== Notable Changes Since External PATCH v1 ================
+
+- Andy and Dave's comments on the allowed set of bits and how we
+  shouldn't restrict the allowed set
+
+  - The allowed bits default to the set which we pin natively. They can
+    be modified by the host VMM should there be a usecase for that.
+
+- Dave's comments
+
+  - Added disable_pv_cr_pin command line option and removed pv_cr_pin
+    command line option
+
+  - Removed removal of __ro_after_init on mmu_cr4_features
+
+
+
+======================= Details of Kexec Support =======================
+
+Kexec presented a problem for CR pinning in that the new kernel would
+violate the CR pinning that was setup by the old kernel during the
+course of normal boot of the new kernel. This is due to values being
+MOV'd to CR0/4 which contain minimal bits required to make the
+transition.
+
+We considered attempting to build logic into KVM to detect when a kexec
+was happening and clear pinning. However, we determined any detection
+could be conceivably used by an attacker to disabled pinning.
+
+We ended up using an AND and an OR rather than a MOV to ensure that
+protections stayed enabled if they were previously enabled. We then
+added a bit to xloadflags to signify that the kernel contains the
+patched kexec path using AND and OR instead of MOV. In the event of a
+kexec the old kernel can check for this bit in xloadflags to determine
+if the new kernel will keep protections enabled or not.
+
+We currently have the following cases
+
+K0 - The running kernel
+K1 - Kernel we are going to execute from K0
+
+NS - Not Supported
+NE - Supported, Not enabled (via disable_pv_cr_pin or lack of CONFIG_)
+SE - Supported, Enabled
+
+          +-------------+-------------+-------------+
+          |             |             |             |
+          |   K1 - NS   |   K1 - NE   |   K1 - SE   |
+          |             |             |             |
++---------+-------------+-------------+-------------+
+|         |             |             |             |
+| K0 - NS |     NOP     |     NOP     |   Turn On   |
+|         |             |             |             |
++---------+-------------+-------------+-------------+
+|         |             |             |             |
+| K0 - NE |     NOP     |     NOP     |   Turn On   |
+|         |             |             |             |
++---------+-------------+-------------+-------------+
+|         |             |             |             |
+| K0 - SE |  Check (1)  |  Works (2)  |   Keep On   |
+|         |             |             |             |
++---------+-------------+-------------+-------------+
+
+
+1. When control register pinning is enabled the kexec_load() system call
+   is disabled (returns -EINVAL). All kexec's go through kexec_file().
+
+   kexec_file() has facilities for checking if K1 can be launched
+   without error. kexec-tools will be patched to default to using
+   kexec_file() if pinning is enabled in K0.
+
+   If K0 preforms the check and K1 does not support pinning -ENOEXEC
+   will be returned.
+
+2. When a K0 SE boots K1 NE, K1 will be forced to accept that pinning
+   has previously been enabled. If pinning support has been disabled via
+   Kconfig or the command line, a warning will be printed and pinning
+   will be considered to be enabled. CPUs will attempt to preform
+   pinning as they usually would when pinning was intentionally enabled.
+   The kexec flow will preform checks appropriately, so the user is
+   never in a situation where they are not presented with an appropriate
+   error message.
+
+
+
+=============================== Testing ================================
+
+- This has been tested to work with: reboot, kexec, kdump, hibernate /
+  suspend to RAM, SMM, Nested VMX, CPU hotplug, and 32 bit (without
+  kexec, since the file based system call isn't supported on 32 bit).
+
+- A patch will be sent immediately following this patchset for
+  kvm-unit-tests with the unit tests for general functionality.
+  selftests are included for SMM specific functionality.
 
 
 
@@ -120,213 +215,26 @@ PATCH 9/9  x86: boot: Add xloadflags bit to check for pv cr pinning
   preforming the xloadflags check. These changes are necessary to ensure
   the user is not able to kexec a kernel that doesn't have PATCH 5/9
   applied to it, as such a kernel would attempt to disable pinning and
-  cause a #GP. Details of kexec support are explained later in this
-  cover letter.
+  cause a #GP.
 
 
 
-=== Testing ===
+=============================== Summary ================================
 
-- This has been tested to work with: reboot, kexec, kdump,  hibernate /
-  suspend to RAM, SMM, Nested VMX, CPU hotplug, 32 bit (without kexec,
-  since kexec_file isn't supported).
-
-- A patch will be sent immediately following this patchset for
-  kvm-unit-tests with the unit tests for general functionality.
-  selftests are included for SMM specific functionality.
-
-
-
-=== Other not yet mentioned notable changes since external PATCH v1 ===
-
-- Andy and Dave's comments on the allowed set of bits and how we
-  shouldn't restrict the allowed set
-
-  - The allowed bits default to the set which we pin natively. They can
-    be modified by the host VMM should there be a usecase for that.
-
-- Dave's comments
-
-  - Added disable_pv_cr_pin command line option and removed pv_cr_pin
-    command line option
-
-  - Removed removal of __ro_after_init on mmu_cr4_features
-
-
-
-=== kexec ===
-
-Kexec presented a problem for CR pinning in that the new kernel would
-violate the CR pinning that was setup by the old kernel during the
-course of normal boot of the new kernel. This is due to values being
-MOV'd to CR0/4 which contain minimal bits required to make the
-transition. We ended up using AND and OR rather than a MOV to ensure
-that protections stayed enabled if they were previously enabled.
-
-We then added a bit to xloadflags to signify that the kernel contains
-the patched kexec path using AND and OR instead of MOV. In the event of
-a kexec the old kernel can check for this bit in xloadflags to determine
-if the new kernel will keep protections enabled or not.
-
-We currently have the following cases
-
-K0 - The running kernel
-K1 - Kernel we are going to execute from K0
-
-NS - Not Supported
-NE - Supported, Not enabled (via disable_pv_cr_pin or lack of CONFIG_)
-SE - Supported, Enabled
-
-          +-------------+-------------+-------------+
-          |             |             |             |
-          |   K1 - NS   |   K1 - NE   |   K1 - SE   |
-          |             |             |             |
-+---------+-------------+-------------+-------------+
-|         |             |             |             |
-| K0 - NS |     NOP     |     NOP     |   Turn On   |
-|         |             |             |             |
-+---------+-------------+-------------+-------------+
-|         |             |             |             |
-| K0 - NE |     NOP     |     NOP     |   Turn On   |
-|         |             |             |             |
-+---------+-------------+-------------+-------------+
-|         |             |             |             |
-| K0 - SE |  Check (1)  |  Works (2)  |   Keep On   |
-|         |             |             |             |
-+---------+-------------+-------------+-------------+
-
-
-1. When control register pinning is enabled the kexec_load system call
-   is disabled (returns -EINVAL). All kexec's must go through kexec_file
-
-   kexec_file has facilities for checking if K1 can be launched without
-   error. kexec-tools will be patched to default to using kexec_file if
-   pinning is enabled in K0.
-
-   If K0 preforms the check and K1 does not support pinning -ENOEXEC
-   will be returned.
-
-2. When a K0 SE boots K1 NE, K1 will be forced to accept that pinning
-   has previously been enabled. If pinning support has been disabled via
-   Kconfig or the command line, a warning will be printed and pinning
-   will be considered to be enabled. CPUs will attempt to preform
-   pinning as they usually would when pinning was intentionally enabled.
-   The kexec flow will preform checks appropriately, so the user is
-   never in a situation where they are not presented with an appropriate
-   error message.
-
-
-
-=== Description of changes and rational ===
-
-Paravirtualized Control Register pinning is a strengthened version of
-existing protections on the Write Protect, Supervisor Mode Execution /
-Access Protection, User-Mode Instruction Prevention, and FSGSBASE bits.
-The existing protections prevent native_write_cr*() functions from
-writing values which disable those bits. This patchset prevents any
-guest writes to control registers from disabling pinned bits, not just
-writes from native_write_cr*(). This stops attackers within the guest
-from using ROP and ROP like attacks to disable protection bits.
-
-https://web.archive.org/web/20171029060939/http://www.blackbunny.io/linux-kernel-x86-64-bypass-smep-kaslr-kptr_restric/
-
-The protection is implemented by adding MSRs to KVM which contain the
-bits that are allowed to be pinned, and the bits which are pinned. The
-guest or userspace can enable bit pinning by reading MSRs to check
-which bits are allowed to be pinned, and then writing MSRs to set which
-bits they want pinned.
-
-Other hypervisors such as HyperV have implemented similar protections
-for Control Registers and MSRs; which security researchers have found
-effective.
-
-https://www.abatchy.com/2018/01/kernel-exploitation-4
-
-We add a CR pin feature bit to the KVM cpuid, MSRs which guests use to
-identify which bits they may request be pinned, and CR pinned low/high
-MSRs which contain the pinned bits. Host VMM may modify which bits are
-allowed to be pinned. Guests can request that KVM pin bits within
-control register 0 or 4 via the CR pinned MSRs. Writes to the MSRs fail
-if they include bits that aren't allowed to be pinned. Host userspace
-may clear or modify pinned bits at any time. Once pinned bits are set,
-the guest may pin more allowed bits, but may never clear pinned bits.
-
-In the event that the guest vCPU attempts to disable any of the pinned
-bits, the vCPU that issued the write is sent a general protection
-fault, and the register is left unchanged.
-
-When running with KVM guest support and paravirtualized CR pinning
-enabled, paravirtualized and existing pinning are setup at the same
-point on the boot CPU. Non-boot CPUs setup pinning upon identification.
-
-Pinning is not active when running in SMM. Entering SMM disables pinned
-bits. Writes to control registers within SMM would therefore trigger
-general protection faults if pinning was enforced. Upon exit from SMM,
-SMRAM is checked to ensure the values of CR0/4 that will be restored
-contain the correct values for pinned bits. CR0/4 values are then
-restored from SMRAM as usual. If values in SMRAM are missing pinned bits
-when checked an unhandleable emulator exception is thrown.
-
-When running with nested virtualization on VM-Exit we check L1 control
-register values within the VMCS against pinning MSRs. According to Intel
-Vol 3 27.7 if a VMCS misconfiguration is discovered we should trigger a
-VMX abort with the indicator field set to 3. This currently results in a
-triple fault (there is a TODO in nested_vmx_abort() about this).
-
-According to AMD Vol 2 15.6 if VMCB host state inconsistency is
-discovered we should cause the processor to shutdown. Modifications to
-nested_svm_vmexit() to ensure that the processor is shutdown are
-non-trivial and the author lacks a platform to test any potential
-changes. As such, the CPUID feature bit is not set on AMD processors.
-
-Should userspace expose the CR pining CPUID feature bit, it must zero
-CR pinned MSRs on reboot. If it does not, it runs the risk of having
-the guest enable pinning and subsequently cause general protection
-faults on next boot due to early boot code setting control registers to
-values which do not contain the pinned bits.
-
-Hibernation to disk and suspend-to-RAM are supported. identify_cpu() was
-updated to ensure SMEP/SMAP/UMIP/FSGSBASE are present in
-mmu_cr4_features. This is necessary to ensure protections stay active
-during hibernation image restoration.
-
-If kexec is desired, the kexec file system call must be enabled.
-The kexec trampoline code has been updated to keep protections enabled
-during the transition to the new kernel. kernel_info.S has been modified to
-demarcate the point where protections now stay enabled. kexec_file_load()
-has been modified to check for the presence of the flag in kernel_info.S
-kexec_load() will fail if pinning is enabled as it cannot preform checks
-in the same way kexec_file_load() can.
-
-Paravirtualized control register pinning will be enabled by default if
-available and the kexec file based system call is enabled, or if kexec
-is not enabled. Disabling kexec via it's sysctl will not result in the
-enabling of paravirtualized pinning, do to the setting of sysctl's
-happening after the check for pinning.
-
-Should the user find that paravirtualized pinning causes issues for
-them, it can be disabled using the new disable_pv_cr_pin command line
-option, or via CONFIG_PARAVIRT_CR_PINNING.
-
-Linux distros should get this protection enabled by default when they update
-their kernel / configs, providing added security to Linux guests running
-virtualized under KVM. Pinning of sensitive CR bits has already been
-implemented to protect against exploits directly calling native_write_cr*().
-The current protection cannot stop ROP attacks which jump directly to a MOV CR
-instruction. Guests running with paravirtualized CR pinning are now
-protected against the use of ROP to disable CR bits. The same bits that
-are being pinned natively may be pinned via the CR pinned MSRs. These
-bits are WP in CR0, and SMEP, SMAP, UMIP, and FSGSBASE in CR4.
+Linux distros should get this protection enabled by default when they
+update their kernel / configs, providing added security to Linux guests
+running virtualized under KVM. Pinning of sensitive CR bits has already
+been implemented to protect against exploits directly calling
+native_write_cr*(). The current protection cannot stop ROP attacks which
+jump directly to a MOV CR instruction. Guests running with
+paravirtualized CR pinning are now protected against the use of ROP to
+disable CR bits. The same bits that are being pinned natively can be
+pinned via the CR pinned MSRs. These bits are WP in CR0, and SMEP, SMAP,
+UMIP, and FSGSBASE in CR4.
 
 Future patches could implement similar MSRs to protect bits in MSRs.
 The NXE bit of the EFER MSR is a prime candidate.
 
-
-Thanks,
-John
-
-
-Subject: [X86REVIEW PATCH v4 0/9] Paravirtualized Control Register Pinning
 
 
 Thanks Rick and Kirill for the latest round of reviews. Thank you to
@@ -335,12 +243,12 @@ everyone's comments, please let me know if I've missed anything.
 
 Here are the previous versions of this patchset for reference
 
+PATCH v4 (internal): https://eclists.intel.com/sympa/arc/linux-drivers-review/2020-11/msg00510.html
 PATCH v3 (internal): https://eclists.intel.com/sympa/arc/linux-drivers-review/2020-10/msg00382.html
 PATCH v2 (internal): https://eclists.intel.com/sympa/arc/linux-drivers-review/2020-09/msg00593.html
 PATCH v1: https://lkml.org/lkml/2020/6/17/921
 RFC v2: https://lkml.org/lkml/2020/2/18/1162
 RFC v1: https://lkml.org/lkml/2019/12/24/380
 
-
-Thanks,
+Thank you,
 John
