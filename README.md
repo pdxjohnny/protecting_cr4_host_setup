@@ -523,3 +523,17 @@ Date:   Wed Jan 8 13:14:30 2020 -0800
     Signed-off-by: John Andersen <john.s.andersen@intel.com>
 
 ```
+
+### QEMU
+
+```console
+$ mkdir /home/johnsa1/backups/
+$ mv /home/johnsa1/chroot/home/johnsa1/qemu/ "/home/johnsa1/backups/qemu.$(date)"
+$ rsync -avhW --no-compress --progress /home/johnsa1/qemu /home/johnsa1/chroot/home/johnsa1/qemu/
+```
+
+## kexec
+
+```console
+$ sudo cp /home/johnsa1/kexec-tools/build/sbin/kexec /home/johnsa1/chroot/usr/sbin/kexec
+```

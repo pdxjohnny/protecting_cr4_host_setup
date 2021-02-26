@@ -125,10 +125,26 @@ test_l2() {
   cd "${HOME}"
   sudo tee "${CHROOT}/do" <<<"test_l2.sh"
   LEADING="timeout --verbose --foreground 60" "${HOME}/run.sh" 2>&1 | tee "${LOG}/l2"
-  if [[ "$(grep "Run /usr/bin/rebooter as init process" "${LOG}/l2" | wc -l)0" -gt 20 ]]; then
-    echo "PASS: L2" | tee -a "${LOG}/results"
+  if [[ "$(grep "Run /usr/bin/init_l2.sh as init process" "${LOG}/l2" | wc -l)0" -gt 20 ]]; then
+    if [[ "$(grep "++ /usr/bin/rebooter" "${LOG}/l2" | wc -l)0" -gt 20 ]]; then
+      echo "PASS: L2" | tee -a "${LOG}/results"
+    else
+      echo "FAIL: L2" | tee -a "${LOG}/results"
+    fi
   else
     echo "FAIL: L2" | tee -a "${LOG}/results"
+  fi
+}
+
+# L2
+test_l2_kexec() {
+  cd "${HOME}"
+  sudo tee "${CHROOT}/do" <<<"test_l2_kexec.sh"
+  LEADING="timeout --verbose --foreground 60" "${HOME}/run.sh" 2>&1 | tee "${LOG}/l2_kexec"
+  if [[ "$(grep "Run /usr/bin/rebooter as init process" "${LOG}/l2_kexec" | wc -l)0" -gt 20 ]]; then
+    echo "PASS: L2_kexec" | tee -a "${LOG}/results"
+  else
+    echo "FAIL: L2_kexec" | tee -a "${LOG}/results"
   fi
 }
 

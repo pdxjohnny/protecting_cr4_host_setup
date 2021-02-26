@@ -474,3 +474,465 @@ cd ../../
 make -j $(($(nproc)*4)) bzImage
 DO=bash ~/run.sh
 DO=bash ~/run.sh -no-reboot
+cd ..
+git status
+git add -f outgoing/
+git status
+git diff --staged
+git status
+git commit -sam 'pre-rebase kvm/next, post checkpatch'
+git push
+it pull
+git pull
+git push
+cat outgoing/*
+cat outgoing/* | wc -l
+git grep binary
+git grep -i binary
+git status
+git diff
+git status
+git add outgoing/
+git status
+git commit -sam 'post rebase kvm/next'
+git push
+git grep intr_coalesce_store
+git grep intr_coalesce_show
+git grep -nC 5 _store -- drivers/
+vim -t intr_coalesce
+vim -t keymap_store
+vim drivers/accessibility/speakup/kobjects.c
+git grep -a 10 native_write_cr4
+git grep -A 10 native_write_cr4
+git grep -A 10 native_read_cr4
+git status
+git push
+git push pdxjohnny 
+git push pdxjohnny patch_v2_internal_v
+git push pdxjohnny patch_v2_internal_v5
+tmux
+python
+python3
+netcat tcp.st 7777
+nc tcp.st 7777
+git status
+git diff
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+./scripts/checkpatch.pl ../outgoing/*
+git status
+git log -p
+git log --stat
+git status
+git checkout -- tools/testing/selftests/kvm/x86_64/tsc_msrs_test
+git stash
+git rebase -i HEAD~11
+git rm tools/testing/selftests/kvm/x86_64/tsc_msrs_test
+git status
+git rebase --continue
+git log --stat
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+./scripts/checkpatch.pl ../outgoing/*
+git status
+git push -f
+./scripts/checkpatch.pl --strict ../outgoing/*
+./scripts/checkpatch.pl --codespell ../outgoing/*
+sudo dnf -y install codespell
+./scripts/checkpatch.pl --codespell ../outgoing/*
+sudo dnf provides /usr/share/codespell/dictionary.txt
+sudo dnf provides dictionary.txt
+sudo dnf provides --help dictionary.txt
+tee .git/hooks/post-commit
+cat .git/hooks/post-commit
+chmod 755 .git/hooks/post-commit
+git status
+find /usr/ -name codespell
+codespell --help
+find /etc -name codespell
+./scripts/checkpatch.pl --codespell ../outgoing/*
+wget https://raw.githubusercontent.com/codespell-project/codespell/master/codespell_lib/data/dictionary.txt
+cat dictionary.txt 
+sudo dnf provides --help dictionary.txt
+sudo mv dictionary.txt /usr/share/codespell/dictionary.txt
+sudo mkdir /usr/share/codespell
+sudo mv dictionary.txt /usr/share/codespell/dictionary.txt
+./scripts/checkpatch.pl --codespell ../outgoing/*
+./scripts/checkpatch.pl --codespell --strict ../outgoing/*
+vim scripts/checkpatch.pl
+git status
+git diff
+git stasth
+vim scripts/checkpatch.pl
+git status
+rm tools/testing/selftests/kvm/x86_64/smm_cr_pin_test
+git status
+git add -A
+vim scripts/checkpatch.pl
+git stash
+git stash pop
+git add -A
+vim scripts/checkpatch.pl
+git checkout HEAD~11 -- scripts/checkpatch.pl
+vim scripts/checkpatch.pl
+git diff scripts/checkpatch.pl
+vim scripts/checkpatch.pl
+git diff
+git diff | | nc termbin.com 9999
+git diff | nc termbin.com 9999
+git staths
+git status
+git diff
+git add -A
+git diff --staged
+git stash
+git rebase -i HEAD~10
+git stash pop
+git diff
+git add -A
+git rebase --continue
+git log -p HEAD~10
+git log -p HEAD~9
+nc termbin.com 9999
+git format-patch HEAD~1
+vim 0001-check-patch.patch 
+rm 0001-check-patch.patch 
+git status
+cd ..
+git status
+ll
+git grep SMAP
+vim -t X86_CR4_SMAP
+git grep ATTR_RW
+git grep __ATTR_RW -- drivers/
+vim drivers/dma/ioat/sysfs.c
+vim drivers/kvm/sys-hypervisor.c
+vim drivers/dma/ioat/sysfs.c
+vim drivers/kvm/sys-hypervisor.c
+vim -t native_write_cr4
+vim drivers/kvm/sys-hypervisor.c
+git status
+git checkout -b patch_v2_internal_v5
+git rebase -i HEAD~9
+vim drivers/kvm/Kconfig
+git status
+git diff
+git add -A
+git status
+git rebase --continue
+git log --stat
+vim MAINTAINERS
+git status
+git stash
+git rebase -i HEAD~9
+git stash pop
+cat .git/hooks/post-
+cat .git/hooks/post-commit 
+[  133.262185] general protection fault, maybe for address 0x170ef0: 0000 [#1] SMP PTI
+[  133.265898] CPU: 1 PID: 192 Comm: tee Tainted: G           O      5.10.0-rc1+ #162
+[  133.267438] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 0.0.0 02/06/2015
+[  133.268957] RIP: 0010:cr4_store+0x37/0x70
+[  133.269675] Code: ba 35 82 48 89 cb 48 83 ec 10 65 48 8b 04 25 28 00 00 00 48 89 44 24 08 31 c0 48 89 e2 e8 a1 fb f2 ff 85 c0 78 24 48 8b 04 24 <0f> 22 e0 48 89 04 24 48 89 d8 48 8b 74 24 08 65 48 33 34 25 28 00
+[  133.273270] RSP: 0018:ffffc900003fbe80 EFLAGS: 00010202
+[  133.274250] RAX: 0000000000170ef0 RBX: 000000000000000b RCX: 0000000000000000
+[  133.275559] RDX: 0000000000000000 RSI: 0000000000000010 RDI: ffffffff8235ba78
+[  133.276790] RBP: ffff888100327960 R08: 0000000000170ef0 R09: 0000000000000008
+[  133.278084] R10: 0000000000000010 R11: f000000000000000 R12: 000000000000000b
+[  133.279372] R13: fffffffffffffff2 R14: ffffc900003fbf10 R15: ffff888100325320
+[  133.280658] FS:  00007f440ff86580(0000) GS:ffff888237d00000(0000) knlGS:0000000000000000
+[  133.282135] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  133.283186] CR2: 00005602068faac0 CR3: 0000000103a8e001 CR4: 0000000000370ee0
+[  133.284522] Call Trace:
+[  133.284968]  kernfs_fop_write+0xce/0x1b0
+[  133.285677]  vfs_write+0xc1/0x200
+[  133.286285]  ksys_write+0x5f/0xe0
+[  133.286885]  do_syscall_64+0x33/0x40
+[  133.287522]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+[  133.288455] RIP: 0033:0x7f440feae467
+[  133.289108] Code: 64 89 02 48 c7 c0 ff ff ff ff eb bb 0f 1f 80 00 00 00 00 f3 0f 1e fa 64 8b 04 25 18 00 00 00 85 c0 75 10 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 51 c3 48 83 ec 28 48 89 54 24 18 48 89 74 24
+[  133.292524] RSP: 002b:00007ffe69c57ac8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+[  133.293893] RAX: ffffffffffffffda RBX: 000000000000000b RCX: 00007f440feae467
+[  133.295187] RDX: 000000000000000b RSI: 00007ffe69c57bf0 RDI: 0000000000000003
+[  133.296491] RBP: 00007ffe69c57bf0 R08: 0000000000000000 R09: 0000000000000001
+[  133.297766] R10: 00000000000001b6 R11: 0000000000000246 R12: 000000000000000b
+[  133.299043] R13: 00005602071ed310 R14: 000000000000000b R15: 00007f440ff7f700
+[  133.300424] Modules linked in: kvm_intel(O) kvm(O) irqbypass vfat fat
+[  133.301625] ---[ end trace 60514e5e7427e3d5 ]---
+[  133.305554] RIP: 0010:cr4_store+0x37/0x70
+[  133.306412] Code: ba 35 82 48 89 cb 48 83 ec 10 65 48 8b 04 25 28 00 00 00 48 89 44 24 08 31 c0 48 89 e2 e8 a1 fb f2 ff 85 c0 78 24 48 8b 04 24 <0f> 22 e0 48 89 04 24 48 89 d8 48 8b 74 24 08 65 48 33 34 25 28 00
+[  133.310249] RSP: 0018:ffffc900003fbe80 EFLAGS: 00010202
+[  133.311250] RAX: 0000000000170ef0 RBX: 000000000000000b RCX: 0000000000000000
+[  133.312606] RDX: 0000000000000000 RSI: 0000000000000010 RDI: ffffffff8235ba78
+[  133.313951] RBP: ffff888100327960 R08: 0000000000170ef0 R09: 0000000000000008
+[  133.315400] R10: 0000000000000010 R11: f000000000000000 R12: 000000000000000b
+[  133.316863] R13: fffffffffffffff2 R14: ffffc900003fbf10 R15: ffff888100325320
+[  133.318315] FS:  00007f440ff86580(0000) GS:ffff888237d00000(0000) knlGS:0000000000000000
+[  133.319956] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  133.320992] CR2: 00005602068faac0 CR3: 0000000103a8e001 CR4: 0000000000370ee0
+git stash pop
+git stash --help
+git stash push -- drivers/kvm/sys-hypervisor.c
+git status
+git diff
+cat .git/hooks/post-commit 
+git show --format=email
+git status
+git show --format=email
+git status
+git add -A
+git rebase --continue
+git rebase -i HEAD~9
+git rebase --continue
+git rebase -i HEAD~9
+git log --stat
+git rebase -i HEAD~9
+vim drivers/kvm/Kconfig
+vim drivers/kvm/sys-hypervisor.c
+git status
+git diff
+git add -A
+git rebase --continue
+git status
+git commit -sam 'check patch'
+git rebase -i HEAD~10
+git rebase --continue
+git rebase -i HEAD~10
+git log --stat
+git stash
+git rebase -i HEAD~10
+git stash pop
+git add scripts/
+git rebase --continue
+git rebase -i HEAD~10
+git rebase --continue
+git rebase -i HEAD~10
+git rebase --continue
+git rebase -i HEAD~10
+git status
+git add -A
+git rebase --continue
+git rebase -i HEAD~10
+cat .git/hooks/post-commit 
+git show --format=email HEAD~2 | ./scripts/checkpatch.pl --strict --codespell
+git show --format=email HEAD~1 | ./scripts/checkpatch.pl --strict --codespell
+find . -type f -name MAINTAINERS
+git show --format=email HEAD~1 | ./scripts/checkpatch.pl --strict --codespell
+git log --stat
+git show --format=email a7305e684fcfb33029fe3d0af6b7d8dc4c8ca7a1 | ./scripts/checkpatch.pl --strict --codespell
+git show --format=email a7305e684fcfb33029fe3d0af6b7d8dc4c8ca7a1
+git show --format=email a7305e684fcfb33029fe3d0af6b7d8dc4c8ca7a1 | ./scripts/checkpatch.pl --strict --codespell
+vim MAINTAINERS
+git show --format=email a7305e684fcfb33029fe3d0af6b7d8dc4c8ca7a1 | ./scripts/checkpatch.pl
+git rebase -i HEAD~10
+git show --format=email a7305e684fcfb33029fe3d0af6b7d8dc4c8ca7a1 | ./scripts/checkpatch.pl
+git log --stat
+git log --stat -n 10 | grep MAINTAINERS
+git log --stat -n 10 | grep -C 40 MAINTAINERS
+git log --stat -n 1000 | grep -C 30 MAINTAINERS
+git log --stat -n 1000 | grep -C 30 'MAINTAINERS.*\|'
+git log --stat -n 1000 | grep -C 30 'MAINTAINERS\s*\|'
+git log --stat -n 1000 | grep -v MAINTAINERS: | grep -C 30 'MAINTAINERS'
+git show --format=email a7305e684fcfb33029fe3d0af6b7d8dc4c8ca7a1 | ./scripts/checkpatch.pl
+git show --format=email bca815d620544c27288abf4841e39922d694425c | ./scripts/checkpatch.pl
+git rebase -i HEAD~10
+git rebase --continue
+git show --format=email a7305e684fcfb33029fe3d0af6b7d8dc4c8ca7a1 | ./scripts/checkpatch.pl
+git show --format=email bca815d620544c27288abf4841e39922d694425c | ./scripts/checkpatch.pl
+git status
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+./scripts/checkpatch.pl --strict --codespell ../outgoing/*.patch
+git rebase -i HEAD~9
+./scripts/checkpatch.pl --strict --codespell ../outgoing/*.patch
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+./scripts/checkpatch.pl --strict --codespell ../outgoing/*.patch
+git rebase -i HEAD~9
+vim Documentation/virt/kvm/msr.rst
+vim Documentation/admin-guide/kernel-parameters.txt
+git diff
+git status
+git rebase -a --continue
+git add -A
+git rebase  --continue
+git rebase -i HEAD~9
+vim arch/x86/kernel/kvm.c
+git diff
+git add arch/
+git rebase  --continue
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+./scripts/checkpatch.pl --strict --codespell ../outgoing/*.patch
+git rebase -i HEAD~9
+git rebase --edit-todo
+vim tools/testing/selftests/kvm/x86_64/smm_cr_pin_test.c
+git status
+git add -A
+git rebase  --continue
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+git rebase  --continue
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+./scripts/checkpatch.pl --strict --codespell ../outgoing/*.patch
+vim arch/x86/include/uapi/asm/bootparam.h
+vim arch/x86/include/asm/tlbflush.h
+git rebase -i HEAD~9
+vim arch/x86/include/asm/tlbflush.h
+git diff
+git diff HEAD~1
+git diff HEAD
+git add -A
+git status
+git rebase  --continue
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+./scripts/checkpatch.pl --strict --codespell ../outgoing/*.patch
+git status
+git fetch kvm
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+git rebase -i HEAD~9
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+git rebase kvm/next
+git status
+rm tools/testing/selftests/kvm/clear_dirty_log_test
+git status
+git log -p
+rm -rf ../outgoing/ && git format-patch -o ../outgoing/ -M kvm/next
+make -j $(($(nproc)*4)) && sudo make modules_install -j $(($(nproc)*4)) && sudo make install
+sudo grubby --set-default=/boot/
+ll /boot/
+sudo grubby --set-default=/boot/vmlinuz-5.10.0-rc3+
+sudo reboot
+uname -a
+~/test.sh
+~/test.sh kexec
+dmesg
+tmux
+tmux a
+tmux
+git push
+git push -u pdxjohnny patch_v2_internal_v6
+ll
+cd linux
+ll
+git status
+cd ..
+cd linux-combined/
+git status
+git fetch kvm
+git status
+git checkout patch_v2_internal_v6
+git checkout -b patch_v2_internal_v6
+git status
+git rebase kvm/next
+git status
+git diff
+rm tools/testing/selftests/kvm/x86_64/user_msr_test
+vim arch/x86/boot/compressed/head_64.S
+git diff
+git status
+git add -A
+git status
+git diff --staged
+git rebase --continue
+git status
+make -j $(($(nproc)*4)) && sudo make modules_install -j $(($(nproc)*4)) && sudo make install
+make olddefconfig
+make -j $(($(nproc)*4)) && sudo make modules_install -j $(($(nproc)*4)) && sudo make install
+sudo reboot
+cd ..
+git status
+git diff
+git stauts
+git status
+ll /boot/
+sudo grubby --set-default=/boot/vmlinuz-5.11.0-rc3+
+sudo reboot
+tmux a
+uname -a
+~/test.sh
+~/test.sh kexec
+cat ~/chroot/usr/bin/test_kexec.sh
+cat test.sh 
+git status
+cd linux-combined/
+git status
+cd ../qemu
+ll
+git fetch --all
+"tmux
+tmux
+cd ~/kexec-tools/
+ll
+git status
+git fetch origin 
+git rebase origin/master 
+git log
+git log -p
+git grep Nothing
+vim kexec/kexec.c 
+make
+ll
+ll kexec/kexec
+find . -name kexec
+ll build/sbin/kexec 
+ldd build/sbin/kexec
+sudo ldd ~/chroot/usr/sbin/kexec
+sudo cp /home/johnsa1/kexec-tools/build/sbin/kexec /home/johnsa1/chroot/usr/sbin/kexec
+sudo find ~/chroot -name kexec
+sudo find /home/johnsa1/chroot -name kexec
+sudo find /home/johnsa1/chroot
+sudo find /home/johnsa1/chroot -name kexec
+sudo cp /home/johnsa1/kexec-tools/build/sbin/kexec /home/johnsa1/chroot/usr/sbin/kexec
+sudo find /home/johnsa1/chroot -name kexec
+ll kexec
+sudo find /home/johnsa1/chroot -name kexec
+file $(sudo find /home/johnsa1/chroot -name kexec)
+sudo cp /home/johnsa1/kexec-tools/build/sbin/kexec /home/johnsa1/chroot/usr/sbin/kexec
+file $(sudo find /home/johnsa1/chroot -name kexec)
+file build/sbin/kexec
+vim kexec/kexec.c 
+make
+sudo cp /home/johnsa1/kexec-tools/build/sbin/kexec /home/johnsa1/chroot/usr/sbin/kexec
+vim ~/README.md
+git status
+sudo cp /home/johnsa1/kexec-tools/build/sbin/kexec /home/johnsa1/chroot/usr/sbin/kexec
+vim kexec/kexec.c 
+git status
+git diff
+git status
+git log
+git branch -r
+git checkout -b patch_v2_internal_v6
+git push -u pdxjohnny 
+git log
+git staus
+git log
+cd ~/linux-combined/
+ll
+git log
+git rebase -i HEAD~9
+git log
+git rebase -i HEAD~9
+git status
+git push -f
+dme
+dmesg 
+tmux a
+ll
+cd linux-combined/
+ll
+git fetch kvm
+git statsu
+git status
+git checkout -b patch_v2_internal_v6_rebase_2
+git rebase kvm/next
+git status
+vim arch/x86/include/asm/kvm_host.h
+vim arch/x86/kvm/x86.c
+git diff
+rm tools/testing/selftests/kvm/x86_64/smm_cr_pin_test
+git add -A
+git diff --staged
+git status
+git rebase --continue
+git status
+git log
+git status
+git log
+make -j $(($(nproc)*4)) && sudo make modules_install -j $(($(nproc)*4)) && sudo make install
+ll
+sudo make modules_install -j $(($(nproc)*4)) && sudo make install
