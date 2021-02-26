@@ -2,9 +2,9 @@
 set -xe
 
 KERNEL=${KERNEL:-'/boot/bzImage'}
-INIT=${INIT:-'/usr/lib/systemd/systemd'}
+INIT=${INIT:-'/usr/bin/init_l2.sh'}
 
-INIT='/usr/bin/rebooter'
+echo "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.L ro nokaslr init=${INIT}" > /home/johnsa1/l2_cmdline
 
 sudo $LEADING "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -smp cpus=2 \
@@ -22,7 +22,7 @@ sudo $LEADING "${HOME}/qemu/build/x86_64-softmmu/qemu-system-x86_64" $@ \
   -net \
     user,hostfwd=tcp::2222-:22 \
   -append \
-    "selinux=0 enforcing=0 console=ttyS0 rootfstype=9p root=/dev/root rootflags=trans=virtio,version=9p2000.L ro nokaslr sysctl.kexec_load_disabled=1 init=${INIT}" \
+    "$(cat /home/johnsa1/l2_cmdline)" \
   -fsdev \
     local,id=fsdev-root,path=/,security_model=passthrough,readonly \
   -device \
