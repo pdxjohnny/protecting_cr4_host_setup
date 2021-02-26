@@ -1,4 +1,86 @@
-Subject: [X86REVIEW PATCH v3 0/9] Paravirtualized Control Register Pinning
+Subject: [PATCH v6 0/9] Paravirtualized Control Register Pinning
+
+========================= BEGIN NOTE FOR PIERRE ========================
+
+Hi Pierre,
+
+This is John from Sandra Haron's team. Judi Goldstien sent an email
+introducing us last Friday. This is my Paravirtualized Control Register
+Pinning patchset which I've had trouble getting the x86 reviewers to
+review. Tony seemed like he was going to look at it, but then I never
+heard back. Could have been related to the timing, I sent it out around
+Thanksgiving.
+
+I'd really appreciate any advice you have about how I could get the
+reviewers to want to review this series. Please let me know if I can
+provide you with more info about any part of this patchset or the
+approach that I've taken so far.
+
+I also wanted to note that I have limited time to wrap this thing up, as
+I've been working on it for a little over a year now and have other
+priorities on my plate. My current goal is really just to get it through
+internal review and into external review again at this point. I'm
+relatively confident that the external discussion will come down to
+default behaviors rather than implementation details at this stage.
+If you have any comments on the code that'd be helpful too. However, my
+main problem is getting reviewers to look at the patchset in the first
+place.
+
+I was hoping to get advice from you from you on the following
+
+  - The kvm-unit-tests are what have held me up since my last rebase.
+    They changed the memory allocator which caused my L2 guest code
+    within the test I wrote to fault when enabling SMAP.
+
+    I haven't been able to figure out what's wrong. I was thinking, the
+    functionality of my patchset is sufficiently tested by toggling the
+    other bits. This patchset works right now, and all the tests for it
+    pass, with the base commit given from kvm/next. The current HEAD of
+    kvm/next isn't compiling, so I opted for sending you this copy
+    instead of rebasing.
+
+    Do you think it's okay for me to avoid further struggling with the
+    new kvm-unit-tests allocator and just not toggle the SMAP bit? Would
+    people throw up their arms and scoff at that? Or do you think I
+    should keep fighting with it.
+
+  - Do you have any comments on the cover letter. I know it's long, but
+    I'm not sure what to cut if anything. Do you have any tips on
+    structure? I'm following Tony Luck's guidance which was as follows.
+    I should add, in my mind, this cover letter follows this guidance.
+    However, I'm now realizing that I have a specific perspective. Please
+    let me know if you feel that this cover letter does not follow this
+    guidance, or if you have any tweaks to the format.
+
+      "That's a good intro for internal folks to let them know what you
+      want. It needs to be followed by the text of what you plan to
+      submit in the cover letter when you post upstream.
+
+      This is the most important component of an upstream submission.
+      Without a good one, community reviewers don't even know whether
+      this series is something they should be interested in.
+
+      You need to summarize:
+
+      1) What problem you are solving
+
+      2) How you are you solving it
+
+      3) [optional, but often a good idea] what other options did you
+         consider
+
+      4) What's in each patch (or group of patches). You should mention
+         any open areas, corner cases, or other bits where you are
+         looking for guidance to improve or fill in gaps."
+
+  - Any other advice you might have :)
+
+Thank you!
+- John
+
+
+
+=============== BEGIN INTERNAL MAILING LIST PREFACE NOTE ===============
 
 I'm seeking a Reviewed-by tag to go back into public review for the next
 version of this patchset. Rick and Kirill provided feedback on the last
@@ -10,6 +92,9 @@ sure shutdown the VM. Rick said Sean had expressed that the SVM code was
 in need of some work, so I made this a non-AMD feature because I'm not
 confident I can do that as it should be done without the ability to test
 since I lack AMD hardware.
+
+I have also update the cover letter to follow Tony's guidance, thank you
+for the help there!
 
 
 
@@ -243,6 +328,7 @@ everyone's comments, please let me know if I've missed anything.
 
 Here are the previous versions of this patchset for reference
 
+PATCH v5 (internal): https://eclists.intel.com/sympa/arc/linux-drivers-review/2020-11/msg00726.html
 PATCH v4 (internal): https://eclists.intel.com/sympa/arc/linux-drivers-review/2020-11/msg00510.html
 PATCH v3 (internal): https://eclists.intel.com/sympa/arc/linux-drivers-review/2020-10/msg00382.html
 PATCH v2 (internal): https://eclists.intel.com/sympa/arc/linux-drivers-review/2020-09/msg00593.html
